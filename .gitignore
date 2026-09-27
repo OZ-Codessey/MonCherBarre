@@ -1,0 +1,33 @@
+# ===== 환경변수 (가장 중요) =====
+.env
+.env.local
+.env.*.local
+
+# ===== Python 가상환경 =====
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# ===== Firebase 서비스 계정 키 =====
+# FIREBASE_SERVICE_ACCOUNT_JSON을 파일 경로로 관리하는 경우
+firebase-service-account.json
+serviceAccountKey.json
+*firebase-adminsdk*.json
+
+# ===== Node.js / 프론트엔드(빌드 도구 쓸 경우 대비) =====
+node_modules/
+package-lock.json
+
+# ===== OS/에디터 자동 생성 파일 =====
+.DS_Store
+.vscode/settings.json
+*.log
+
+# ===== 임시/테스트 데이터 =====
+*.tmp
+test_output/
+
+# ===== 96개 용어 임베딩 원본(용량 크면 별도 관리 고려) =====
+# embeddings_raw.json   # 필요시 주석 해제
