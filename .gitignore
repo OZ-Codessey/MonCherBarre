@@ -29,5 +29,9 @@ package-lock.json
 *.tmp
 test_output/
 
+# ===== Claude Desktop / MCP 로컬 설정 =====
+# 각 사용자의 로컬 경로가 포함되어 있어 공유 불가
+claude_desktop_config.json
+
 # ===== 96개 용어 임베딩 원본(용량 크면 별도 관리 고려) =====
 # embeddings_raw.json   # 필요시 주석 해제
