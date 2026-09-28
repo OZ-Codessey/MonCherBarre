@@ -104,6 +104,16 @@
             <p class="loading">불러오는 중…</p>
           </div>
         </div>
+
+        <!-- 통계 카드 -->
+        <div class="card stats-card">
+          <h3>연습 통계</h3>
+          <div class="stats-badges">
+            <span class="badge">🔥 연속 <strong id="streakDays">-</strong>일</span>
+            <span class="badge">📅 최다 요일: <strong id="bestDay">-</strong>요일</span>
+          </div>
+          <canvas id="monthlyChart" height="180"></canvas>
+        </div>
       </div>
     </section>
 
@@ -131,6 +141,7 @@
 
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

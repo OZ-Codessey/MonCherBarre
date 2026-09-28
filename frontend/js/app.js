@@ -150,6 +150,48 @@ async function deleteData(id) {
   }
 }
 
+// --- 통계 차트 ---
+let monthlyChartInstance = null;
+
+async function loadStatistics() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/data/statistics`);
+    if (!res.ok) throw new Error();
+    const stats = await res.json();
+
+    document.getElementById("streakDays").textContent = stats.streak_days;
+    document.getElementById("bestDay").textContent = stats.best_day;
+
+    const labels = Object.keys(stats.monthly_avg_min);
+    const values = Object.values(stats.monthly_avg_min);
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    const barColor = isDark ? "rgba(210,170,190,0.75)" : "rgba(160,90,115,0.75)";
+    const textColor = isDark ? "#e8d8df" : "#4a2535";
+
+    if (monthlyChartInstance) monthlyChartInstance.destroy();
+    monthlyChartInstance = new Chart(document.getElementById("monthlyChart"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{ label: "월평균 연습(분)", data: values, backgroundColor: barColor, borderRadius: 6 }],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: textColor } } },
+        scales: {
+          x: { ticks: { color: textColor } },
+          y: { ticks: { color: textColor }, beginAtZero: true },
+        },
+      },
+    });
+  } catch (err) {
+    // 통계 실패해도 다른 기능에 영향 없음
+  }
+}
+
+// 다크모드 전환 시 차트 색상도 업데이트
+themeToggle.addEventListener("click", () => loadStatistics());
+
 // --- 대화 기록 ---
 async function loadConversationsList() {
   const container = document.getElementById("conversationsListContainer");
@@ -201,5 +243,6 @@ function loadConversation(convId, title) {
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
   loadDataList();
+  loadStatistics();
   loadConversationsList();
 });

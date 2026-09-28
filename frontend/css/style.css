@@ -481,3 +481,20 @@ h1, h2 {
   padding: 20px;
   color: var(--mut);
 }
+
+/* 통계 카드 */
+.stats-card { margin-top: 20px; padding: 20px; }
+.stats-badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.badge {
+  background: var(--acc-soft);
+  color: var(--fg);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+}
+.badge strong { color: var(--acc); }
