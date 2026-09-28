@@ -1,8 +1,10 @@
+import json
+
 from openai import OpenAI
 
 from app.core.config import OPENAI_MODEL
 from app.schemas.chat import ChatRequest
-from app.services import conversation_service, data_service
+from app.services import conversation_service, data_service, tool_schemas
 
 _client = OpenAI()
 
@@ -21,6 +23,33 @@ def _build_system_prompt() -> str:
     )
 
 
+def _call_with_tools(messages: list[dict]) -> str:
+    # Function Calling 루프: GPT가 도구 호출을 요청하면 실제 함수를 실행해 결과를 돌려주고,
+    # 다시 물어본다. 최대 3번까지만 반복(무한루프 방지).
+    for _ in range(3):
+        completion = _client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=messages,
+            tools=tool_schemas.TOOLS,
+            max_completion_tokens=2000,
+            reasoning_effort="low",
+        )
+        msg = completion.choices[0].message
+
+        if not msg.tool_calls:
+            return msg.content
+
+        messages.append({"role": "assistant", "content": msg.content, "tool_calls": msg.tool_calls})
+        for call in msg.tool_calls:
+            args = json.loads(call.function.arguments or "{}")
+            result = tool_schemas.DISPATCH[call.function.name](**args)
+            messages.append(
+                {"role": "tool", "tool_call_id": call.id, "content": json.dumps(result, ensure_ascii=False)}
+            )
+
+    return "죄송해요, 지금은 답을 정리하지 못했어요."
+
+
 def send_message(req: ChatRequest) -> dict:
     conv_id = req.conversation_id
     if not conv_id:
@@ -34,15 +63,7 @@ def send_message(req: ChatRequest) -> dict:
     messages += [{"role": m["role"], "content": m["content"]} for m in history]
     messages.append({"role": "user", "content": req.message})
 
-    # gpt-5-mini는 추론모델이라 답변 전에 "reasoning" 토큰을 먼저 소모한다.
-    # reasoning_effort를 낮추고 max_completion_tokens를 넉넉히 줘서 실제 답변이 나오게 한다.
-    completion = _client.chat.completions.create(
-        model=OPENAI_MODEL,
-        messages=messages,
-        max_completion_tokens=2000,
-        reasoning_effort="low",
-    )
-    reply = completion.choices[0].message.content
+    reply = _call_with_tools(messages)
 
     conversation_service.append_message(conv_id, "user", req.message)
     conversation_service.append_message(conv_id, "assistant", reply)
