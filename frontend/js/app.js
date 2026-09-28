@@ -1,19 +1,26 @@
-// 배포 후엔 이 값을 실제 Render 백엔드 주소로 바꿔야 한다(README의 API_BASE_URL 환경변수와 대응).
 const API_BASE_URL = window.API_BASE_URL || "http://localhost:8000";
 
-// --- 다크모드: <html data-theme="dark|light">에 따라 css/style.css의 CSS 변수가 통째로 바뀐다.
-// localStorage에 저장해두면 새로고침해도 마지막 선택이 유지된다.
+// --- 테마 ---
 const themeToggle = document.getElementById("themeToggle");
 const savedTheme = localStorage.getItem("theme") || "light";
 document.documentElement.setAttribute("data-theme", savedTheme);
-
 themeToggle.addEventListener("click", () => {
   const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", next);
   localStorage.setItem("theme", next);
 });
 
-// async/await 예시 1: 데이터 요약을 백엔드에서 가져와 화면에 그대로 문장으로 박아넣는다.
+// --- 탭 전환 ---
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".tab-section").forEach((s) => s.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(`${btn.dataset.tab}-section`).classList.add("active");
+  });
+});
+
+// --- 스플래시 ---
 async function loadSummary() {
   const el = document.getElementById("summaryText");
   try {
@@ -22,10 +29,16 @@ async function loadSummary() {
     const s = await res.json();
     el.textContent = `기간 ${s.period} · 총 ${s.count}개 · 평균 ${s.metrics.average}분 · ${s.trend}`;
   } catch (err) {
-    el.textContent = "요약을 불러오지 못했어요. 백엔드 서버가 켜져 있는지 확인해주세요.";
+    el.textContent = "요약을 불러오지 못했어요.";
   }
 }
 
+const splashMinDelay = new Promise((resolve) => setTimeout(resolve, 900));
+Promise.all([loadSummary(), splashMinDelay]).then(() => {
+  document.getElementById("splash").classList.add("fade-out");
+});
+
+// --- 채팅 ---
 function appendMessage(text, role) {
   const box = document.getElementById("chatBox");
   const div = document.createElement("div");
@@ -39,10 +52,8 @@ function setLoading(isLoading) {
   document.getElementById("loadingRow").classList.toggle("hidden", !isLoading);
 }
 
-// async/await 예시 2: 사용자가 보낸 메시지를 화면에 먼저 붙이고(user 말풍선),
-// /api/chat 응답이 올 때까지 로딩 점 세 개를 보여준 뒤, 응답을 assistant 말풍선으로 붙인다.
-// 지금은 /api/chat이 없어서 catch로 빠지지만, Day2에서 그 엔드포인트가 생기면
-// 이 코드는 수정 없이 그대로 정상 동작한다.
+let currentConvId = null;
+
 async function sendMessage(message) {
   appendMessage(message, "user");
   setLoading(true);
@@ -50,13 +61,14 @@ async function sendMessage(message) {
     const res = await fetch(`${API_BASE_URL}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, conversation_id: currentConvId }),
     });
     if (!res.ok) throw new Error(`status ${res.status}`);
     const data = await res.json();
+    currentConvId = data.conversation_id;
     appendMessage(data.reply, "assistant");
   } catch (err) {
-    appendMessage("아직 /api/chat이 준비되지 않았어요 (Day 2에서 연결됩니다).", "assistant");
+    appendMessage("답변을 받지 못했어요. 다시 시도해주세요.", "assistant");
   } finally {
     setLoading(false);
   }
@@ -77,9 +89,117 @@ document.querySelectorAll(".routine-chip").forEach((btn) => {
   });
 });
 
-// 스플래시: 최소 900ms는 보여주고, summary 로딩까지 끝나면 살짝 페이드아웃하며 사라진다.
-// "최소 시간"을 두는 이유는 요약 fetch가 너무 빨리 끝나면 스플래시가 깜빡이듯 사라져 어색하기 때문.
-const splashMinDelay = new Promise((resolve) => setTimeout(resolve, 900));
-Promise.all([loadSummary(), splashMinDelay]).then(() => {
-  document.getElementById("splash").classList.add("fade-out");
+// --- 데이터 관리 ---
+document.getElementById("dataForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const date = document.getElementById("dataDate").value;
+  const value = parseFloat(document.getElementById("dataValue").value);
+  const memo = document.getElementById("dataMemo").value || null;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/data`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, value, memo }),
+    });
+    if (!res.ok) throw new Error();
+    alert("기록이 추가됐습니다!");
+    e.target.reset();
+    loadDataList();
+  } catch (err) {
+    alert("추가에 실패했어요.");
+  }
+});
+
+async function loadDataList() {
+  const container = document.getElementById("dataListContainer");
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/data`);
+    if (!res.ok) throw new Error();
+    const items = await res.json();
+
+    if (items.length === 0) {
+      container.innerHTML = "<p class='loading'>기록이 없어요.</p>";
+      return;
+    }
+
+    container.innerHTML = items.reverse().map((item) => `
+      <div class="data-item">
+        <div class="data-item-info">
+          <div class="data-item-date">${item.date} · ${item.value}분</div>
+          <div class="data-item-meta">${item.memo || "메모 없음"}</div>
+        </div>
+        <div class="data-item-actions">
+          <button class="btn-small btn-delete" onclick="deleteData('${item.id}')">삭제</button>
+        </div>
+      </div>
+    `).join("");
+  } catch (err) {
+    container.innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
+  }
+}
+
+async function deleteData(id) {
+  if (!confirm("삭제하시겠어요?")) return;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/data/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error();
+    loadDataList();
+  } catch (err) {
+    alert("삭제에 실패했어요.");
+  }
+}
+
+// --- 대화 기록 ---
+async function loadConversationsList() {
+  const container = document.getElementById("conversationsListContainer");
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/conversations`);
+    if (!res.ok) throw new Error();
+    const convs = await res.json();
+
+    if (convs.length === 0) {
+      container.innerHTML = "<p class='loading'>저장된 대화가 없어요.</p>";
+      return;
+    }
+
+    container.innerHTML = convs.reverse().map((c) => `
+      <div class="conversation-item">
+        <div class="conversation-item-info">
+          <div class="conversation-item-title">${c.title}</div>
+          <div class="data-item-meta">${c.messages.length}개 메시지</div>
+        </div>
+        <div class="conversation-item-actions">
+          <button class="btn-small btn-load" onclick="loadConversation('${c.id}', '${c.title.replace(/"/g, '\\"')}')">불러오기</button>
+        </div>
+      </div>
+    `).join("");
+  } catch (err) {
+    container.innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
+  }
+}
+
+function loadConversation(convId, title) {
+  const detail = document.getElementById("conversationDetail");
+  const msgContainer = document.getElementById("conversationMessages");
+
+  fetch(`${API_BASE_URL}/api/conversations/${convId}`)
+    .then((res) => res.json())
+    .then((conv) => {
+      currentConvId = convId;
+      document.getElementById("conversationTitle").textContent = conv.title;
+      msgContainer.innerHTML = conv.messages.map((m) => `
+        <div class="conversation-message ${m.role}">
+          ${m.content}
+        </div>
+      `).join("");
+      detail.classList.remove("hidden");
+    })
+    .catch(() => alert("불러오지 못했어요."));
+}
+
+// --- 초기화 ---
+document.addEventListener("DOMContentLoaded", () => {
+  loadDataList();
+  loadConversationsList();
 });
