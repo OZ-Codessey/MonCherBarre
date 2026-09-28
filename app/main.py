@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import ALLOWED_ORIGINS
-from app.routers import conversations, data
+from app.routers import chat, conversations, data
 
 app = FastAPI(title="발레 AI 비서 API")
 
@@ -24,6 +24,7 @@ app.add_middleware(
 # 대화기록(conversations), 챗봇(chat) 라우터도 Day2에서 여기 한 줄씩만 추가하면 된다.
 app.include_router(data.router)
 app.include_router(conversations.router)
+app.include_router(chat.router)
 
 # 개발용: 루트("/")에서 frontend/index.html이 바로 열리도록 정적 파일 서빙.
 # 배포 시엔 Vercel이 프론트를 따로 서빙하므로 이 마운트는 로컬 확인용이다.
