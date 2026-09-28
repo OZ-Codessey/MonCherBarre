@@ -42,7 +42,10 @@ def _call_with_tools(messages: list[dict]) -> str:
         messages.append({"role": "assistant", "content": msg.content, "tool_calls": msg.tool_calls})
         for call in msg.tool_calls:
             args = json.loads(call.function.arguments or "{}")
-            result = tool_schemas.DISPATCH[call.function.name](**args)
+            try:
+                result = tool_schemas.DISPATCH[call.function.name](**args)
+            except Exception:
+                result = {"error": "도구 실행 중 오류가 발생했어요."}
             messages.append(
                 {"role": "tool", "tool_call_id": call.id, "content": json.dumps(result, ensure_ascii=False)}
             )

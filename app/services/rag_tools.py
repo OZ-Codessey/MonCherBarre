@@ -16,15 +16,18 @@ def get_class_schedule() -> list[dict]:
 
 
 def get_seoul_weather() -> dict:
-    """RAG 아님: 외부 API(Open-Meteo, 키 불필요) 직접호출."""
-    resp = requests.get(
-        "https://api.open-meteo.com/v1/forecast",
-        params={"latitude": 37.5665, "longitude": 126.9780, "current_weather": "true"},
-        timeout=5,
-    )
-    resp.raise_for_status()
-    w = resp.json()["current_weather"]
-    return {"temperature_c": w["temperature"], "windspeed_kmh": w["windspeed"]}
+    """RAG 아님: 외부 API(Open-Meteo, 키 불필요) 직접호출. 실패 시 에러 메시지 반환."""
+    try:
+        resp = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={"latitude": 37.5665, "longitude": 126.9780, "current_weather": "true"},
+            timeout=8,
+        )
+        resp.raise_for_status()
+        w = resp.json()["current_weather"]
+        return {"temperature_c": w["temperature"], "windspeed_kmh": w["windspeed"]}
+    except Exception:
+        return {"error": "날씨 정보를 가져오지 못했어요. 잠시 후 다시 시도해주세요."}
 
 
 def get_moves_by_symptom(symptom_id: str) -> dict:
