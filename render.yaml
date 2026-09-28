@@ -1,0 +1,20 @@
+# Render 배포 설정: 이 파일을 보고 Render가 백엔드를 자동으로 빌드/실행한다.
+services:
+  - type: web
+    name: moncherbarre-api
+    runtime: python
+    plan: free
+    # 빌드 단계: 의존성 설치
+    buildCommand: "pip install -r requirements.txt"
+    # 실행 단계: $PORT는 Render가 주입하는 포트(하드코딩 금지)
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    # 앱이 살아있는지 확인하는 경로(우리가 추가한 /health)
+    healthCheckPath: /health
+    # 환경변수는 값 없이 이름만 선언 → 실제 값은 Render 대시보드에서 입력(비밀 보호)
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
