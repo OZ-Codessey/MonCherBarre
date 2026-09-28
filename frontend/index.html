@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MonCherBarre — 발레 AI 비서</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- 앱을 처음 열었을 때(PWA로 홈화면에서 실행 시 포함) 잠깐 보여주는 스플래시 화면.
+       iOS의 정적 apple-touch-startup-image는 기기별 해상도를 다 맞춰야 해서 불안정하므로,
+       대신 JS로 페이드아웃하는 오버레이 방식을 사용한다(모든 기기에서 동일하게 동작). -->
+  <div id="splash" class="splash">
+    <img src="assets/splash.jpg" alt="토슈즈" />
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      <span class="brand-name">Mon Cher Barre</span>
+    </div>
+    <button id="themeToggle" class="theme-toggle" aria-label="다크모드 전환">
+      <span class="dot"></span>
+    </button>
+  </header>
+
+  <main class="layout">
+    <section class="col col-left">
+      <div class="hero">
+        <img src="assets/hero.jpg" alt="발레 연습 중인 무용수" />
+        <div class="hero-caption">
+          <p class="eyebrow">Today's Practice</p>
+          <h1>침착하게, 다시 한 번</h1>
+        </div>
+      </div>
+
+      <div class="card summary-card">
+        <h2>데이터 요약</h2>
+        <p id="summaryText" class="summary-text">불러오는 중…</p>
+      </div>
+
+      <div class="card routine-card">
+        <h2>루틴 선택</h2>
+        <div class="routine-grid">
+          <button class="routine-chip" data-min="10">10분</button>
+          <button class="routine-chip" data-min="20">20분</button>
+          <button class="routine-chip" data-min="30">30분</button>
+          <button class="routine-chip" data-min="60">60분</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="col col-right">
+      <div class="card chat-card">
+        <h2>AI 비서에게 물어보기</h2>
+        <div id="chatBox" class="chat-box">
+          <div class="msg assistant">안녕하세요, 오늘 연습은 어떠셨나요? 데이터 요약을 참고해서 답해드릴게요.</div>
+        </div>
+        <div id="loadingRow" class="loading-row hidden">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" type="text" placeholder="예: 오늘 수업 있어?" autocomplete="off" />
+          <button type="submit">보내기</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
