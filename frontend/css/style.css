@@ -482,6 +482,14 @@ h1, h2 {
   color: var(--mut);
 }
 
+/* 내보내기 버튼 행 */
+.export-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
 /* 통계 카드 */
 .stats-card { margin-top: 20px; padding: 20px; }
 .stats-badges {

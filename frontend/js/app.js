@@ -240,6 +240,41 @@ function loadConversation(convId, title) {
     .catch(() => alert("불러오지 못했어요."));
 }
 
+// --- 내보내기 ---
+function triggerDownload(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function exportCSV() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/data`);
+    if (!res.ok) throw new Error();
+    const items = await res.json();
+    const header = "날짜,연습시간(분),메모";
+    const rows = items.map((i) => `${i.date},${i.value},"${i.memo || ""}"`);
+    triggerDownload([header, ...rows].join("\n"), "moncherbarre_data.csv", "text/csv;charset=utf-8;");
+  } catch {
+    alert("내보내기에 실패했어요.");
+  }
+}
+
+async function exportJSON() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/data`);
+    if (!res.ok) throw new Error();
+    const items = await res.json();
+    triggerDownload(JSON.stringify(items, null, 2), "moncherbarre_data.json", "application/json");
+  } catch {
+    alert("내보내기에 실패했어요.");
+  }
+}
+
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
   loadDataList();
