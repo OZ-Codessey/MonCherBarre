@@ -32,3 +32,8 @@ def delete_data(item_id: str):
 @router.get("/summary", response_model=DataSummary)  # GET /api/data/summary
 def get_summary():
     return data_service.get_summary()
+
+
+@router.get("/statistics")  # GET /api/data/statistics — 월별평균·최다요일·연속일수
+def get_statistics():
+    return data_service.get_statistics()

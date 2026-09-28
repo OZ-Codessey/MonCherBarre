@@ -49,6 +49,49 @@ def delete_data(item_id: str) -> None:
     ref.delete()
 
 
+# GET /api/data/statistics — 월별 평균 / 최다 연습 요일 / 연속 연습일 수
+def get_statistics() -> dict:
+    from collections import defaultdict
+    from datetime import datetime, timedelta
+
+    docs = list_data()
+    if not docs:
+        raise HTTPException(status_code=404, detail="no data available")
+
+    DAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"]
+    monthly: dict = defaultdict(list)
+    day_totals: dict = defaultdict(float)
+
+    for d in docs:
+        dt = datetime.strptime(d["date"], "%Y-%m-%d")
+        monthly[dt.strftime("%Y-%m")].append(d["value"])
+        day_totals[DAY_NAMES[dt.weekday()]] += d["value"]
+
+    # 월별 평균 연습시간(분)
+    monthly_avg = {k: round(sum(v) / len(v), 1) for k, v in sorted(monthly.items())}
+
+    # 최다 연습 요일 (누적 시간 기준)
+    best_day = max(day_totals, key=lambda x: day_totals[x]) if day_totals else "-"
+
+    # 연속 연습일 수(streak): 가장 최근 날짜부터 역방향으로 연속된 날 카운트
+    dates_sorted = sorted({d["date"] for d in docs}, reverse=True)
+    streak = 0
+    if dates_sorted:
+        expected = datetime.strptime(dates_sorted[0], "%Y-%m-%d")
+        for ds in dates_sorted:
+            if datetime.strptime(ds, "%Y-%m-%d") == expected:
+                streak += 1
+                expected -= timedelta(days=1)
+            else:
+                break
+
+    return {
+        "monthly_avg_min": monthly_avg,   # {"2025-01": 48.2, ...}
+        "best_day": best_day,             # "수"
+        "streak_days": streak,            # 7
+    }
+
+
 # GET /api/data/summary — 기간/개수/평균/최대/최소/트렌드 계산
 # 트렌드 계산 방식: 전체 기간을 앞/뒤 절반으로 나눠서, 뒤쪽 절반 평균이 앞쪽보다
 # 얼마나 늘었는지(%)를 본다. ±3% 안쪽이면 "유지"로 판단.
