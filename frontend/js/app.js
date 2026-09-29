@@ -124,12 +124,13 @@ async function loadDataList() {
     }
 
     container.innerHTML = items.reverse().map((item) => `
-      <div class="data-item">
+      <div class="data-item" id="item-${item.id}">
         <div class="data-item-info">
           <div class="data-item-date">${item.date} · ${item.value}분</div>
           <div class="data-item-meta">${item.memo || "메모 없음"}</div>
         </div>
         <div class="data-item-actions">
+          <button class="btn-small btn-edit" onclick="showEditForm('${item.id}','${item.date}',${item.value},'${item.memo || ""}')">수정</button>
           <button class="btn-small btn-delete" onclick="deleteData('${item.id}')">삭제</button>
         </div>
       </div>
@@ -147,6 +148,40 @@ async function deleteData(id) {
     loadDataList();
   } catch (err) {
     alert("삭제에 실패했어요.");
+  }
+}
+
+function showEditForm(id, date, value, memo) {
+  const row = document.getElementById(`item-${id}`);
+  row.innerHTML = `
+    <form class="edit-inline" onsubmit="updateData(event,'${id}')">
+      <input type="date" class="edit-date" value="${date}" required />
+      <input type="number" class="edit-value" value="${value}" min="0" max="300" required />
+      <input type="text" class="edit-memo" value="${memo}" placeholder="메모" />
+      <div class="edit-actions">
+        <button type="submit" class="btn-small btn-edit">저장</button>
+        <button type="button" class="btn-small" onclick="loadDataList()">취소</button>
+      </div>
+    </form>`;
+}
+
+async function updateData(e, id) {
+  e.preventDefault();
+  const form = e.target;
+  const date = form.querySelector(".edit-date").value;
+  const value = parseFloat(form.querySelector(".edit-value").value);
+  const memo = form.querySelector(".edit-memo").value || null;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/data/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, value, memo }),
+    });
+    if (!res.ok) throw new Error();
+    loadDataList();
+    loadStatistics();
+  } catch (err) {
+    alert("수정에 실패했어요.");
   }
 }
 

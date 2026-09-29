@@ -433,6 +433,31 @@ h1, h2 {
   color: #c85a5a;
 }
 
+.btn-edit {
+  background: var(--acc-soft);
+  color: var(--acc);
+}
+
+.edit-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0;
+}
+.edit-inline input {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 13px;
+}
+.edit-date { width: 130px; }
+.edit-value { width: 80px; }
+.edit-memo { flex: 1; min-width: 120px; }
+.edit-actions { display: flex; gap: 6px; }
+
 .btn-load {
   background: var(--acc-soft);
   color: var(--acc);
