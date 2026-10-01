@@ -124,15 +124,20 @@ document.getElementById("dataForm").addEventListener("submit", async (e) => {
 // D1~D5: 전체 데이터, 필터된 데이터, 표시 상태 관리
 let allItems = [];
 let filteredItems = [];
+let allConversations = [];  // 메모 검색에 포함할 대화 기록
 let showAll = false;
 const SHOW_LIMIT = 20;
 
 async function loadDataList() {
   const container = document.getElementById("dataListContainer");
   try {
-    const res = await fetch(`${API_BASE_URL}/api/data`);
-    if (!res.ok) throw new Error();
-    const items = await res.json();
+    const [dataRes, convRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/api/data`),
+      fetch(`${API_BASE_URL}/api/conversations`)
+    ]);
+    if (!dataRes.ok) throw new Error();
+    const items = await dataRes.json();
+    allConversations = convRes.ok ? await convRes.json() : [];  // 메모 검색용
     // D5: 날짜 내림차순 정렬(최신이 위) — 추가/수정/삭제 후에도 일관성 보장
     allItems = items.sort((a, b) => b.date.localeCompare(a.date));
     filteredItems = [...allItems];
@@ -205,7 +210,17 @@ function applyFilter() {
     if (date    && item.date !== date)                                     return false;
     if (start   && item.date < start)                                      return false;
     if (end     && item.date > end)                                        return false;
-    if (keyword && !(item.memo || "").toLowerCase().includes(keyword))     return false;
+    if (keyword) {
+      // 메모 검색: data의 memo + conversations의 모든 메시지 포함
+      const inMemo = (item.memo || "").toLowerCase().includes(keyword);
+      const inConversations = allConversations.some(conv =>
+        conv.title.toLowerCase().includes(keyword) ||
+        (conv.messages || []).some(msg =>
+          (msg.content || msg.reply || "").toLowerCase().includes(keyword)
+        )
+      );
+      if (!inMemo && !inConversations) return false;
+    }
     return true;
   });
 
@@ -235,9 +250,11 @@ async function deleteData(id) {
 
 function showEditForm(id, date, value, memo) {
   const row = document.getElementById(`item-${id}`);
+  // date 포맷 보장: YYYY-MM-DD (2자리 월일)
+  const dateStr = date.includes('-') ? date : new Date(date).toISOString().split('T')[0];
   row.innerHTML = `
     <form class="edit-inline" onsubmit="updateData(event,'${id}')">
-      <input type="date" class="edit-date" value="${date}" required />
+      <input type="date" class="edit-date" value="${dateStr}" required />
       <input type="number" class="edit-value" value="${value}" min="0" max="300" required />
       <input type="text" class="edit-memo" value="${memo}" placeholder="메모" />
       <div class="edit-actions">
