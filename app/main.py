@@ -1,15 +1,17 @@
 # 이 파일이 앱의 "시작점"이다. uvicorn app.main:app 으로 이 app 객체를 실행한다.
-import os
-from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from app.core.config import ALLOWED_ORIGINS
 from app.routers import chat, conversations, data
 
 app = FastAPI(title="발레 AI 비서 API")
+
+
+@app.get("/")
+async def root():
+    """루트 경로 — API 서버임을 나타냄."""
+    return {"status": "ok"}
 
 
 @app.get("/health")
@@ -32,9 +34,3 @@ app.add_middleware(
 app.include_router(data.router)
 app.include_router(conversations.router)
 app.include_router(chat.router)
-
-# 로컬 개발 시에만 프론트 서빙. Render(ENVIRONMENT=production)에서는 Vercel이 담당.
-# Render 대시보드에 ENVIRONMENT=production 환경변수를 추가하면 이 마운트가 비활성화됨.
-FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
-if os.getenv("ENVIRONMENT") != "production":
-    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
