@@ -1,4 +1,5 @@
 # 이 파일이 앱의 "시작점"이다. uvicorn app.main:app 으로 이 app 객체를 실행한다.
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -32,7 +33,8 @@ app.include_router(data.router)
 app.include_router(conversations.router)
 app.include_router(chat.router)
 
-# 개발용: 루트("/")에서 frontend/index.html이 바로 열리도록 정적 파일 서빙.
-# 배포 시엔 Vercel이 프론트를 따로 서빙하므로 이 마운트는 로컬 확인용이다.
+# 로컬 개발 시에만 프론트 서빙. Render(ENVIRONMENT=production)에서는 Vercel이 담당.
+# Render 대시보드에 ENVIRONMENT=production 환경변수를 추가하면 이 마운트가 비활성화됨.
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
-app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+if os.getenv("ENVIRONMENT") != "production":
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
