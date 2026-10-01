@@ -20,12 +20,14 @@ def list_data() -> list[dict]:
     return [_doc_to_out(d) for d in docs]
 
 
-# POST /api/data — 새 문서를 추가(Firestore가 랜덤 id를 자동 발급)
+# POST /api/data — 날짜를 문서 ID로 사용(삭제/수정 시 날짜로 직접 접근 가능)
+# 기존 365개 데이터는 건드리지 않음. 새로 추가되는 기록만 날짜 ID 적용.
 def create_data(item: DataCreate) -> dict:
-    payload = {"date": item.date.isoformat(), "value": item.value, "memo": item.memo}
-    ref = db.collection(COLLECTION).document()
+    date_str = item.date.isoformat()                          # "2025-01-01" 형식
+    payload = {"date": date_str, "value": item.value, "memo": item.memo}
+    ref = db.collection(COLLECTION).document(date_str)        # 날짜를 문서 ID로 지정
     ref.set(payload)
-    return {"id": ref.id, **payload}
+    return {"id": date_str, **payload}
 
 
 # PUT /api/data/{id} — 존재하는 문서만 부분 수정. 없으면 404.
