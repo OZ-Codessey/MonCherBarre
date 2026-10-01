@@ -261,6 +261,18 @@ h1, h2 {
   display: none;
 }
 
+/* 콜드스타트(Render 슬립) 안내문구 — 5초 후 자동 표시 */
+.cold-start-notice {
+  font-size: 0.82rem;
+  color: var(--mut);
+  text-align: center;
+  padding: 6px 12px;
+  background: var(--acc-soft);
+  border-radius: 8px;
+  margin: 4px 0 8px;
+}
+.cold-start-notice.hidden { display: none; }
+
 .loading-row .dot {
   width: 6px;
   height: 6px;

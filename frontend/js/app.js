@@ -48,8 +48,18 @@ function appendMessage(text, role) {
   box.scrollTop = box.scrollHeight;
 }
 
+let coldStartTimer = null;
+
 function setLoading(isLoading) {
   document.getElementById("loadingRow").classList.toggle("hidden", !isLoading);
+  const notice = document.getElementById("coldStartNotice");
+  if (isLoading) {
+    // 5초 후에도 응답 없으면 콜드스타트 안내 표시
+    coldStartTimer = setTimeout(() => notice.classList.remove("hidden"), 5000);
+  } else {
+    clearTimeout(coldStartTimer);
+    notice.classList.add("hidden");
+  }
 }
 
 let currentConvId = null;
