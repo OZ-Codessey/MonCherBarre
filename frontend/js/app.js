@@ -111,33 +111,105 @@ document.getElementById("dataForm").addEventListener("submit", async (e) => {
   }
 });
 
+// D1~D5: 전체 데이터, 필터된 데이터, 표시 상태 관리
+let allItems = [];
+let filteredItems = [];
+let showAll = false;
+const SHOW_LIMIT = 20;
+
 async function loadDataList() {
   const container = document.getElementById("dataListContainer");
   try {
     const res = await fetch(`${API_BASE_URL}/api/data`);
     if (!res.ok) throw new Error();
     const items = await res.json();
-
-    if (items.length === 0) {
-      container.innerHTML = "<p class='loading'>기록이 없어요.</p>";
-      return;
-    }
-
-    container.innerHTML = items.reverse().map((item) => `
-      <div class="data-item" id="item-${item.id}">
-        <div class="data-item-info">
-          <div class="data-item-date">${item.date} · ${item.value}분</div>
-          <div class="data-item-meta">${item.memo || "메모 없음"}</div>
-        </div>
-        <div class="data-item-actions">
-          <button class="btn-small btn-edit" onclick="showEditForm('${item.id}','${item.date}',${item.value},'${item.memo || ""}')">수정</button>
-          <button class="btn-small btn-delete" onclick="deleteData('${item.id}')">삭제</button>
-        </div>
-      </div>
-    `).join("");
+    // D5: 날짜 내림차순 정렬(최신이 위) — 추가/수정/삭제 후에도 일관성 보장
+    allItems = items.sort((a, b) => b.date.localeCompare(a.date));
+    filteredItems = [...allItems];
+    showAll = false;
+    renderDataList();
   } catch (err) {
     container.innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
   }
+}
+
+function renderDataList() {
+  const container = document.getElementById("dataListContainer");
+  const showMoreRow = document.getElementById("showMoreRow");
+  const showMoreBtn = document.getElementById("showMoreBtn");
+
+  if (filteredItems.length === 0) {
+    container.innerHTML = "<p class='loading'>검색 결과가 없어요.</p>";
+    showMoreRow.classList.add("hidden");
+    document.getElementById("filterStatus").textContent = "검색 결과 없음";
+    return;
+  }
+
+  // D1: 기본 20개만 표시
+  const toShow = showAll ? filteredItems : filteredItems.slice(0, SHOW_LIMIT);
+
+  container.innerHTML = toShow.map((item) => `
+    <div class="data-item" id="item-${item.id}">
+      <div class="data-item-info">
+        <div class="data-item-date">${item.date} · ${item.value}분</div>
+        <div class="data-item-meta">${item.memo || "메모 없음"}</div>
+      </div>
+      <div class="data-item-actions">
+        <button class="btn-small btn-edit" onclick="showEditForm('${item.id}','${item.date}',${item.value},'${item.memo || ""}')">수정</button>
+        <button class="btn-small btn-delete" onclick="deleteData('${item.id}')">삭제</button>
+      </div>
+    </div>
+  `).join("");
+
+  // 더보기/접기 버튼
+  if (filteredItems.length > SHOW_LIMIT) {
+    showMoreRow.classList.remove("hidden");
+    showMoreBtn.textContent = showAll
+      ? `접기 ↑`
+      : `더 보기 (${filteredItems.length - SHOW_LIMIT}개 더) ↓`;
+  } else {
+    showMoreRow.classList.add("hidden");
+  }
+
+  // 필터 상태 표시
+  document.getElementById("filterStatus").textContent =
+    allItems.length !== filteredItems.length
+      ? `전체 ${allItems.length}개 중 ${filteredItems.length}개 표시`
+      : `전체 ${allItems.length}개`;
+}
+
+// D1: 더보기/접기 토글
+function toggleShowMore() {
+  showAll = !showAll;
+  renderDataList();
+}
+
+// D2~D4: 날짜·기간·키워드 필터
+function applyFilter() {
+  const date    = document.getElementById("searchDate").value;
+  const start   = document.getElementById("searchStart").value;
+  const end     = document.getElementById("searchEnd").value;
+  const keyword = document.getElementById("searchKeyword").value.trim().toLowerCase();
+
+  filteredItems = allItems.filter((item) => {
+    if (date    && item.date !== date)                                     return false;
+    if (start   && item.date < start)                                      return false;
+    if (end     && item.date > end)                                        return false;
+    if (keyword && !(item.memo || "").toLowerCase().includes(keyword))     return false;
+    return true;
+  });
+
+  showAll = false;
+  renderDataList();
+}
+
+function clearFilter() {
+  ["searchDate","searchStart","searchEnd","searchKeyword"].forEach((id) => {
+    document.getElementById(id).value = "";
+  });
+  filteredItems = [...allItems];
+  showAll = false;
+  renderDataList();
 }
 
 async function deleteData(id) {

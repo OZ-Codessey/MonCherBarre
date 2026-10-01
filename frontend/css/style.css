@@ -531,3 +531,51 @@ h1, h2 {
   font-size: 0.9rem;
 }
 .badge strong { color: var(--acc); }
+
+/* 검색/필터 카드 */
+.search-card { padding: 20px; margin-bottom: 16px; }
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+.search-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+.search-group input {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 0.9rem;
+}
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.search-btns {
+  display: flex;
+  gap: 6px;
+  align-self: flex-end;
+  padding-bottom: 1px;
+}
+.filter-status {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: var(--mut);
+}
+
+/* 더보기/접기 버튼 행 */
+.show-more-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+.show-more-row.hidden { display: none; }

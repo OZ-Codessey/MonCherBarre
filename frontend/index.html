@@ -98,10 +98,41 @@
           </form>
         </div>
 
+        <!-- 검색/필터 카드 -->
+        <div class="card search-card">
+          <h3>🔍 검색 / 필터</h3>
+          <div class="search-row">
+            <div class="search-group">
+              <label>날짜</label>
+              <input type="date" id="searchDate" />
+            </div>
+            <div class="search-group">
+              <label>기간</label>
+              <div class="range-row">
+                <input type="date" id="searchStart" />
+                <span>~</span>
+                <input type="date" id="searchEnd" />
+              </div>
+            </div>
+            <div class="search-group">
+              <label>메모 검색</label>
+              <input type="text" id="searchKeyword" placeholder="예: 바레" />
+            </div>
+            <div class="search-btns">
+              <button class="btn-primary btn-small" onclick="applyFilter()">검색</button>
+              <button class="btn-secondary btn-small" onclick="clearFilter()">초기화</button>
+            </div>
+          </div>
+          <p id="filterStatus" class="filter-status"></p>
+        </div>
+
         <div class="card data-list-card">
           <h3>기록 목록</h3>
           <div id="dataListContainer" class="data-list">
             <p class="loading">불러오는 중…</p>
+          </div>
+          <div id="showMoreRow" class="show-more-row hidden">
+            <button class="btn-secondary btn-small" id="showMoreBtn" onclick="toggleShowMore()">더 보기</button>
           </div>
           <div class="export-row">
             <button class="btn-secondary btn-small" onclick="exportCSV()">CSV 다운로드</button>
