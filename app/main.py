@@ -12,8 +12,8 @@ from app.routers import chat, conversations, data
 app = FastAPI(title="발레 AI 비서 API")
 
 
-@app.get("/ballet")
-async def ballet():
+@app.get("/health")
+async def health():
     """배포 환경의 헬스 체크 엔드포인트(Render 등에서 앱 상태 확인용)."""
     return {"status": "ok"}
 
