@@ -25,6 +25,8 @@
     <button class="tab-btn active" data-tab="chat">채팅</button>
     <button class="tab-btn" data-tab="data">데이터</button>
     <button class="tab-btn" data-tab="conversations">대화</button>
+    <button class="tab-btn" data-tab="dictionary">발레 사전</button>
+    <button class="tab-btn" data-tab="favorites">⚜️ Mes Sélections</button>
   </nav>
 
   <main class="container">
@@ -149,8 +151,42 @@
           <div class="stats-badges">
             <span class="badge">🔥 연속 <strong id="streakDays">-</strong>일</span>
             <span class="badge">📅 최다 요일: <strong id="bestDay">-</strong>요일</span>
+            <span class="badge">⏱️ 누적 <strong id="totalHours">-</strong>시간</span>
           </div>
-          <canvas id="monthlyChart" height="180"></canvas>
+
+          <!-- 4개 차트 그리드 -->
+          <div class="charts-grid">
+            <!-- 1. 월별 평균 분 -->
+            <div class="chart-container">
+              <h4>월별 평균 연습</h4>
+              <p class="chart-label">평균 분</p>
+              <canvas id="monthlyChart" height="150"></canvas>
+            </div>
+
+            <!-- 2. 요일별 분포 -->
+            <div class="chart-container">
+              <h4>요일별 연습량</h4>
+              <p class="chart-label">누적 분</p>
+              <canvas id="dayChart" height="150"></canvas>
+            </div>
+
+            <!-- 3. 누적 시간 (게이지) -->
+            <div class="chart-container">
+              <h4>총 연습 시간</h4>
+              <p class="chart-label">시간</p>
+              <canvas id="totalChart" height="150"></canvas>
+            </div>
+
+            <!-- 4. 부상별 운동 -->
+            <div class="chart-container">
+              <h4>부상별 강화운동</h4>
+              <p class="chart-label">운동 개수</p>
+              <canvas id="symptomChart" height="150"></canvas>
+            </div>
+          </div>
+
+          <!-- 검색/필터 결과 요약 -->
+          <p id="statsNote" class="stats-note"></p>
         </div>
       </div>
     </section>
@@ -172,6 +208,57 @@
           <div id="conversationMessages" class="conversation-messages">
           </div>
           <button class="btn-secondary" onclick="document.getElementById('conversationDetail').classList.add('hidden')">닫기</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 발레 사전 섹션 -->
+    <section id="dictionary-section" class="tab-section">
+      <div class="dictionary-container">
+        <h2>발레 용어 사전</h2>
+
+        <!-- 알파벳 필터 -->
+        <div class="card dictionary-filter-card">
+          <div class="alphabet-filter" id="alphabetFilter">
+            <!-- JavaScript에서 동적 생성 -->
+          </div>
+        </div>
+
+        <!-- 용어 목록 -->
+        <div class="card dictionary-list-card">
+          <div id="dictionaryListContainer" class="dictionary-list">
+            <p class="loading">불러오는 중…</p>
+          </div>
+        </div>
+
+        <!-- 용어 상세 -->
+        <div id="dictionaryDetail" class="card dictionary-detail hidden">
+          <h3 id="dictTermTitle">용어</h3>
+          <div class="dict-meta">
+            <p id="dictPronunciation" class="dict-pronunciation"></p>
+            <p id="dictDescription" class="dict-description"></p>
+          </div>
+          <div id="dictVideo" class="dict-video">
+            <!-- Royal Ballet 비디오 -->
+          </div>
+          <div class="dict-actions">
+            <button class="btn-primary" id="moreVideosBtn" onclick="searchMoreVideos()" style="display:none;">🔍 더 많은 영상 찾기</button>
+            <button class="btn-favorite" id="favoriteBtn" onclick="addToFavorites()">⚜️ Ajouter</button>
+          </div>
+          <button class="btn-secondary" onclick="closeDictionaryDetail()">닫기</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 즐겨찾기 섹션 -->
+    <section id="favorites-section" class="tab-section">
+      <div class="favorites-container">
+        <h2>⚜️ Mes Sélections</h2>
+
+        <div class="card favorites-list-card">
+          <div id="favoritesList" class="favorites-list">
+            <p class="loading">불러오는 중…</p>
+          </div>
         </div>
       </div>
     </section>

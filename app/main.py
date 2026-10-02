@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import ALLOWED_ORIGINS
-from app.routers import chat, conversations, data
+from app.routers import chat, conversations, data, moves
 
 app = FastAPI(title="발레 AI 비서 API")
 
@@ -29,8 +29,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# routers/data.py에 정의된 /api/data 관련 5개 엔드포인트를 이 앱에 등록.
-# 대화기록(conversations), 챗봇(chat) 라우터도 Day2에서 여기 한 줄씩만 추가하면 된다.
+# 라우터 등록
 app.include_router(data.router)
 app.include_router(conversations.router)
 app.include_router(chat.router)
+app.include_router(moves.router)

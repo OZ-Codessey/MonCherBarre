@@ -35,3 +35,5 @@ claude_desktop_config.json
 
 # ===== 96개 용어 임베딩 원본(용량 크면 별도 관리 고려) =====
 # embeddings_raw.json   # 필요시 주석 해제
+.vercel
+.env*

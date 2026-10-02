@@ -87,10 +87,29 @@ def get_statistics() -> dict:
             else:
                 break
 
+    # 요일별 총 분
+    day_totals_sorted = {day: round(day_totals.get(day, 0), 1) for day in DAY_NAMES}
+
+    # 누적 연습 시간
+    total_minutes = sum(d["value"] for d in docs)
+    total_hours = round(total_minutes / 60, 1)
+
+    # 부상별 운동 횟수 (symptom_map에서 강화운동 링크 개수)
+    from app.core.firebase import db
+    symptom_docs = list(db.collection("symptom_map").stream())
+    symptom_exercise_counts = {}
+    for doc in symptom_docs:
+        data = doc.to_dict()
+        symptom_exercise_counts[data.get("symptom", "기타")] = len(data.get("strengthening_exercises", []))
+
     return {
-        "monthly_avg_min": monthly_avg,   # {"2025-01": 48.2, ...}
-        "best_day": best_day,             # "수"
-        "streak_days": streak,            # 7
+        "monthly_avg_min": monthly_avg,        # {"2025-01": 48.2, ...}
+        "day_totals_min": day_totals_sorted,   # {"월": 240.5, "화": 180.2, ...}
+        "best_day": best_day,                  # "수"
+        "streak_days": streak,                 # 7
+        "total_minutes": total_minutes,        # 15480
+        "total_hours": total_hours,            # 258.0
+        "symptom_exercise_counts": symptom_exercise_counts,  # {"발목": 3, "무릎": 2, ...}
     }
 
 

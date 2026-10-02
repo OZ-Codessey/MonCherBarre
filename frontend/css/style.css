@@ -591,3 +591,307 @@ h1, h2 {
   margin-top: 12px;
 }
 .show-more-row.hidden { display: none; }
+
+/* ─── 4개 차트 그리드 (iPad 최적화) ─── */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.chart-container {
+  background: var(--acc-soft);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.chart-container h4 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  color: var(--fg);
+}
+
+.chart-label {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  color: var(--mut);
+}
+
+.stats-note {
+  margin-top: 16px;
+  padding: 10px;
+  background: var(--acc-soft);
+  border-left: 3px solid var(--acc);
+  font-size: 0.85rem;
+  color: var(--fg);
+  line-height: 1.5;
+}
+
+/* 발레 사전 */
+.dictionary-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.alphabet-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  padding: 12px;
+}
+
+.alphabet-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--fg);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.9rem;
+}
+
+.alphabet-btn:hover,
+.alphabet-btn.active {
+  background: var(--acc);
+  color: #fff;
+  border-color: var(--acc);
+}
+
+.dictionary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dictionary-item {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dictionary-item:hover {
+  background: var(--acc-soft);
+  border-color: var(--acc);
+}
+
+.dictionary-item-term {
+  font-weight: 600;
+  color: var(--acc);
+}
+
+.dictionary-item-pron {
+  font-size: 0.85rem;
+  color: var(--mut);
+  margin-left: 8px;
+}
+
+.dictionary-detail {
+  margin-top: 20px;
+}
+
+.dictionary-detail.hidden {
+  display: none;
+}
+
+.dict-meta {
+  margin-bottom: 16px;
+}
+
+.dict-pronunciation {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: var(--mut);
+  font-style: italic;
+}
+
+.dict-description {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.dict-video {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--acc-soft);
+  border-radius: 8px;
+}
+
+.dict-video iframe {
+  width: 100%;
+  max-width: 400px;
+  height: 225px;
+  border: none;
+  border-radius: 6px;
+}
+
+.dict-video p {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+/* ============================================================================
+   🎭 Favorites Button & Section (Parang-Sê Heritage Colors)
+   ============================================================================ */
+
+.dict-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-favorite {
+  background: #F37021;
+  color: #F5F0EB;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-favorite:hover {
+  background: #e05a0a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 112, 33, 0.3);
+}
+
+.btn-favorite.active {
+  background: #d94c05;
+}
+
+.favorites-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.favorites-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.favorite-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.favorite-card:hover {
+  border-color: #F37021;
+  box-shadow: 0 4px 12px rgba(243, 112, 33, 0.15);
+}
+
+.favorite-card-header {
+  padding: 14px;
+  background: #F37021;
+  color: #F5F0EB;
+}
+
+.favorite-card-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.favorite-card-header p {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: rgba(245, 240, 235, 0.9);
+}
+
+.favorite-card-body {
+  padding: 12px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.favorite-meta {
+  font-size: 0.85rem;
+  color: var(--mut);
+}
+
+.favorite-meta-item {
+  display: flex;
+  gap: 4px;
+}
+
+.favorite-meta-label {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.favorite-card-footer {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+}
+
+.btn-play {
+  flex: 1;
+  background: #F37021;
+  color: #F5F0EB;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.btn-play:hover {
+  background: #e05a0a;
+}
+
+.btn-remove {
+  background: var(--acc-soft);
+  color: var(--acc);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-remove:hover {
+  background: #f0d5e0;
+}
+
+.favorites-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.favorites-empty p {
+  color: var(--mut);
+  font-size: 0.95rem;
+  margin: 0;
+}
