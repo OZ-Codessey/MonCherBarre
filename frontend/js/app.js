@@ -1,5 +1,25 @@
 const API_BASE_URL = window.API_BASE_URL || "https://moncherbarre.onrender.com";
 
+// --- 랜덤 이미지 ---
+const STUDIO_IMAGES = [
+  'avi-richards-G-BPjqxb0ho-unsplash.jpg',
+  'carolin-thiergart-jVJB6t7xJrU-unsplash.jpg',
+  'juli-kosolapova-H-9pOBc4c84-unsplash.jpg',
+  'kazuo-ota-2x8o7ZdoB70-unsplash.jpg',
+  'pexels-cottonbro-10639358.jpg',
+];
+
+function getRandomImage() {
+  return STUDIO_IMAGES[Math.floor(Math.random() * STUDIO_IMAGES.length)];
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const splashImg = document.getElementById('splashImg');
+  const heroImg = document.getElementById('heroImg');
+  if (splashImg) splashImg.src = `studio/${getRandomImage()}`;
+  if (heroImg) heroImg.src = `studio/${getRandomImage()}`;
+});
+
 // --- 테마 ---
 const themeToggle = document.getElementById("themeToggle");
 const savedTheme = localStorage.getItem("theme") || "light";
@@ -628,9 +648,16 @@ async function loadDictionary() {
       allMoves = JSON.parse(cached);
     } else {
       // 첫 방문 시에만 API 호출 → 96개 용어를 받아서 localStorage에 저장
-      const res = await fetch(`${API_BASE_URL}/api/moves`);
-      if (!res.ok) throw new Error();
-      allMoves = await res.json();
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/moves`);
+        if (!res.ok) throw new Error();
+        allMoves = await res.json();
+      } catch {
+        // API 실패 시 → backup JSON 사용 (Firestore quota 초과 상황 대비)
+        const backupRes = await fetch('./assets/moves-backup.json');
+        if (!backupRes.ok) throw new Error('Backup JSON 로드 실패');
+        allMoves = await backupRes.json();
+      }
       localStorage.setItem('allMoves', JSON.stringify(allMoves));
     }
 
