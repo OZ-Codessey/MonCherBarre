@@ -871,13 +871,30 @@ function showDictionaryDetail(frenchTerm) {
 
   // 1️⃣ Royal Ballet 메인 영상 (1순위)
   if (move.main_video && move.main_video.url) {
+    const videoId = move.main_video.url.split("v=")[1];
     videoHtml += `
       <div style="margin-bottom: 12px;">
         <p style="margin: 0 0 8px; font-size: 0.85rem; color: #F37021; font-weight: 600;">
           🎭 Royal Ballet (공식 영상)
         </p>
-        <iframe src="https://www.youtube.com/embed/${move.main_video.url.split("v=")[1]}"
+        <iframe src="https://www.youtube.com/embed/${videoId}"
                 style="width: 100%; height: 225px; border-radius: 6px;" allowfullscreen></iframe>
+        <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener" style="
+          display: inline-block;
+          margin-top: 8px;
+          padding: 8px 14px;
+          background: #F37021;
+          color: white;
+          text-decoration: none;
+          border-radius: 6px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          transition: all 0.15s ease;
+          border: 2px solid #F37021;
+        " onmouseover="this.style.background='white'; this.style.color='#F37021';"
+           onmouseout="this.style.background='#F37021'; this.style.color='white';">
+          🎬 YouTube에서 보기
+        </a>
       </div>
     `;
   } else {
