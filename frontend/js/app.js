@@ -619,9 +619,17 @@ let selectedAlphabet = "A";
 
 async function loadDictionary() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/moves`);
-    if (!res.ok) throw new Error();
-    allMoves = await res.json();
+    // Step 1: localStorage에서 확인 (캐싱된 데이터 사용)
+    const cached = localStorage.getItem('allMoves');
+    if (cached) {
+      allMoves = JSON.parse(cached);
+    } else {
+      // Step 2: localStorage에 없으면 API에서 받아서 저장
+      const res = await fetch(`${API_BASE_URL}/api/moves`);
+      if (!res.ok) throw new Error();
+      allMoves = await res.json();
+      localStorage.setItem('allMoves', JSON.stringify(allMoves));
+    }
 
     // 알파벳 필터 UI 생성
     const filterContainer = document.getElementById("alphabetFilter");
