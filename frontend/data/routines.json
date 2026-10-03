@@ -1,0 +1,62 @@
+{
+  "10": {
+    "duration_min": 10,
+    "sections": [
+      {
+        "area": "매트",
+        "music_sequence": ["plie_rond", "waltz_general", "frappe_allegro"],
+        "total_duration": 600
+      }
+    ]
+  },
+  "20": {
+    "duration_min": 20,
+    "sections": [
+      {
+        "area": "바",
+        "music_sequence": ["plie_rond", "tendu_degage", "grand", "frappe_allegro"],
+        "total_duration": 627
+      },
+      {
+        "area": "센터",
+        "music_sequence": ["adagio", "turns", "waltz_general"],
+        "total_duration": 720
+      }
+    ]
+  },
+  "30": {
+    "duration_min": 30,
+    "sections": [
+      {
+        "area": "바",
+        "music_sequence": ["plie_rond", "tendu_degage", "adagio", "grand", "frappe_allegro"],
+        "total_duration": 867
+      },
+      {
+        "area": "센터",
+        "music_sequence": ["adagio", "tendu_degage", "turns", "waltz_general", "grand"],
+        "total_duration": 1047
+      }
+    ]
+  },
+  "60": {
+    "duration_min": 60,
+    "sections": [
+      {
+        "area": "매트",
+        "music_sequence": ["plie_rond", "waltz_general", "adagio", "tendu_degage", "grand", "frappe_allegro"],
+        "total_duration": 1227
+      },
+      {
+        "area": "바",
+        "music_sequence": ["plie_rond", "tendu_degage", "adagio", "waltz_general", "grand", "frappe_allegro"],
+        "total_duration": 1227
+      },
+      {
+        "area": "센터",
+        "music_sequence": ["adagio", "tendu_degage", "waltz_general", "turns", "grand", "frappe_allegro"],
+        "total_duration": 1227
+      }
+    ]
+  }
+}

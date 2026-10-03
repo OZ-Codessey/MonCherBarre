@@ -895,3 +895,131 @@ h1, h2 {
   font-size: 0.95rem;
   margin: 0;
 }
+
+/* --- 음악 플레이어 --- */
+.music-player {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--bg-sec) 0%, rgba(243, 112, 33, 0.05) 100%);
+  border: 2px solid var(--acc-soft);
+  border-radius: 12px;
+  animation: slideInUp 0.3s ease;
+}
+
+.music-player.hidden {
+  display: none;
+}
+
+.now-playing {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--acc-soft);
+}
+
+.now-playing h3 {
+  margin: 0 0 6px 0;
+  font-size: 0.85rem;
+  color: var(--acc);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.now-playing h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.2rem;
+  color: var(--fg);
+}
+
+.now-playing p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--mut);
+  line-height: 1.4;
+}
+
+.player-controls {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.player-controls button {
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.player-controls .btn-icon {
+  flex: 0 0 44px;
+  background: var(--acc-soft);
+  color: var(--acc);
+  font-size: 1rem;
+  padding: 10px;
+}
+
+.player-controls .btn-icon:hover {
+  background: var(--acc);
+  color: white;
+  transform: scale(1.05);
+}
+
+.player-controls .btn-play {
+  flex: 1;
+  background: var(--acc);
+  color: white;
+  min-height: 44px;
+  font-size: 1rem;
+}
+
+.player-controls .btn-play:hover {
+  background: #e05a0a;
+  transform: scale(1.02);
+}
+
+.music-list {
+  background: rgba(243, 112, 33, 0.08);
+  border-radius: 8px;
+  padding: 8px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.music-item {
+  padding: 6px 10px;
+  margin: 4px 0;
+  border-radius: 6px;
+  background: var(--bg);
+  border-left: 3px solid var(--acc-soft);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.music-item:hover {
+  background: var(--acc-soft);
+  border-left-color: var(--acc);
+}
+
+.music-item.active {
+  background: var(--acc-soft);
+  border-left-color: var(--acc);
+  font-weight: 600;
+  color: var(--acc);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

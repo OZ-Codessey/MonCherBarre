@@ -55,6 +55,32 @@
               <button class="routine-chip" data-min="30">30분</button>
               <button class="routine-chip" data-min="60">60분</button>
             </div>
+
+            <!-- 음악 플레이어 -->
+            <div id="musicPlayer" class="music-player hidden">
+              <div class="now-playing">
+                <h3 id="nowPlayingArea">구역</h3>
+                <h4 id="nowPlayingMusic">음악 이름</h4>
+                <p id="nowPlayingMovements">동작 불러오는 중...</p>
+              </div>
+
+              <!-- 음악 플레이어 (시간 표시) -->
+              <audio id="audioPlayer" style="width:100%; margin-bottom:8px;"></audio>
+
+              <!-- 메인 재생 컨트롤 -->
+              <div class="player-controls">
+                <button class="btn-secondary btn-icon" onclick="skipToMusic(-1)" title="이전 곡">⏮️</button>
+                <button class="btn-secondary btn-icon" onclick="skipTime(-4)" title="4초 뒤로">⏪</button>
+                <button class="btn-primary btn-play" onclick="togglePlayPause()" id="playPauseBtn">▶️ 재생</button>
+                <button class="btn-secondary btn-icon" onclick="skipTime(4)" title="4초 앞으로">⏩</button>
+                <button class="btn-secondary btn-icon" onclick="skipToMusic(1)" title="다음 곡">⏭️</button>
+              </div>
+
+              <!-- 곡 목록 (현재 섹션의 음악들) -->
+              <div id="musicList" class="music-list" style="margin-top: 12px;"></div>
+
+              <button class="btn-secondary" onclick="stopRoutine()" style="width:100%; margin-top:10px;">⏹️ 루틴 종료</button>
+            </div>
           </div>
         </section>
 

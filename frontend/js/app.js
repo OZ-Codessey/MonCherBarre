@@ -990,6 +990,237 @@ function showDictionaryDetail(frenchTerm) {
   detail.classList.remove("hidden");
 }
 
+// --- 루틴 전역 변수 ---
+let routineData = null;
+let musicMappingData = null;
+let movesData = null;
+let currentRoutine = {
+  minutes: null,
+  sectionIndex: 0,
+  musicIndex: 0,
+  isPlaying: false,
+  allSections: []
+};
+
+// --- 루틴 데이터 로드 (캐싱) ---
+async function loadRoutineDataset() {
+  try {
+    // localStorage에서 확인
+    const cached = localStorage.getItem('routineDataset');
+    if (cached) {
+      const data = JSON.parse(cached);
+      routineData = data.routines;
+      musicMappingData = data.musicMapping;
+      movesData = data.moves;
+      return;
+    }
+
+    // 없으면 JSON 파일에서 로드
+    const [routinesRes, musicRes, movesRes] = await Promise.all([
+      fetch('data/routines.json'),
+      fetch('data/music_mapping.json'),
+      fetch('data/moves_96.json')
+    ]);
+
+    routineData = await routinesRes.json();
+    musicMappingData = await musicRes.json();
+    movesData = await movesRes.json();
+
+    // localStorage에 저장
+    localStorage.setItem('routineDataset', JSON.stringify({
+      routines: routineData,
+      musicMapping: musicMappingData,
+      moves: movesData
+    }));
+  } catch (err) {
+    console.error('루틴 데이터 로드 실패:', err);
+  }
+}
+
+// --- 루틴 칩 클릭 이벤트 ---
+function initRoutineChips() {
+  document.querySelectorAll('.routine-chip').forEach(btn => {
+    btn.addEventListener('click', () => startRoutine(parseInt(btn.dataset.min)));
+  });
+}
+
+// --- 루틴 시작 ---
+function startRoutine(minutes) {
+  if (!routineData || !musicMappingData) {
+    alert('루틴 데이터를 로드하지 못했습니다.');
+    return;
+  }
+
+  const routine = routineData[minutes.toString()];
+  if (!routine) {
+    alert(`${minutes}분 루틴이 없습니다.`);
+    return;
+  }
+
+  currentRoutine = {
+    minutes: minutes,
+    sectionIndex: 0,
+    musicIndex: 0,
+    isPlaying: false,
+    allSections: routine.sections
+  };
+
+  document.getElementById('musicPlayer').classList.remove('hidden');
+  playNextMusic();
+}
+
+// --- 다음 음악 재생 ---
+function playNextMusic() {
+  const { minutes, allSections } = currentRoutine;
+  if (currentRoutine.sectionIndex >= allSections.length) {
+    alert(`${minutes}분 루틴이 끝났습니다! 수고하셨어요 🎉`);
+    stopRoutine();
+    return;
+  }
+
+  const section = allSections[currentRoutine.sectionIndex];
+  const musicName = section.music_sequence[currentRoutine.musicIndex];
+
+  if (!musicName) {
+    currentRoutine.sectionIndex++;
+    currentRoutine.musicIndex = 0;
+    if (currentRoutine.sectionIndex < allSections.length) {
+      playNextMusic();
+    }
+    return;
+  }
+
+  const musicInfo = musicMappingData[musicName];
+  if (!musicInfo) {
+    console.error(`음악 ${musicName}을 찾을 수 없습니다.`);
+    return;
+  }
+
+  // 현재 섹션 및 음악 정보 표시
+  document.getElementById('nowPlayingArea').textContent = `📍 ${section.area}`;
+  document.getElementById('nowPlayingMusic').textContent = musicInfo.name;
+
+  // 동작 목록 표시
+  const movementTexts = musicInfo.movements
+    .map(no => movesData.find(m => m.no === no)?.korean_name)
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(' · ');
+  document.getElementById('nowPlayingMovements').textContent = `동작: ${movementTexts}...`;
+
+  // 곡 목록 업데이트
+  updateMusicList();
+
+  // 음악 파일 로드 및 재생
+  const audio = document.getElementById('audioPlayer');
+  audio.src = musicInfo.file;
+  audio.onended = () => {
+    currentRoutine.musicIndex++;
+    playNextMusic();
+  };
+
+  audio.play();
+  document.getElementById('playPauseBtn').textContent = '⏸️ 일시정지';
+  currentRoutine.isPlaying = true;
+}
+
+// --- 재생/일시정지 토글 ---
+function togglePlayPause() {
+  const audio = document.getElementById('audioPlayer');
+  const btn = document.getElementById('playPauseBtn');
+
+  if (currentRoutine.isPlaying) {
+    audio.pause();
+    btn.textContent = '▶️ 재생';
+    currentRoutine.isPlaying = false;
+  } else {
+    audio.play();
+    btn.textContent = '⏸️ 일시정지';
+    currentRoutine.isPlaying = true;
+  }
+}
+
+// --- 음악 내 탐색 (4초씩) ---
+function skipTime(seconds) {
+  const audio = document.getElementById('audioPlayer');
+  audio.currentTime = Math.max(0, audio.currentTime + seconds);
+}
+
+// --- 곡 단위로 점프 (이전/다음) ---
+function skipToMusic(direction) {
+  const { allSections, sectionIndex } = currentRoutine;
+  const section = allSections[sectionIndex];
+
+  if (!section) return;
+
+  const newMusicIndex = currentRoutine.musicIndex + direction;
+  if (newMusicIndex >= 0 && newMusicIndex < section.music_sequence.length) {
+    currentRoutine.musicIndex = newMusicIndex;
+    playNextMusic();
+  } else if (newMusicIndex >= section.music_sequence.length && direction > 0) {
+    // 현재 섹션의 마지막 곡에서 다음 누르면 다음 섹션으로
+    currentRoutine.sectionIndex++;
+    currentRoutine.musicIndex = 0;
+    if (currentRoutine.sectionIndex < allSections.length) {
+      playNextMusic();
+    }
+  } else if (newMusicIndex < 0 && direction < 0 && sectionIndex > 0) {
+    // 현재 섹션의 첫 곡에서 이전 누르면 이전 섹션 마지막 곡으로
+    currentRoutine.sectionIndex--;
+    const prevSection = allSections[currentRoutine.sectionIndex];
+    currentRoutine.musicIndex = prevSection.music_sequence.length - 1;
+    playNextMusic();
+  }
+}
+
+// --- 곡 목록 업데이트 ---
+function updateMusicList() {
+  const { allSections, sectionIndex, musicIndex } = currentRoutine;
+  const section = allSections[sectionIndex];
+
+  if (!section) return;
+
+  const listContainer = document.getElementById('musicList');
+  listContainer.innerHTML = section.music_sequence
+    .map((musicName, idx) => {
+      const isActive = idx === musicIndex;
+      const musicInfo = musicMappingData[musicName];
+      return `
+        <div class="music-item ${isActive ? 'active' : ''}"
+             onclick="jumpToMusic(${idx})"
+             style="cursor: pointer;">
+          ${isActive ? '▶️' : '○'} ${musicInfo.name}
+        </div>
+      `;
+    })
+    .join('');
+}
+
+// --- 곡 목록에서 직접 점프 ---
+function jumpToMusic(idx) {
+  const { allSections, sectionIndex } = currentRoutine;
+  const section = allSections[sectionIndex];
+
+  if (idx >= 0 && idx < section.music_sequence.length) {
+    currentRoutine.musicIndex = idx;
+    playNextMusic();
+  }
+}
+
+// --- 루틴 종료 ---
+function stopRoutine() {
+  const audio = document.getElementById('audioPlayer');
+  audio.pause();
+  document.getElementById('musicPlayer').classList.add('hidden');
+  currentRoutine = {
+    minutes: null,
+    sectionIndex: 0,
+    musicIndex: 0,
+    isPlaying: false,
+    allSections: []
+  };
+}
+
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
   loadDataList();
@@ -997,4 +1228,5 @@ document.addEventListener("DOMContentLoaded", () => {
   loadConversationsList();
   loadDictionary();
   loadFavorites();
+  loadRoutineDataset().then(() => initRoutineChips());
 });
