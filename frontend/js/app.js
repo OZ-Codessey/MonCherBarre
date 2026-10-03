@@ -988,7 +988,7 @@ async function loadPracticeDataWithCache() {
     }
 
     // Firestore에서 처음 1회만 읽기
-    const res = await fetch(`${API_BASE_URL}/api/data/records`);
+    const res = await fetch(`${API_BASE_URL}/api/data`);
     if (!res.ok) throw new Error(`status ${res.status}`);
 
     practiceLogsCache = await res.json();
