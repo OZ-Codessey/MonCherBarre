@@ -312,64 +312,77 @@ async function updateData(e, id) {
 // --- 통계 차트 (4개: 월별평균, 요일별분포, 누적시간, 부상별운동) ---
 async function loadStatistics() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/data/statistics`);
-    if (!res.ok) throw new Error();
-    const stats = await res.json();
+    // 캐시된 데이터에서 로컬 계산 (Firestore 읽기 0회)
+    await loadPracticeDataWithCache();
+    const stats = calculateStats();
 
     // 배지 업데이트
-    document.getElementById("streakDays").textContent = stats.streak_days;
-    document.getElementById("bestDay").textContent = stats.best_day;
-    document.getElementById("totalHours").textContent = Math.floor(stats.total_hours);
+    document.getElementById("streakDays").textContent = stats.streak;
+    document.getElementById("bestDay").textContent = stats.bestDay;
+    document.getElementById("totalHours").textContent = stats.totalHours;
 
     const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-    const barColor = isDark ? "rgba(210,170,190,0.75)" : "rgba(160,90,115,0.75)";
-    const pieColor1 = isDark ? "rgba(210,170,190,0.85)" : "rgba(160,90,115,0.85)";
-    const pieColor2 = isDark ? "rgba(175,130,155,0.85)" : "rgba(190,130,155,0.85)";
+    const barColor = "#F37021";
+    const lineColor = "#F37021";
     const textColor = isDark ? "#e8d8df" : "#4a2535";
     const axisBg = isDark ? "rgba(50,40,45,0.5)" : "rgba(244,229,234,0.5)";
 
-    // 1️⃣ 월별 평균 (bar)
+    // 1️⃣ 월별 평균 (선 그래프)
+    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
     if (monthlyChartInstance) monthlyChartInstance.destroy();
     monthlyChartInstance = new Chart(document.getElementById("monthlyChart"), {
-      type: "bar",
+      type: "line",
       data: {
-        labels: Object.keys(stats.monthly_avg_min),
-        datasets: [{ label: "분", data: Object.values(stats.monthly_avg_min), backgroundColor: barColor, borderRadius: 6 }],
+        labels: monthLabels,
+        datasets: [{
+          label: "평균 분",
+          data: stats.monthlyAverage,
+          borderColor: lineColor,
+          backgroundColor: "rgba(243, 112, 33, 0.1)",
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: lineColor
+        }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        plugins: { legend: { labels: { color: textColor }, display: false } },
+        plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { color: textColor, font: { size: 11 } }, grid: { display: false } },
-          y: { ticks: { color: textColor, font: { size: 11 } }, beginAtZero: true, grid: { color: axisBg } },
+          y: { beginAtZero: true, grid: { color: axisBg } },
         },
       },
     });
 
-    // 2️⃣ 요일별 분포 (bar)
+    // 2️⃣ 요일별 분포 (막대 그래프)
     const dayNames = ["월", "화", "수", "목", "금", "토", "일"];
     if (dayChartInstance) dayChartInstance.destroy();
     dayChartInstance = new Chart(document.getElementById("dayChart"), {
       type: "bar",
       data: {
         labels: dayNames,
-        datasets: [{ label: "분", data: dayNames.map(d => stats.day_totals_min[d] || 0), backgroundColor: barColor, borderRadius: 6 }],
+        datasets: [{
+          label: "누적 분",
+          data: stats.dayOfWeekData,
+          backgroundColor: barColor,
+          borderRadius: 6
+        }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        plugins: { legend: { labels: { color: textColor }, display: false } },
+        plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { color: textColor, font: { size: 11 } }, grid: { display: false } },
-          y: { ticks: { color: textColor, font: { size: 11 } }, beginAtZero: true, grid: { color: axisBg } },
+          y: { beginAtZero: true, grid: { color: axisBg } },
         },
       },
     });
 
-    // 3️⃣ 누적 시간 (doughnut gauge)
-    const totalMinutes = stats.total_minutes;
-    const targetMinutes = 20000; // 목표: 333시간(20000분)
+    // 3️⃣ 누적 시간 (도넛 게이지)
+    const totalMinutes = stats.totalHours * 60;
+    const targetMinutes = 20000; // 목표: 333시간
     const progressPct = Math.min((totalMinutes / targetMinutes) * 100, 100);
     if (totalChartInstance) totalChartInstance.destroy();
     totalChartInstance = new Chart(document.getElementById("totalChart"), {
@@ -378,7 +391,7 @@ async function loadStatistics() {
         labels: ["달성", "남은"],
         datasets: [{
           data: [progressPct, 100 - progressPct],
-          backgroundColor: [pieColor1, axisBg],
+          backgroundColor: [barColor, axisBg],
           borderColor: [isDark ? "#1d1719" : "#ffffff", "transparent"],
           borderWidth: 2,
         }],
@@ -386,36 +399,7 @@ async function loadStatistics() {
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: () => "" } },
-        },
-      },
-    });
-
-    // 4️⃣ 부상별 강화운동 (pie)
-    const symptomNames = Object.keys(stats.symptom_exercise_counts);
-    const symptomCounts = Object.values(stats.symptom_exercise_counts);
-    const colors = [pieColor1, pieColor2, barColor].concat(Array(symptomNames.length).fill(axisBg));
-    if (symptomChartInstance) symptomChartInstance.destroy();
-    symptomChartInstance = new Chart(document.getElementById("symptomChart"), {
-      type: "pie",
-      data: {
-        labels: symptomNames,
-        datasets: [{
-          data: symptomCounts,
-          backgroundColor: colors.slice(0, symptomNames.length),
-          borderColor: isDark ? "#1d1719" : "#ffffff",
-          borderWidth: 2,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { labels: { color: textColor, font: { size: 11 } }, position: "bottom" },
-          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed}개` } },
-        },
+        plugins: { legend: { display: false } },
       },
     });
 
@@ -428,10 +412,9 @@ async function loadStatistics() {
 
 function updateStatsNote(stats) {
   const note = document.getElementById("statsNote");
-  const totalHours = Math.floor(stats.total_hours);
-  const streakText = stats.streak_days > 0 ? `${stats.streak_days}일 연속` : "아직 없음";
-  const bestDayText = stats.best_day !== "-" ? `${stats.best_day}요일` : "데이터 부족";
-  note.textContent = `📊 총 ${totalHours}시간 연습 · ${streakText} · 최다 요일 ${bestDayText} · ${stats.monthly_avg_min ? Object.keys(stats.monthly_avg_min).length : 0}개월 기록`;
+  const streakText = stats.streak > 0 ? `🔥 ${stats.streak}일 연속` : "아직 없음";
+  const bestDayText = stats.bestDay !== "-" ? `${stats.bestDay}요일` : "데이터 부족";
+  note.textContent = `📊 총 ${stats.totalHours}시간 연습 · ${streakText} · 최다 요일 ${bestDayText}`;
 }
 
 // 필터된 데이터로 차트 업데이트 (search/filter 적용 시)
@@ -990,6 +973,168 @@ function showDictionaryDetail(frenchTerm) {
   detail.classList.remove("hidden");
 }
 
+// --- 데이터 캐싱 전역 변수 ---
+let practiceLogsCache = null;
+
+// --- 365일 데이터 캐싱 (Firestore 1회만 읽기) ---
+async function loadPracticeDataWithCache() {
+  try {
+    const cacheKey = 'practice_logs_cache';
+    const cached = localStorage.getItem(cacheKey);
+
+    if (cached) {
+      practiceLogsCache = JSON.parse(cached);
+      return;
+    }
+
+    // Firestore에서 처음 1회만 읽기
+    const res = await fetch(`${API_BASE_URL}/api/data/records`);
+    if (!res.ok) throw new Error(`status ${res.status}`);
+
+    practiceLogsCache = await res.json();
+    localStorage.setItem(cacheKey, JSON.stringify(practiceLogsCache));
+  } catch (err) {
+    console.error('연습 기록 로드 실패:', err);
+    practiceLogsCache = [];
+  }
+}
+
+// --- 통계 계산 (로컬 데이터만 사용) ---
+function calculateStats() {
+  if (!practiceLogsCache || practiceLogsCache.length === 0) {
+    return {
+      streak: 0,
+      bestDay: '-',
+      totalHours: 0,
+      dayOfWeekData: [0, 0, 0, 0, 0, 0, 0],
+      monthlyData: Array(12).fill(0),
+      monthlyCounts: Array(12).fill(0)
+    };
+  }
+
+  const logs = practiceLogsCache;
+  const now = new Date();
+  const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+
+  // 1️⃣ 연속 일수 (스트릭)
+  let streak = 0;
+  const sortedByDate = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+  let checkDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  for (const log of sortedByDate) {
+    const logDate = new Date(log.date);
+    if (logDate.toDateString() === checkDate.toDateString()) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else if (logDate < checkDate) {
+      break;
+    }
+  }
+
+  // 2️⃣ 요일별 분포
+  const dayOfWeekData = [0, 0, 0, 0, 0, 0, 0];
+  logs.forEach(log => {
+    const date = new Date(log.date);
+    const day = date.getDay() === 0 ? 6 : date.getDay() - 1; // 월=0, 일=6
+    dayOfWeekData[day] += log.minutes || 0;
+  });
+
+  // 3️⃣ 월별 평균
+  const monthlyData = Array(12).fill(0);
+  const monthlyCounts = Array(12).fill(0);
+  logs.forEach(log => {
+    const date = new Date(log.date);
+    const month = date.getMonth();
+    monthlyData[month] += log.minutes || 0;
+    monthlyCounts[month]++;
+  });
+  const monthlyAverage = monthlyData.map((total, i) =>
+    monthlyCounts[i] > 0 ? Math.round(total / monthlyCounts[i]) : 0
+  );
+
+  // 4️⃣ 최다 요일
+  const maxDayIndex = dayOfWeekData.indexOf(Math.max(...dayOfWeekData));
+  const bestDay = dayNames[maxDayIndex];
+
+  // 5️⃣ 총 시간
+  const totalMinutes = logs.reduce((sum, log) => sum + (log.minutes || 0), 0);
+  const totalHours = Math.round(totalMinutes / 60 * 10) / 10;
+
+  return {
+    streak,
+    bestDay,
+    totalHours,
+    dayOfWeekData,
+    monthlyAverage
+  };
+}
+
+// --- 그래프 렌더링 (Chart.js) ---
+function renderGraphs() {
+  const stats = calculateStats();
+
+  // 1️⃣ 요일별 분포 (막대)
+  const dayCtx = document.getElementById('dayChart');
+  if (dayCtx) {
+    new Chart(dayCtx, {
+      type: 'bar',
+      data: {
+        labels: ['월', '화', '수', '목', '금', '토', '일'],
+        datasets: [{
+          label: '누적 분',
+          data: stats.dayOfWeekData,
+          backgroundColor: '#F37021',
+          borderRadius: 6,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    });
+  }
+
+  // 2️⃣ 월별 평균 (선)
+  const monthCtx = document.getElementById('monthlyChart');
+  if (monthCtx) {
+    new Chart(monthCtx, {
+      type: 'line',
+      data: {
+        labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+        datasets: [{
+          label: '평균 분',
+          data: stats.monthlyAverage,
+          borderColor: '#F37021',
+          backgroundColor: 'rgba(243, 112, 33, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#F37021'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    });
+  }
+
+  // 3️⃣ 배지 업데이트 (스트릭, 최다요일, 총시간)
+  document.getElementById('streakDays').textContent = stats.streak;
+  document.getElementById('bestDay').textContent = stats.bestDay;
+  document.getElementById('totalHours').textContent = stats.totalHours;
+}
+
 // --- 루틴 전역 변수 ---
 let routineData = null;
 let musicMappingData = null;
@@ -1223,8 +1368,10 @@ function stopRoutine() {
 
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
-  loadDataList();
-  loadStatistics();
+  loadPracticeDataWithCache().then(() => {
+    loadDataList();
+    loadStatistics();
+  });
   loadConversationsList();
   loadDictionary();
   loadFavorites();
