@@ -314,27 +314,6 @@
   <!-- 영상 확대 보기 -->
   <div id="videoModal" class="video-modal hidden" role="dialog" aria-label="Royal Ballet">
     <div class="vm-stage" id="vmStage"></div>
-    <template id="vmOverlayTemplate">
-      <div class="vm-overlay" id="vmOverlay">
-        <button class="vm-close" onclick="closeVideoModal()" aria-label="Fermer">&times;</button>
-        <div class="vm-controls" id="vmControls">
-          <div class="vm-progress-row">
-            <span id="vmTimeNow">0:00</span>
-            <div class="vm-progress" id="vmProgress"><div class="vm-progress-fill" id="vmProgressFill"></div></div>
-            <span id="vmTimeTotal">0:00</span>
-          </div>
-          <div class="vm-buttons">
-            <button class="vm-btn" onclick="vmSeek(-4)" aria-label="-4 s">⏪ 4s</button>
-            <button class="vm-btn vm-play" id="vmPlayBtn" onclick="vmTogglePlay()" aria-label="Jouer">▶️</button>
-            <button class="vm-btn" onclick="vmSeek(4)" aria-label="+4 s">4s ⏩</button>
-            <span class="vm-sep"></span>
-            <button class="vm-btn vm-speed" data-rate="0.5" onclick="vmSetRate(0.5)">0.5×</button>
-            <button class="vm-btn vm-speed active" data-rate="1" onclick="vmSetRate(1)">1×</button>
-            <button class="vm-btn vm-speed" data-rate="2" onclick="vmSetRate(2)">2×</button>
-          </div>
-        </div>
-      </div>
-    </template>
   </div>
 
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->

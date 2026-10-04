@@ -861,6 +861,7 @@ function renderDictionary() {
 }
 
 function closeDictionaryDetail() {
+  destroyInlinePlayer();
   document.getElementById("dictionaryDetail").classList.add("hidden");
 }
 
@@ -904,10 +905,10 @@ async function addToFavorites() {
     if (response.ok) {
       const btn = document.getElementById("favoriteBtn");
       btn.classList.add("active");
-      btn.textContent = "⚜️ 저장됨";
+      btn.title = "Saved";
       setTimeout(() => {
         btn.classList.remove("active");
-        btn.textContent = "⚜️ 즐겨찾기";
+        btn.title = "Favorite";
       }, 2000);
       loadFavorites();  // 목록 새로고침
     }
@@ -1048,18 +1049,21 @@ function showDictionaryDetail(frenchTerm) {
   const video = move.main_video;
   const videoId = video ? video.url.split("v=")[1] : "";
   let videoHtml = video
-    ? `<iframe class="dict-iframe" src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`
+    ? `<div id="inlinePlayer" class="dict-iframe"></div>`
     : "";
   videoHtml += `
     <div class="dict-bar">
-      <p class="dict-bar-text">${video ? "Royal Ballet" : "Royal Ballet 영상이 없습니다"}</p>
-      ${video ? `<button class="loupe-btn" onclick="openVideoModal('${videoId}')" aria-label="확대 보기" title="확대 보기"><svg viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="13" cy="13" r="9" stroke-width="2.2"/><circle cx="13" cy="13" r="6.2" stroke-width="0.9" opacity=".6"/><path d="M19.6 19.6 L21.8 21.8" stroke-width="4.2"/><path d="M22.4 22.4 L28 28" stroke-width="3"/><circle cx="25.2" cy="25.2" r="1.3" fill="currentColor" stroke="none" opacity=".35"/></svg></button>` : ""}
-      <a href="${video ? video.url : move.youtube_search_url}" target="_blank" rel="noopener">YouTube</a>
-      <button id="favoriteBtn" onclick="addToFavorites()">⚜️ 즐겨찾기</button>
+      <p class="dict-bar-text">${video ? "Royal Ballet" : "Royal Ballet · no video"}</p>
+      ${video ? `<button class="loupe-btn" onclick="openVideoModal('${videoId}')" aria-label="확대 보기" title="Zoom"><svg viewBox="0 0 32 32" width="18" height="18" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="13" cy="13" r="9" stroke-width="2.2"/><circle cx="13" cy="13" r="6.2" stroke-width="0.9" opacity=".6"/><path d="M19.6 19.6 L21.8 21.8" stroke-width="4.2"/><path d="M22.4 22.4 L28 28" stroke-width="3"/></svg></button>` : ""}
+      <a class="yt-btn" href="${video ? video.url : move.youtube_search_url}" target="_blank" rel="noopener" aria-label="YouTube" title="YouTube"><svg viewBox="0 0 28 20" width="26" height="18" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#E8262A"/><path d="M11.2 5.6l7 4.4-7 4.4z" fill="#fff"/></svg></a>
+      <button id="favoriteBtn" class="fav-btn" onclick="addToFavorites()" aria-label="Favorite" title="Favorite">⚜️</button>
     </div>
   `;
 
+
+  destroyInlinePlayer();
   videoContainer.innerHTML = videoHtml;
+  if (video) mountInlinePlayer(videoId);
   detail.classList.remove("hidden");
   detail.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -1500,13 +1504,9 @@ function stopRoutine() {
 }
 
 // ============================================================================
-// 영상 확대 보기: YouTube 기본 컨트롤을 끄고 반투명 오버레이로 직접 조작
+// Royal Ballet 영상 플레이어: YouTube 기본 컨트롤을 끄고, 하단에 마우스를 올리면(터치는 탭)
+// 재생/일시정지 · 4초 앞뒤 · 탐색 바 · 0.5× 1× 2× 배속 컨트롤이 나타남. 본문과 확대 화면에서 같이 사용.
 // ============================================================================
-let vmPlayer = null;
-let vmTimer = null;
-let vmHideTimer = null;
-let vmInlineSrc = null;
-
 function loadYouTubeApi() {
   if (window.YT && window.YT.Player) return Promise.resolve();
   return new Promise(resolve => {
@@ -1518,102 +1518,136 @@ function loadYouTubeApi() {
   });
 }
 
+const VP_ICON = {
+  play: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>',
+  back: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M11 6l-7 6 7 6zM20 6l-7 6 7 6z"/></svg>',
+  fwd: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M13 6l7 6-7 6zM4 6l7 6-7 6z"/></svg>',
+};
+
+async function mountVideoPlayer(root, videoId, opts = {}) {
+  root.classList.add('vp');
+  root.innerHTML = `
+    <div class="vp-yt"></div>
+    <div class="vp-hot${opts.close ? ' full' : ''}"></div>
+    <div class="vp-overlay">
+      ${opts.close ? '<button class="vp-close" data-act="close" aria-label="Close">&times;</button>' : ''}
+      <div class="vp-controls">
+        <div class="vp-progress-row">
+          <span class="vp-now">0:00</span>
+          <div class="vp-progress"><div class="vp-fill"></div></div>
+          <span class="vp-total">0:00</span>
+        </div>
+        <div class="vp-buttons">
+          <button class="vp-btn" data-act="back" aria-label="-4 s">${VP_ICON.back}<em>4s</em></button>
+          <button class="vp-btn vp-play" data-act="toggle" aria-label="Play">${VP_ICON.play}</button>
+          <button class="vp-btn" data-act="fwd" aria-label="+4 s"><em>4s</em>${VP_ICON.fwd}</button>
+          <span class="vp-sep"></span>
+          <button class="vp-btn vp-speed" data-rate="0.5">0.5×</button>
+          <button class="vp-btn vp-speed active" data-rate="1">1×</button>
+          <button class="vp-btn vp-speed" data-rate="2">2×</button>
+        </div>
+      </div>
+    </div>`;
+  await loadYouTubeApi();
+  if (!root.isConnected) return null;
+  const ov = root.querySelector('.vp-overlay');
+  const q = (s) => root.querySelector(s);
+  let hideTimer = null, tick = null, player = null, destroyed = false;
+
+  const show = () => { ov.classList.add('show'); clearTimeout(hideTimer); hideTimer = setTimeout(() => ov.classList.remove('show'), 2800); };
+  // 영상(iframe) 위의 투명한 감지 영역: 마우스가 하단에 오면 컨트롤이 나타나고, 벗어나면 사라짐
+  // (iframe 안에서는 마우스 이벤트를 받을 수 없으므로 감지 영역을 위에 덮어 둠)
+  const hot = q('.vp-hot');
+  root.addEventListener('mouseleave', () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => ov.classList.remove('show'), 600); });
+  hot.addEventListener('mousemove', show);
+  hot.addEventListener('mouseleave', () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => ov.classList.remove('show'), 600); });
+  hot.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') show(); });
+  hot.addEventListener('click', () => { show(); if (player && player.getPlayerState) { player.getPlayerState() === YT.PlayerState.PLAYING ? player.pauseVideo() : player.playVideo(); } });
+
+  player = new YT.Player(q('.vp-yt'), {
+    videoId,
+    host: 'https://www.youtube-nocookie.com',
+    playerVars: { controls: 0, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1, fs: 0, iv_load_policy: 3, autoplay: opts.autoplay ? 1 : 0 },
+    events: {
+      onReady: (e) => { if (opts.autoplay) e.target.playVideo(); },
+      onStateChange: (e) => { q('.vp-play').innerHTML = e.data === YT.PlayerState.PLAYING ? VP_ICON.pause : VP_ICON.play; },
+    },
+  });
+
+  const setRate = (rate) => {
+    if (player.setPlaybackRate) player.setPlaybackRate(rate);
+    root.querySelectorAll('.vp-speed').forEach(b => b.classList.toggle('active', Number(b.dataset.rate) === rate));
+  };
+  ov.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    show();
+    if (b.dataset.act === 'toggle') { player.getPlayerState() === YT.PlayerState.PLAYING ? player.pauseVideo() : player.playVideo(); }
+    else if (b.dataset.act === 'back') player.seekTo(Math.max(0, player.getCurrentTime() - 4), true);
+    else if (b.dataset.act === 'fwd') player.seekTo(Math.min(player.getDuration() || 1e9, player.getCurrentTime() + 4), true);
+    else if (b.dataset.act === 'close' && opts.onClose) opts.onClose();
+    else if (b.dataset.rate) setRate(Number(b.dataset.rate));
+  });
+  q('.vp-progress').addEventListener('click', (e) => {
+    const r = e.currentTarget.getBoundingClientRect(), d = player.getDuration();
+    if (d) player.seekTo(d * Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), true);
+    show();
+  });
+  tick = setInterval(() => {
+    if (!player || !player.getCurrentTime) return;
+    const d = player.getDuration() || 0, t = player.getCurrentTime() || 0;
+    q('.vp-now').textContent = fmtTime(t); q('.vp-total').textContent = fmtTime(d);
+    q('.vp-fill').style.width = d ? `${(t / d) * 100}%` : '0%';
+  }, 250);
+
+  return {
+    pause() { try { player.pauseVideo(); } catch {} },
+    destroy() {
+      if (destroyed) return; destroyed = true;
+      clearInterval(tick); clearTimeout(hideTimer);
+      try { player.destroy(); } catch {}
+      root.innerHTML = ''; root.classList.remove('vp');
+    },
+  };
+}
+
+// 본문(사전 상세)에 들어가는 플레이어
+let inlineVP = null;
+function mountInlinePlayer(videoId) {
+  if (inlineVP) { inlineVP.destroy(); inlineVP = null; }
+  const root = document.getElementById('inlinePlayer');
+  if (!root) return;
+  mountVideoPlayer(root, videoId).then(vp => { inlineVP = vp; });
+}
+function destroyInlinePlayer() { if (inlineVP) { inlineVP.destroy(); inlineVP = null; } }
+
+// 확대 화면
+let modalVP = null;
 async function openVideoModal(videoId) {
-  // 영상 소리와 음악이 섞이지 않도록 루틴 음악은 멈춤
   const music = document.getElementById('audioPlayer');
   if (!music.paused) music.pause();
   stopPronunciation();
+  destroyInlinePlayer();                       // 본문 영상과 소리가 겹치지 않도록 정리
   const modal = document.getElementById('videoModal');
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
-  // 본문에 있던 영상은 소리가 겹치지 않도록 잠시 비움
-  const inline = document.querySelector('#dictVideo iframe');
-  if (inline) { vmInlineSrc = inline.src; inline.src = ''; }
-  // 전체 화면 · 가로 모드는 지원되는 기기에서만 시도 (iPad는 모달이 화면 전체를 채움)
   try { await (modal.requestFullscreen || modal.webkitRequestFullscreen)?.call(modal); } catch {}
   try { await screen.orientation?.lock?.('landscape'); } catch {}
-
-  await loadYouTubeApi();
-  document.getElementById('vmStage').innerHTML = '<div id="vmPlayer"></div>' + vmOverlayHtml();
-  vmBindOverlay();
-  vmPlayer = new YT.Player('vmPlayer', {
-    videoId,
-    host: 'https://www.youtube-nocookie.com',
-    playerVars: { controls: 0, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1, fs: 0, iv_load_policy: 3, autoplay: 1 },
-    events: {
-      onReady: (e) => { e.target.playVideo(); vmSetRate(1); vmShowControls(); },
-      onStateChange: (e) => {
-        const playing = e.data === YT.PlayerState.PLAYING;
-        document.getElementById('vmPlayBtn').textContent = playing ? '⏸️' : '▶️';
-      },
-    },
-  });
-  clearInterval(vmTimer);
-  vmTimer = setInterval(vmTick, 250);
-}
-
-function vmOverlayHtml() {
-  return document.getElementById('vmOverlayTemplate').innerHTML;
-}
-
-function vmBindOverlay() {
-  // 화면 어디를 터치하거나 마우스를 올려도 컨트롤이 나타남 (onXXX 대입이라 열 때마다 중복 등록되지 않음)
-  const modal = document.getElementById('videoModal');
-  modal.onpointerdown = vmShowControls;
-  modal.onmousemove = vmShowControls;
-  document.getElementById('vmProgress').addEventListener('click', (e) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    const d = vmPlayer.getDuration();
-    if (d) vmPlayer.seekTo(d * Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), true);
-  });
-}
-
-function vmShowControls() {
-  const ov = document.getElementById('vmOverlay');
-  if (!ov) return;
-  ov.classList.add('show');
-  clearTimeout(vmHideTimer);
-  vmHideTimer = setTimeout(() => ov.classList.remove('show'), 3000);
-}
-
-function vmTick() {
-  if (!vmPlayer || !vmPlayer.getCurrentTime) return;
-  const d = vmPlayer.getDuration() || 0, t = vmPlayer.getCurrentTime() || 0;
-  document.getElementById('vmTimeNow').textContent = fmtTime(t);
-  document.getElementById('vmTimeTotal').textContent = fmtTime(d);
-  document.getElementById('vmProgressFill').style.width = d ? `${(t / d) * 100}%` : '0%';
-}
-
-function vmTogglePlay() {
-  vmShowControls();
-  if (vmPlayer.getPlayerState() === YT.PlayerState.PLAYING) vmPlayer.pauseVideo();
-  else vmPlayer.playVideo();
-}
-
-function vmSeek(sec) {
-  vmShowControls();
-  const d = vmPlayer.getDuration() || 0;
-  vmPlayer.seekTo(Math.min(d, Math.max(0, vmPlayer.getCurrentTime() + sec)), true);
-}
-
-function vmSetRate(rate) {
-  vmShowControls();
-  if (vmPlayer && vmPlayer.setPlaybackRate) vmPlayer.setPlaybackRate(rate);
-  document.querySelectorAll('.vm-speed').forEach(b => b.classList.toggle('active', Number(b.dataset.rate) === rate));
+  modalVP = await mountVideoPlayer(document.getElementById('vmStage'), videoId, { autoplay: true, close: true, onClose: closeVideoModal });
 }
 
 function closeVideoModal() {
-  clearInterval(vmTimer);
-  clearTimeout(vmHideTimer);
-  if (vmPlayer && vmPlayer.destroy) vmPlayer.destroy();
-  vmPlayer = null;
+  if (modalVP) { modalVP.destroy(); modalVP = null; }
   document.getElementById('vmStage').innerHTML = '';
   document.getElementById('videoModal').classList.add('hidden');
   document.body.style.overflow = '';
   if (document.fullscreenElement) document.exitFullscreen?.();
   try { screen.orientation?.unlock?.(); } catch {}
-  const inline = document.querySelector('#dictVideo iframe');
-  if (inline && vmInlineSrc) inline.src = vmInlineSrc;
+  const cur = document.querySelector('#inlinePlayer');
+  if (cur && currentDictTerm) {
+    const m = allMoves.find(x => x.french_term === currentDictTerm);
+    if (m && m.main_video) mountInlinePlayer(m.main_video.url.split('v=')[1]);
+  }
 }
 
 document.addEventListener('keydown', (e) => {
