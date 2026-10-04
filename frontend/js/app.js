@@ -915,10 +915,10 @@ async function addToFavorites() {
     if (response.ok) {
       const btn = document.getElementById("favoriteBtn");
       btn.classList.add("active");
-      btn.title = "Saved";
+      btn.dataset.tip = "저장됨";
       setTimeout(() => {
         btn.classList.remove("active");
-        btn.title = "Favorite";
+        btn.dataset.tip = "즐겨찾기";
       }, 2000);
       loadFavorites();  // 목록 새로고침
     }
@@ -1064,9 +1064,9 @@ function showDictionaryDetail(frenchTerm) {
   videoHtml += `
     <div class="dict-bar">
       <p class="dict-bar-text">${video ? "Royal Ballet" : "Royal Ballet · no video"}</p>
-      ${video ? `<button class="loupe-btn" onclick="openVideoModal('${videoId}')" aria-label="확대 보기" title="Zoom"><svg viewBox="0 0 32 32" width="18" height="18" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="13" cy="13" r="9" stroke-width="2.2"/><circle cx="13" cy="13" r="6.2" stroke-width="0.9" opacity=".6"/><path d="M19.6 19.6 L21.8 21.8" stroke-width="4.2"/><path d="M22.4 22.4 L28 28" stroke-width="3"/></svg></button>` : ""}
-      <a class="yt-btn" href="${video ? video.url : move.youtube_search_url}" target="_blank" rel="noopener" aria-label="YouTube" title="YouTube"><svg viewBox="0 0 28 20" width="26" height="18" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#E8262A"/><path d="M11.2 5.6l7 4.4-7 4.4z" fill="#fff"/></svg></a>
-      <button id="favoriteBtn" class="fav-btn" onclick="addToFavorites()" aria-label="Favorite" title="Favorite">⚜️</button>
+      ${video ? `<button class="loupe-btn" onclick="openVideoModal('${videoId}')" aria-label="확대" data-tip="확대"><svg viewBox="0 0 32 32" width="18" height="18" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="13" cy="13" r="9" stroke-width="2.2"/><circle cx="13" cy="13" r="6.2" stroke-width="0.9" opacity=".6"/><path d="M19.6 19.6 L21.8 21.8" stroke-width="4.2"/><path d="M22.4 22.4 L28 28" stroke-width="3"/></svg></button>` : ""}
+      <a class="yt-btn" href="${video ? video.url : move.youtube_search_url}" target="_blank" rel="noopener" aria-label="검색" data-tip="검색"><svg viewBox="0 0 28 20" width="26" height="18" aria-hidden="true"><rect width="28" height="20" rx="5" fill="#E8262A"/><path d="M11.2 5.6l7 4.4-7 4.4z" fill="#fff"/></svg></a>
+      <button id="favoriteBtn" class="fav-btn" onclick="addToFavorites()" aria-label="즐겨찾기" data-tip="즐겨찾기">⚜️</button>
     </div>
   `;
 
@@ -1413,7 +1413,7 @@ function initLeaveHandlers() {
     const sync = () => {
       t.classList.toggle('off', !bgPlay);
       t.setAttribute('aria-pressed', bgPlay);
-      t.title = bgPlay ? 'Background play · ON (keeps playing when you leave)' : 'Background play · OFF (pauses when you leave)';
+      t.dataset.tip = bgPlay ? '백그라운드 · 켜짐' : '백그라운드 · 꺼짐';
     };
     t.addEventListener('click', () => { bgPlay = !bgPlay; try { localStorage.setItem('bgPlay', bgPlay ? 'on' : 'off'); } catch {} sync(); });
     sync();
@@ -1884,7 +1884,7 @@ function initUiSound() {
       const on = UiSound.isOn();
       toggle.classList.toggle("off", !on);
       toggle.setAttribute("aria-pressed", on);
-      toggle.title = on ? "Button sounds · ON" : "Button sounds · OFF";
+      toggle.dataset.tip = on ? "버튼음 · 켜짐" : "버튼음 · 꺼짐";
     };
     toggle.addEventListener("click", () => { UiSound.toggle(); sync(); });
     sync();
@@ -1911,6 +1911,18 @@ function positionChatBar() {
 window.addEventListener('resize', positionChatBar);
 window.addEventListener('load', positionChatBar);
 document.addEventListener('DOMContentLoaded', () => { setTimeout(positionChatBar, 300); });
+
+// 아이콘 툴팁: 마우스를 올리면 CSS로 표시, 터치에서는 꾹 누르면 잠깐 표시
+(function initTips() {
+  let timer = null;
+  document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') return;
+    const el = e.target.closest('[data-tip]'); if (!el) return;
+    clearTimeout(timer);
+    timer = setTimeout(() => { el.classList.add('tip-show'); setTimeout(() => el.classList.remove('tip-show'), 1600); }, 450);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => document.addEventListener(t, () => clearTimeout(timer)));
+})();
 
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
