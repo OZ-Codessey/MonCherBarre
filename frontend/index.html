@@ -2,9 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>MonCherBarre — 발레 AI 비서</title>
-<link rel="stylesheet" href="css/style.css?v=3" />
+<link rel="stylesheet" href="css/style.css?v=6" />
 </head>
 <body>
   <div id="splash" class="splash">
@@ -78,7 +78,6 @@
                 <button class="btn-secondary btn-icon" onclick="skipTime(4)" aria-label="+4 s">⏩</button>
                 <button class="btn-secondary btn-icon" onclick="skipToMusic(1)" aria-label="Suivant">⏭️</button>
               </div>
-
               <div id="musicList" class="music-list" style="margin-top: 12px;"></div>
 
               <button class="btn-secondary" onclick="stopRoutine()" style="width:100%; margin-top:10px;">⏹️ Terminer</button>
@@ -252,13 +251,6 @@
           </div>
         </div>
 
-        <!-- 용어 목록 -->
-        <div class="card dictionary-list-card">
-          <div id="dictionaryListContainer" class="dictionary-list">
-            <p class="loading">불러오는 중…</p>
-          </div>
-        </div>
-
         <!-- 용어 상세 -->
         <div id="dictionaryDetail" class="card dictionary-detail hidden">
           <h3 id="dictTermTitle">용어</h3>
@@ -274,6 +266,14 @@
           </div>
           <button class="btn-secondary" onclick="closeDictionaryDetail()">닫기</button>
         </div>
+
+        <!-- 용어 목록 -->
+        <div class="card dictionary-list-card">
+          <div id="dictionaryListContainer" class="dictionary-list">
+            <p class="loading">불러오는 중…</p>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -291,9 +291,36 @@
     </section>
   </main>
 
+
+  <!-- 영상 확대 보기 -->
+  <div id="videoModal" class="video-modal hidden" role="dialog" aria-label="Royal Ballet">
+    <div class="vm-stage" id="vmStage"></div>
+    <template id="vmOverlayTemplate">
+      <div class="vm-overlay" id="vmOverlay">
+        <button class="vm-close" onclick="closeVideoModal()" aria-label="Fermer">&times;</button>
+        <div class="vm-controls" id="vmControls">
+          <div class="vm-progress-row">
+            <span id="vmTimeNow">0:00</span>
+            <div class="vm-progress" id="vmProgress"><div class="vm-progress-fill" id="vmProgressFill"></div></div>
+            <span id="vmTimeTotal">0:00</span>
+          </div>
+          <div class="vm-buttons">
+            <button class="vm-btn" onclick="vmSeek(-4)" aria-label="-4 s">⏪ 4s</button>
+            <button class="vm-btn vm-play" id="vmPlayBtn" onclick="vmTogglePlay()" aria-label="Jouer">▶️</button>
+            <button class="vm-btn" onclick="vmSeek(4)" aria-label="+4 s">4s ⏩</button>
+            <span class="vm-sep"></span>
+            <button class="vm-btn vm-speed" data-rate="0.5" onclick="vmSetRate(0.5)">0.5×</button>
+            <button class="vm-btn vm-speed active" data-rate="1" onclick="vmSetRate(1)">1×</button>
+            <button class="vm-btn vm-speed" data-rate="2" onclick="vmSetRate(2)">2×</button>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="js/app.js?v=3"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>

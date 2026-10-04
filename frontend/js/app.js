@@ -643,7 +643,7 @@ async function exportJSON() {
 // --- 발레 사전 ---
 let allMoves = [];
 let filteredMoves = [];
-let selectedAlphabet = "A";
+let selectedAlphabet = null;  // 탭 진입 시 아무 글자도 선택하지 않음
 
 // 불어 발음 음원 (ABT 원본 mp3): term → mp3 URL
 let pronunciationByTerm = {};
@@ -695,7 +695,7 @@ async function loadDictionary() {
       filterContainer.appendChild(btn);
     });
 
-    filterDictionaryByAlphabet("전체");
+    renderDictionary();
   } catch (err) {
     console.error(err);
     document.getElementById("dictionaryListContainer").innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
@@ -704,10 +704,12 @@ async function loadDictionary() {
 
 function filterDictionaryByAlphabet(letter) {
   selectedAlphabet = letter;
+  closeDictionaryDetail();
 
   // 버튼 상태 업데이트
   document.querySelectorAll(".alphabet-btn").forEach(btn => {
     btn.classList.toggle("active", btn.textContent === letter);
+    btn.setAttribute("aria-pressed", btn.textContent === letter);
   });
 
   if (letter === "전체") {
@@ -724,6 +726,11 @@ function filterDictionaryByAlphabet(letter) {
 function renderDictionary() {
   const container = document.getElementById("dictionaryListContainer");
 
+  if (!selectedAlphabet) {
+    container.innerHTML = "";
+    return;
+  }
+
   if (filteredMoves.length === 0) {
     container.innerHTML = "<p class='loading'>해당하는 용어가 없어요.</p>";
     return;
@@ -735,6 +742,7 @@ function renderDictionary() {
       <div>
         <span class="dictionary-item-term">${move.french_term}</span>
         <span class="dictionary-item-pron">(${move.korean_name})</span>
+        ${move.main_video ? '<span class="rb-badge">Royal Ballet</span>' : ''}
       </div>
     </div>
   `).join("");
@@ -928,12 +936,12 @@ function showDictionaryDetail(frenchTerm) {
   const video = move.main_video;
   const videoId = video ? video.url.split("v=")[1] : "";
   let videoHtml = video
-    ? `<iframe src="https://www.youtube.com/embed/${videoId}"
-               style="width: 100%; max-width: 400px; height: 225px; border-radius: 6px; margin-bottom: 8px;" allowfullscreen></iframe>`
+    ? `<iframe class="dict-iframe" src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`
     : "";
   videoHtml += `
     <div class="dict-bar">
       <p class="dict-bar-text">${video ? "Royal Ballet" : "Royal Ballet 영상이 없습니다"}</p>
+      ${video ? `<button onclick="openVideoModal('${videoId}')">확대 보기</button>` : ""}
       <a href="${video ? video.url : move.youtube_search_url}" target="_blank" rel="noopener">YouTube</a>
       <button id="favoriteBtn" onclick="addToFavorites()">⚜️ 즐겨찾기</button>
     </div>
@@ -941,6 +949,7 @@ function showDictionaryDetail(frenchTerm) {
 
   videoContainer.innerHTML = videoHtml;
   detail.classList.remove("hidden");
+  detail.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // --- 데이터 캐싱 전역 변수 ---
@@ -1221,6 +1230,7 @@ function startRoutine(minutes) {
     return;
   }
   currentRoutine = { minutes, sectionIndex: 0, musicIndex: 0, isPlaying: false, allSections: routine.sections };
+  document.querySelectorAll('.routine-chip').forEach(c => c.classList.toggle('active', c.dataset.min === String(minutes)));
   document.getElementById('musicPlayer').classList.remove('hidden');
   playCurrent();
 }
@@ -1318,8 +1328,126 @@ function stopRoutine() {
   audio.removeAttribute('src');
   setPlayingUI(false);
   document.getElementById('musicPlayer').classList.add('hidden');
+  document.querySelectorAll('.routine-chip').forEach(c => c.classList.remove('active'));
   currentRoutine = { minutes: null, sectionIndex: 0, musicIndex: 0, isPlaying: false, allSections: [] };
 }
+
+// ============================================================================
+// 영상 확대 보기: YouTube 기본 컨트롤을 끄고 반투명 오버레이로 직접 조작
+// ============================================================================
+let vmPlayer = null;
+let vmTimer = null;
+let vmHideTimer = null;
+let vmInlineSrc = null;
+
+function loadYouTubeApi() {
+  if (window.YT && window.YT.Player) return Promise.resolve();
+  return new Promise(resolve => {
+    const prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); resolve(); };
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  });
+}
+
+async function openVideoModal(videoId) {
+  const modal = document.getElementById('videoModal');
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  // 본문에 있던 영상은 소리가 겹치지 않도록 잠시 비움
+  const inline = document.querySelector('#dictVideo iframe');
+  if (inline) { vmInlineSrc = inline.src; inline.src = ''; }
+  // 전체 화면 · 가로 모드는 지원되는 기기에서만 시도 (iPad는 모달이 화면 전체를 채움)
+  try { await (modal.requestFullscreen || modal.webkitRequestFullscreen)?.call(modal); } catch {}
+  try { await screen.orientation?.lock?.('landscape'); } catch {}
+
+  await loadYouTubeApi();
+  document.getElementById('vmStage').innerHTML = '<div id="vmPlayer"></div>' + vmOverlayHtml();
+  vmBindOverlay();
+  vmPlayer = new YT.Player('vmPlayer', {
+    videoId,
+    host: 'https://www.youtube-nocookie.com',
+    playerVars: { controls: 0, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1, fs: 0, iv_load_policy: 3, autoplay: 1 },
+    events: {
+      onReady: (e) => { e.target.playVideo(); vmSetRate(1); vmShowControls(); },
+      onStateChange: (e) => {
+        const playing = e.data === YT.PlayerState.PLAYING;
+        document.getElementById('vmPlayBtn').textContent = playing ? '⏸️' : '▶️';
+      },
+    },
+  });
+  clearInterval(vmTimer);
+  vmTimer = setInterval(vmTick, 250);
+}
+
+function vmOverlayHtml() {
+  return document.getElementById('vmOverlayTemplate').innerHTML;
+}
+
+function vmBindOverlay() {
+  // 화면 어디를 터치하거나 마우스를 올려도 컨트롤이 나타남 (onXXX 대입이라 열 때마다 중복 등록되지 않음)
+  const modal = document.getElementById('videoModal');
+  modal.onpointerdown = vmShowControls;
+  modal.onmousemove = vmShowControls;
+  document.getElementById('vmProgress').addEventListener('click', (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const d = vmPlayer.getDuration();
+    if (d) vmPlayer.seekTo(d * Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), true);
+  });
+}
+
+function vmShowControls() {
+  const ov = document.getElementById('vmOverlay');
+  if (!ov) return;
+  ov.classList.add('show');
+  clearTimeout(vmHideTimer);
+  vmHideTimer = setTimeout(() => ov.classList.remove('show'), 3000);
+}
+
+function vmTick() {
+  if (!vmPlayer || !vmPlayer.getCurrentTime) return;
+  const d = vmPlayer.getDuration() || 0, t = vmPlayer.getCurrentTime() || 0;
+  document.getElementById('vmTimeNow').textContent = fmtTime(t);
+  document.getElementById('vmTimeTotal').textContent = fmtTime(d);
+  document.getElementById('vmProgressFill').style.width = d ? `${(t / d) * 100}%` : '0%';
+}
+
+function vmTogglePlay() {
+  vmShowControls();
+  if (vmPlayer.getPlayerState() === YT.PlayerState.PLAYING) vmPlayer.pauseVideo();
+  else vmPlayer.playVideo();
+}
+
+function vmSeek(sec) {
+  vmShowControls();
+  const d = vmPlayer.getDuration() || 0;
+  vmPlayer.seekTo(Math.min(d, Math.max(0, vmPlayer.getCurrentTime() + sec)), true);
+}
+
+function vmSetRate(rate) {
+  vmShowControls();
+  if (vmPlayer && vmPlayer.setPlaybackRate) vmPlayer.setPlaybackRate(rate);
+  document.querySelectorAll('.vm-speed').forEach(b => b.classList.toggle('active', Number(b.dataset.rate) === rate));
+}
+
+function closeVideoModal() {
+  clearInterval(vmTimer);
+  clearTimeout(vmHideTimer);
+  if (vmPlayer && vmPlayer.destroy) vmPlayer.destroy();
+  vmPlayer = null;
+  document.getElementById('vmStage').innerHTML = '';
+  document.getElementById('videoModal').classList.add('hidden');
+  document.body.style.overflow = '';
+  if (document.fullscreenElement) document.exitFullscreen?.();
+  try { screen.orientation?.unlock?.(); } catch {}
+  const inline = document.querySelector('#dictVideo iframe');
+  if (inline && vmInlineSrc) inline.src = vmInlineSrc;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !document.getElementById('videoModal').classList.contains('hidden')) closeVideoModal();
+});
 
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {

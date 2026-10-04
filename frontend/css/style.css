@@ -1142,3 +1142,211 @@ h1, h2 {
 .dict-bar a:hover, .dict-bar button:hover { filter: brightness(1.08); transform: translateY(-1px); background: linear-gradient(180deg, #CF8A95 0%, #B76E79 55%, #9D5A65 100%); color: #fff; }
 .dict-bar a:hover { background: linear-gradient(180deg, #A9505F 0%, #8A3A4A 60%, #702E3C 100%); }
 .dict-bar a:active, .dict-bar button:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); }
+
+/* ============================================================================
+   눌림 / 선택 상태 (아이패드 터치 기준: 터치 영역 44px 이상)
+   ============================================================================ */
+button, .alphabet-btn, .routine-chip, .tab-btn { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97);
+  filter: brightness(0.9);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.28);
+}
+
+.alphabet-btn { min-width: 44px; min-height: 44px; border: 1px solid var(--acc-soft); }
+.alphabet-btn.active, .alphabet-btn[aria-pressed="true"] {
+  background: #B76E79;
+  color: #fff;
+  border-color: #8F4F59;
+  font-weight: 700;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3);
+  transform: translateY(1px);
+}
+
+.routine-chip { min-height: 44px; }
+.routine-chip.active {
+  background: #B76E79;
+  color: #fff;
+  border-color: #8F4F59;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3);
+  transform: translateY(1px);
+}
+
+.tab-btn.active { box-shadow: inset 0 -3px 0 var(--acc); font-weight: 700; }
+
+.player-controls button { min-height: 44px; }
+
+.speed-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
+.speed-btn {
+  min-width: 56px;
+  min-height: 36px;
+  padding: 4px 14px;
+  border: 1px solid var(--acc);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--acc);
+  font-weight: 600;
+  cursor: pointer;
+}
+.speed-btn.active { background: var(--acc); color: #fff; box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3); }
+
+.rb-badge {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border: 1px solid #C9A24B;
+  border-radius: 999px;
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-size: 0.7rem;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  color: #A8802F;
+  white-space: nowrap;
+}
+
+.dict-bar button.active { box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.35); }
+.dict-bar a, .dict-bar button { min-height: 36px; display: inline-flex; align-items: center; }
+
+/* --- 영상 확대 모달 --- */
+.video-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.video-modal.hidden { display: none; }
+
+.vm-stage {
+  position: relative;
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+}
+.vm-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+.vm-overlay { position: absolute; inset: 0; z-index: 2; }
+
+.vm-close {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(20, 16, 18, 0.55);
+  color: #fff;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.vm-controls {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 14px 16px 16px;
+  background: linear-gradient(0deg, rgba(20, 16, 18, 0.78), rgba(20, 16, 18, 0));
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.vm-overlay.show .vm-controls, .vm-overlay.show .vm-close { opacity: 1; }
+.vm-overlay:not(.show) .vm-controls, .vm-overlay:not(.show) .vm-close { pointer-events: none; }
+
+.vm-progress-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.vm-progress { flex: 1; height: 28px; position: relative; cursor: pointer; }
+.vm-progress::before { content: ""; position: absolute; left: 0; right: 0; top: 12px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.3); }
+.vm-progress-fill { position: absolute; left: 0; top: 12px; height: 4px; width: 0; border-radius: 2px; background: #D9A4AD; }
+
+.vm-buttons { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.vm-btn {
+  min-width: 56px;
+  min-height: 48px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.vm-play { min-width: 72px; font-size: 1.2rem; background: rgba(183, 110, 121, 0.75); }
+.vm-sep { width: 1px; height: 28px; background: rgba(255, 255, 255, 0.35); margin: 0 4px; }
+.vm-speed.active { background: #B76E79; border-color: #fff; box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.4); }
+
+/* ============================================================================
+   아이패드 최적화 (세로 768~834px / 가로 1024~1194px) — 유동 크기 + 터치 영역
+   ============================================================================ */
+html { font-size: clamp(16px, 0.6vw + 12.5px, 19px); -webkit-text-size-adjust: 100%; }
+
+body {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.container, .layout { max-width: 1280px; padding-left: clamp(16px, 3vw, 36px); padding-right: clamp(16px, 3vw, 36px); }
+.tabs { padding: 0 clamp(8px, 2vw, 28px); position: sticky; top: 0; z-index: 20; background: var(--bg); }
+
+/* 탭: 손가락으로 누르기 쉬운 크기, 화면 폭에 맞춰 균등 배분 */
+.tab-btn { flex: 1; min-height: 52px; padding: 12px 8px; font-size: 1rem; white-space: nowrap; }
+
+/* 히어로 이미지는 낮게: 연습 도구(루틴·플레이어)가 첫 화면에 들어오도록 */
+.hero { aspect-ratio: 16 / 6; max-height: 230px; }
+.hero img { object-position: center 40%; }
+.hero-caption h1 { font-size: clamp(1.1rem, 2.4vw, 1.6rem); }
+
+/* 가로: 두 칸, 채팅 칸은 화면 높이에 맞춰 고정 (빈 공간 방지) */
+@media (min-width: 900px) {
+  .chat-card { min-height: 0; height: calc(100dvh - 150px); position: sticky; top: 72px; }
+}
+
+/* 세로: 한 칸, 채팅은 적당한 높이 */
+@media (max-width: 899px) {
+  .layout { grid-template-columns: 1fr; }
+  .chat-card { min-height: 0; height: 56dvh; }
+}
+
+/* 입력창은 16px 이상이어야 iPad Safari가 확대하지 않음 */
+input, textarea, select { font-size: 1rem; min-height: 48px; }
+
+/* 플레이어: 손가락 크기 */
+.routine-chip { min-height: 56px; font-size: 1.05rem; }
+.player-controls button { min-height: 56px; font-size: 1.15rem; }
+.music-item { padding: 12px 12px; min-height: 48px; display: flex; align-items: center; font-size: 1rem; }
+.music-list { max-height: 34dvh; }
+.now-playing h4 { font-size: 1.35rem; }
+.progress { height: 28px; }
+.progress::before, .progress-fill { top: 12px; }
+.btn-secondary, .btn-primary { min-height: 48px; font-size: 1rem; }
+
+/* 사전 */
+.dictionary-item { min-height: 56px; display: flex; align-items: center; padding: 12px 16px; }
+.alphabet-filter { gap: 8px; }
+.alphabet-btn { min-width: 48px; min-height: 48px; font-size: 1rem; }
+.dict-iframe { width: 100%; max-width: 720px; aspect-ratio: 16 / 9; height: auto; border: 0; border-radius: 8px; margin-bottom: 8px; display: block; }
+.dict-bar a, .dict-bar button { min-height: 44px; font-size: 0.9rem; padding: 6px 18px; }
+.dict-bar .dict-bar-text { font-size: 1.1rem; }
+.dictionary-detail .btn-secondary { min-height: 48px; padding: 0 28px; }
+
+/* 확대 영상: 가로·세로 어느 쪽이든 화면에 꽉 맞게 */
+.vm-stage { width: min(100vw, calc(100dvh * 16 / 9)); height: min(100dvh, calc(100vw * 9 / 16)); }
+.vm-btn { min-height: 56px; min-width: 64px; }
+.vm-close { width: 56px; height: 56px; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); }
+.vm-controls { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+
+/* 즐겨찾기 카드: 가로 3열 / 세로 2~3열로 자동 배치 */
+.favorites-list { grid-template-columns: repeat(auto-fill, minmax(clamp(190px, 28vw, 260px), 1fr)); }
+.btn-play, .btn-remove { min-height: 40px; }
+@media (hover: none) { .routine-chip:hover, .tab-btn:hover { transform: none; } }
+
+.dict-video .dict-iframe { max-width: 720px; height: auto; aspect-ratio: 16 / 9; }
+.dictionary-detail { scroll-margin-top: 68px; }
+.col-left .routine-card { order: 1; }
+.col-left .card:has(#summaryText) { order: 2; }
+@media (min-width: 900px) { .hero { max-height: 170px; } }
+.dict-video .dict-iframe { max-width: min(520px, 100%); }
