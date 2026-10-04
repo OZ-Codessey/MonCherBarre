@@ -403,6 +403,31 @@ async function loadStatistics() {
       },
     });
 
+    // 4️⃣ 부상별 강화운동 개수 (막대 그래프)
+    const symRes = await fetch('data/symptom_map.json');
+    const symptoms = await symRes.json();
+    if (symptomChartInstance) symptomChartInstance.destroy();
+    symptomChartInstance = new Chart(document.getElementById("symptomChart"), {
+      type: "bar",
+      data: {
+        labels: symptoms.map(s => s.symptom),
+        datasets: [{
+          label: "강화운동 개수",
+          data: symptoms.map(s => s.strengthening_exercises.length),
+          backgroundColor: barColor,
+          borderRadius: 6
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: axisBg } },
+        },
+      },
+    });
+
     // 통계 설명 생성
     updateStatsNote(stats);
   } catch (err) {
@@ -620,31 +645,45 @@ let allMoves = [];
 let filteredMoves = [];
 let selectedAlphabet = "A";
 
-async function loadDictionary() {
-  try {
-    // ⚡ 성능 최적화: localStorage 캐싱으로 Firestore 할당량 99% 절감
-    // - 첫 방문: API에서 96개 용어 조회 (Firestore 읽기 96회, 1회만)
-    // - 이후 방문: localStorage에서 로드 (네트워크 요청 0회, 초고속!)
-    // - 알파벳 검색: 로컬 필터링만 수행 (Firestore 쿼리 0회)
-    const cached = localStorage.getItem('allMoves');
-    if (cached) {
-      allMoves = JSON.parse(cached);
-    } else {
-      // 첫 방문 시에만 API 호출 → 96개 용어를 받아서 localStorage에 저장
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/moves`);
-        if (!res.ok) throw new Error();
-        allMoves = await res.json();
-      } catch {
-        // API 실패 시 → backup JSON 사용 (Firestore quota 초과 상황 대비)
-        const backupRes = await fetch('./assets/moves-backup.json');
-        if (!backupRes.ok) throw new Error('Backup JSON 로드 실패');
-        allMoves = await backupRes.json();
-      }
-      localStorage.setItem('allMoves', JSON.stringify(allMoves));
-    }
+// 불어 발음 음원 (ABT 원본 mp3): term → mp3 URL
+let pronunciationByTerm = {};
 
-    // 알파벳 필터 UI 생성 (A-Z 버튼, "전체" 버튼)
+async function loadPronunciations() {
+  try {
+    const res = await fetch('data/moves_96.json');
+    const moves = await res.json();
+    moves.forEach(m => { if (m.pronunciation_mp3) pronunciationByTerm[m.term] = m.pronunciation_mp3; });
+  } catch (err) {
+    console.error('발음 데이터 로드 실패:', err);
+  }
+}
+
+function playPronunciation(term) {
+  const url = pronunciationByTerm[term];
+  if (!url) return;
+  new Audio(url).play().catch(err => console.error('발음 재생 실패:', err));
+}
+
+async function loadDictionary() {
+  await loadPronunciations();
+  try {
+    // 번역·영상·음악이 모두 들어 있는 로컬 JSON이 단일 출처 (서버 호출 없음)
+    const res = await fetch('data/moves_96.json');
+    if (!res.ok) throw new Error('moves_96.json 로드 실패');
+    const moves = await res.json();
+    allMoves = moves.map(m => ({
+      french_term: m.term,
+      korean_name: m.korean_name,
+      ipa: m.ipa,
+      description: m.description_ko,
+      music_file: m.music_file,
+      main_video: m.video_url
+        ? { url: m.video_url, title: m.video_title, channel: m.video_channel, source: "Royal Ballet" }
+        : null,
+      youtube_search_url: "https://www.youtube.com/results?search_query=" +
+        encodeURIComponent(m.term + " ballet step"),
+    })).sort((a, b) => a.french_term.localeCompare(b.french_term, "fr"));
+
     const filterContainer = document.getElementById("alphabetFilter");
     filterContainer.innerHTML = "";
     const alphabets = ["전체", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
@@ -656,9 +695,9 @@ async function loadDictionary() {
       filterContainer.appendChild(btn);
     });
 
-    // 기본 화면: 전체 용어 표시
     filterDictionaryByAlphabet("전체");
   } catch (err) {
+    console.error(err);
     document.getElementById("dictionaryListContainer").innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
   }
 }
@@ -719,33 +758,36 @@ async function addToFavorites() {
   }
 
   const move = allMoves.find(m => m.french_term === currentDictTerm);
-  if (!move || !move.main_video || !move.main_video.url) {
-    alert("저장할 영상이 없습니다.");
-    return;
-  }
+  if (!move) return;
+  const video = move.main_video || {
+    url: move.youtube_search_url,
+    title: `${move.french_term} - YouTube 검색`,
+    channel: "YouTube",
+    source: "YouTube 검색",
+  };
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/favorites`, {
+    const response = await fetch(`${API_BASE_URL}/api/moves/favorites`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         french_term: move.french_term,
         korean_name: move.korean_name,
-        video_id: move.main_video.url.split("v=")[1],
-        video_title: move.main_video.title,
-        video_url: move.main_video.url,
-        channel: move.main_video.channel,
-        source: move.main_video.source,
+        video_id: video.url.split("v=")[1] || "search",
+        video_title: video.title,
+        video_url: video.url,
+        channel: video.channel,
+        source: video.source,
       }),
     });
 
     if (response.ok) {
       const btn = document.getElementById("favoriteBtn");
       btn.classList.add("active");
-      btn.textContent = "⚜️ Sauvegardé";
+      btn.textContent = "✦ 저장됨";
       setTimeout(() => {
         btn.classList.remove("active");
-        btn.textContent = "⚜️ Ajouter";
+        btn.textContent = "✦ 즐겨찾기";
       }, 2000);
       loadFavorites();  // 목록 새로고침
     }
@@ -759,14 +801,14 @@ async function addToFavorites() {
 async function loadFavorites() {
   const container = document.getElementById("favoritesList");
   try {
-    const response = await fetch(`${API_BASE_URL}/api/favorites`);
+    const response = await fetch(`${API_BASE_URL}/api/moves/favorites`);
     if (!response.ok) throw new Error(`status ${response.status}`);
     const favorites = await response.json();
 
     if (!favorites || favorites.length === 0) {
       container.innerHTML = `
         <div class="favorites-empty">
-          <p>⚜️ Votre collection est vide</p>
+          <p>✦ Votre collection est vide</p>
           <p style="font-size: 0.85rem; margin-top: 8px;">발레 사전에서 영상을 보고 추가 버튼을 눌러보세요.</p>
         </div>
       `;
@@ -812,7 +854,7 @@ async function removeFavorite(id) {
   if (!confirm("정말 삭제하시겠습니까?")) return;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/favorites/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/moves/favorites/${id}`, {
       method: "DELETE",
     });
 
@@ -870,15 +912,23 @@ function showDictionaryDetail(frenchTerm) {
   const favoriteBtn = document.getElementById("favoriteBtn");
 
   termTitle.textContent = `${move.korean_name} (${move.french_term})`;
-  pronunciation.textContent = move.french_term;
+  pronunciation.textContent = move.ipa ? `${move.french_term}  ${move.ipa}` : move.french_term;
+  if (pronunciationByTerm[move.french_term]) {
+    const b = document.createElement("button");
+    b.className = "btn-secondary";
+    b.textContent = "🔊 발음 듣기";
+    b.style.marginLeft = "8px";
+    b.onclick = () => playPronunciation(move.french_term);
+    pronunciation.appendChild(b);
+  }
   description.textContent = move.description || "";
 
   // "더 많은 영상 찾기" 버튼 표시 여부
-  moreVideosBtn.style.display = move.additional_videos && move.additional_videos.length > 0 ? "none" : "inline-block";
+  moreVideosBtn.style.display = "none";
 
   // 즐겨찾기 버튼 리셋
   favoriteBtn.classList.remove("active");
-  favoriteBtn.textContent = "❤️ 즐겨찾기";
+  favoriteBtn.textContent = "✦ 즐겨찾기";
 
   let videoHtml = "";
 
@@ -1007,8 +1057,7 @@ function calculateStats() {
       bestDay: '-',
       totalHours: 0,
       dayOfWeekData: [0, 0, 0, 0, 0, 0, 0],
-      monthlyData: Array(12).fill(0),
-      monthlyCounts: Array(12).fill(0)
+      monthlyAverage: Array(12).fill(0)
     };
   }
 
@@ -1036,7 +1085,7 @@ function calculateStats() {
   logs.forEach(log => {
     const date = new Date(log.date);
     const day = date.getDay() === 0 ? 6 : date.getDay() - 1; // 월=0, 일=6
-    dayOfWeekData[day] += log.minutes || 0;
+    dayOfWeekData[day] += (log.value ?? log.minutes) || 0;
   });
 
   // 3️⃣ 월별 평균
@@ -1045,7 +1094,7 @@ function calculateStats() {
   logs.forEach(log => {
     const date = new Date(log.date);
     const month = date.getMonth();
-    monthlyData[month] += log.minutes || 0;
+    monthlyData[month] += (log.value ?? log.minutes) || 0;
     monthlyCounts[month]++;
   });
   const monthlyAverage = monthlyData.map((total, i) =>
@@ -1057,7 +1106,7 @@ function calculateStats() {
   const bestDay = dayNames[maxDayIndex];
 
   // 5️⃣ 총 시간
-  const totalMinutes = logs.reduce((sum, log) => sum + (log.minutes || 0), 0);
+  const totalMinutes = logs.reduce((sum, log) => sum + ((log.value ?? log.minutes) || 0), 0);
   const totalHours = Math.round(totalMinutes / 60 * 10) / 10;
 
   return {
@@ -1151,7 +1200,7 @@ let currentRoutine = {
 async function loadRoutineDataset() {
   try {
     // localStorage에서 확인
-    const cached = localStorage.getItem('routineDataset');
+    const cached = localStorage.getItem('routineDataset_v2');
     if (cached) {
       const data = JSON.parse(cached);
       routineData = data.routines;
@@ -1172,7 +1221,7 @@ async function loadRoutineDataset() {
     movesData = await movesRes.json();
 
     // localStorage에 저장
-    localStorage.setItem('routineDataset', JSON.stringify({
+    localStorage.setItem('routineDataset_v2', JSON.stringify({
       routines: routineData,
       musicMapping: musicMappingData,
       moves: movesData
@@ -1264,7 +1313,7 @@ function playNextMusic() {
     playNextMusic();
   };
 
-  audio.play();
+  audio.play().catch(err => console.error('음악 재생 실패:', musicInfo.file, err));
   document.getElementById('playPauseBtn').textContent = '⏸️ 일시정지';
   currentRoutine.isPlaying = true;
 }
@@ -1279,7 +1328,7 @@ function togglePlayPause() {
     btn.textContent = '▶️ 재생';
     currentRoutine.isPlaying = false;
   } else {
-    audio.play();
+    audio.play().catch(err => console.error('음악 재생 실패:', err));
     btn.textContent = '⏸️ 일시정지';
     currentRoutine.isPlaying = true;
   }

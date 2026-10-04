@@ -4,7 +4,13 @@
     "file": "music/plie_rond.mp3",
     "duration_sec": 240,
     "meter": "3/4",
-    "movements": [38, 71, 89, 86, 87],
+    "movements": [
+      38,
+      71,
+      86,
+      87,
+      89
+    ],
     "fixed_daily": true,
     "description": "매일 고정 동작 1번"
   },
@@ -13,7 +19,13 @@
     "file": "music/tendu_degage.mp3",
     "duration_sec": 180,
     "meter": "2/4",
-    "movements": [15, 10, 9, 76, 79],
+    "movements": [
+      9,
+      10,
+      15,
+      76,
+      79
+    ],
     "fixed_daily": true,
     "description": "매일 고정 동작 2번"
   },
@@ -22,7 +34,17 @@
     "file": "music/adagio.mp3",
     "duration_sec": 240,
     "meter": "4/4",
-    "movements": [3, 7, 12, 44, 53, 77, 82, 84, 85],
+    "movements": [
+      3,
+      7,
+      12,
+      44,
+      53,
+      77,
+      82,
+      84,
+      85
+    ],
     "fixed_daily": false,
     "description": "매일 변동 - 그날 컨디션에 따라"
   },
@@ -31,7 +53,32 @@
     "file": "music/frappe_allegro.mp3",
     "duration_sec": 120,
     "meter": "2/4",
-    "movements": [13, 14, 5, 8, 20, 22, 23, 27, 28, 33, 47, 48, 50, 51, 58, 59, 60, 64, 73, 74, 88, 90, 91, 92],
+    "movements": [
+      5,
+      8,
+      13,
+      14,
+      20,
+      22,
+      23,
+      27,
+      28,
+      33,
+      47,
+      48,
+      50,
+      51,
+      58,
+      59,
+      60,
+      64,
+      73,
+      74,
+      88,
+      90,
+      91,
+      92
+    ],
     "fixed_daily": false,
     "description": "매일 변동 - 둘 중 선택"
   },
@@ -40,7 +87,19 @@
     "file": "music/grand.mp3",
     "duration_sec": 167,
     "meter": "3/4",
-    "movements": [16, 11, 6, 24, 25, 32, 61, 62, 63, 93, 94],
+    "movements": [
+      6,
+      11,
+      16,
+      24,
+      25,
+      32,
+      61,
+      62,
+      63,
+      93,
+      94
+    ],
     "fixed_daily": false,
     "description": "매일 변동 - 둘 중 선택"
   },
@@ -49,7 +108,18 @@
     "file": "music/turns.mp3",
     "duration_sec": 240,
     "meter": "3/4",
-    "movements": [80, 70, 69, 26, 54, 55, 56, 65, 18],
+    "movements": [
+      18,
+      26,
+      54,
+      55,
+      56,
+      65,
+      69,
+      70,
+      80,
+      95
+    ],
     "fixed_daily": false,
     "exclude_when": "무지외반 통증",
     "description": "매일 변동 - 통증 상태 확인"
@@ -59,7 +129,10 @@
     "file": "music/waltz_general.mp3",
     "duration_sec": 240,
     "meter": "3/4",
-    "movements": [18, 66, 81],
+    "movements": [
+      66,
+      81
+    ],
     "fixed_daily": false,
     "description": "매일 변동 - 루틴 마무리"
   }
