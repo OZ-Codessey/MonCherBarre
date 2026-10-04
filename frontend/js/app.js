@@ -275,13 +275,9 @@ let monthlyChartInstance, dayChartInstance, totalChartInstance, symptomChartInst
 async function loadDataList() {
   const container = document.getElementById("dataListContainer");
   try {
-    const [dataRes, convRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/api/data`),
-      fetch(`${API_BASE_URL}/api/conversations`)
-    ]);
+    const dataRes = await fetch(`${API_BASE_URL}/api/data`);
     if (!dataRes.ok) throw new Error();
     const items = await dataRes.json();
-    allConversations = convRes.ok ? await convRes.json() : [];  // 메모 검색용
     // D5: 날짜 내림차순 정렬(최신이 위) — 추가/수정/삭제 후에도 일관성 보장
     allItems = items.sort((a, b) => b.date.localeCompare(a.date));
     filteredItems = [...allItems];
@@ -311,7 +307,7 @@ function renderDataList() {
     <div class="data-item" id="item-${item.id}">
       <div class="data-item-info">
         <div class="data-item-date">${item.date} · ${item.value}분</div>
-        <div class="data-item-meta">${item.memo || "메모 없음"}</div>
+        <div class="data-item-meta">${item.memo ? highlightMatch(item.memo, searchWord) : "메모 없음"}</div>
       </div>
       <div class="data-item-actions">
         <button class="btn-small btn-edit" onclick="showEditForm('${item.id}','${item.date}',${item.value},'${item.memo || ""}')">수정</button>
@@ -344,26 +340,30 @@ function toggleShowMore() {
 }
 
 // D2~D4: 날짜·기간·키워드 필터
+// 검색어와 일치하는 부분에 음영(<mark>)을 씌워 보여줌 (대소문자 무시, 일부 글자만 입력해도 일치)
+let searchWord = "";
+function highlightMatch(text, word) {
+  const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  if (!word) return esc(text);
+  const i = text.toLowerCase().indexOf(word.toLowerCase());
+  if (i < 0) return esc(text);
+  return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + word.length)) + "</mark>" + esc(text.slice(i + word.length));
+}
+
 function applyFilter() {
   const date    = document.getElementById("searchDate").value;
   const start   = document.getElementById("searchStart").value;
   const end     = document.getElementById("searchEnd").value;
   const keyword = document.getElementById("searchKeyword").value.trim().toLowerCase();
+  searchWord = document.getElementById("searchKeyword").value.trim();
 
   filteredItems = allItems.filter((item) => {
     if (date    && item.date !== date)                                     return false;
     if (start   && item.date < start)                                      return false;
     if (end     && item.date > end)                                        return false;
     if (keyword) {
-      // 메모 검색: data의 memo + conversations의 모든 메시지 포함
-      const inMemo = (item.memo || "").toLowerCase().includes(keyword);
-      const inConversations = allConversations.some(conv =>
-        conv.title.toLowerCase().includes(keyword) ||
-        (conv.messages || []).some(msg =>
-          (msg.content || msg.reply || "").toLowerCase().includes(keyword)
-        )
-      );
-      if (!inMemo && !inConversations) return false;
+      // 메모 검색: 연습 기록의 메모만 대상으로 함 (대화 기록은 검색하지 않음)
+      if (!(item.memo || "").toLowerCase().includes(keyword)) return false;
     }
     return true;
   });
@@ -374,6 +374,7 @@ function applyFilter() {
 }
 
 function clearFilter() {
+  searchWord = "";
   ["searchDate","searchStart","searchEnd","searchKeyword"].forEach((id) => {
     document.getElementById(id).value = "";
   });
@@ -1862,6 +1863,13 @@ function alphaIndex(el) {
 
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
+  // 메모 검색: 글자를 입력하는 즉시(일부만 입력해도) 결과가 갱신됨
+  let searchTimer = null;
+  document.getElementById("searchKeyword")?.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applyFilter, 120);
+  });
+  ["searchDate", "searchStart", "searchEnd"].forEach(id => document.getElementById(id)?.addEventListener("change", applyFilter));
   initWeather();
   initUiSound();
   loadPracticeDataWithCache().then(() => {

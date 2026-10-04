@@ -2422,3 +2422,7 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 .data-top-grid .card-label { font-size: clamp(0.78rem, 1.4vw, 0.92rem); letter-spacing: 0.26em; text-indent: 0.26em; }
 .data-form-card { padding-top: 14px !important; }
 
+/* 검색어 일치 부분 음영 */
+.data-item-meta mark { background: linear-gradient(180deg, rgba(240, 205, 120, 0.55), rgba(222, 180, 80, 0.6)); color: #4B3F2A; padding: 0 2px; border-radius: 3px; box-shadow: inset 0 -1px 0 rgba(176, 138, 46, 0.35); }
+.data-top-grid input#searchKeyword { transition: box-shadow .2s ease, border-color .2s ease; }
+.data-top-grid input#searchKeyword:focus { border-color: #C9A24B; box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.18); }
