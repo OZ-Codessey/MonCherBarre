@@ -3,10 +3,11 @@ const API_BASE_URL = window.API_BASE_URL || "https://moncherbarre.onrender.com";
 // --- 랜덤 이미지 ---
 const STUDIO_IMAGES = [
   'avi-richards-G-BPjqxb0ho-unsplash.jpg',
-  'carolin-thiergart-jVJB6t7xJrU-unsplash.jpg',
+  'hero.jpg',
   'juli-kosolapova-H-9pOBc4c84-unsplash.jpg',
   'kazuo-ota-2x8o7ZdoB70-unsplash.jpg',
   'pexels-cottonbro-10639358.jpg',
+  'pointe-shoes-reference.jpg',
 ];
 
 function getRandomImage() {
