@@ -4,8 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>MonCherBarre ballet agent</title>
-<link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png" />
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+<link rel="shortcut icon" href="favicon.ico" />
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 <link rel="manifest" href="manifest.webmanifest" />
 <meta name="theme-color" content="#2B0F1B" />
@@ -13,7 +15,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Mon Cher Barre" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="stylesheet" href="css/style.css?v=9" />
+<link rel="stylesheet" href="css/style.css?v=11" />
 </head>
 <body>
   <div id="splash" class="splash">
@@ -47,7 +49,6 @@
             <img id="heroImg" src="studio/hero.jpg" alt="발레 연습 중인 무용수" />
             <div class="hero-caption">
               <p class="eyebrow">Today's Practice</p>
-              <h1>침착하게, 다시 한 번</h1>
             </div>
           </div>
 
@@ -210,7 +211,7 @@
             <div class="chart-container">
               <h4>총 연습 시간</h4>
               <p class="chart-label">시간</p>
-              <canvas id="totalChart" height="150"></canvas>
+              <div class="gauge-wrap"><canvas id="totalChart"></canvas></div>
             </div>
 
             <!-- 4. 부상별 운동 -->
@@ -333,6 +334,6 @@
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="js/app.js?v=9"></script>
+  <script src="js/app.js?v=11"></script>
 </body>
 </html>

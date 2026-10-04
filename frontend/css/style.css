@@ -540,9 +540,9 @@ h1, h2 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, var(--acc-soft) 0%, rgba(243, 112, 33, 0.12) 100%);
+  background: linear-gradient(135deg, var(--acc-soft) 0%, rgba(183, 110, 121, 0.12) 100%);
   color: var(--fg);
-  border: 1px solid rgba(243, 112, 33, 0.25);
+  border: 1px solid rgba(183, 110, 121, 0.25);
   border-radius: 24px;
   padding: 8px 16px;
   font-size: 0.95rem;
@@ -552,7 +552,7 @@ h1, h2 {
 
 .badge:hover {
   border-color: var(--acc);
-  background: linear-gradient(135deg, var(--acc-soft) 0%, rgba(243, 112, 33, 0.2) 100%);
+  background: linear-gradient(135deg, var(--acc-soft) 0%, rgba(183, 110, 121, 0.2) 100%);
 }
 
 .badge-icon {
@@ -927,7 +927,7 @@ h1, h2 {
 .music-player {
   margin-top: 20px;
   padding: 16px;
-  background: linear-gradient(135deg, var(--bg-sec) 0%, rgba(243, 112, 33, 0.05) 100%);
+  background: linear-gradient(135deg, var(--bg-sec) 0%, rgba(183, 110, 121, 0.05) 100%);
   border: 2px solid var(--acc-soft);
   border-radius: 12px;
   animation: slideInUp 0.3s ease;
@@ -1010,7 +1010,7 @@ h1, h2 {
 }
 
 .music-list {
-  background: rgba(243, 112, 33, 0.08);
+  background: rgba(183, 110, 121, 0.08);
   border-radius: 8px;
   padding: 8px;
   max-height: 120px;
@@ -1296,9 +1296,7 @@ body {
 .tab-btn { flex: 1; min-height: 52px; padding: 12px 8px; font-size: 1rem; white-space: nowrap; }
 
 /* 히어로 이미지는 낮게: 연습 도구(루틴·플레이어)가 첫 화면에 들어오도록 */
-.hero { aspect-ratio: 16 / 6; max-height: 230px; }
-.hero img { object-position: center 40%; }
-.hero-caption h1 { font-size: clamp(1.1rem, 2.4vw, 1.6rem); }
+
 
 /* 가로: 두 칸, 채팅 칸은 화면 높이에 맞춰 고정 (빈 공간 방지) */
 @media (min-width: 900px) {
@@ -1348,7 +1346,7 @@ input, textarea, select { font-size: 1rem; min-height: 48px; }
 .dictionary-detail { scroll-margin-top: 68px; }
 .col-left .routine-card { order: 1; }
 .col-left .card:has(#summaryText) { order: 2; }
-@media (min-width: 900px) { .hero { max-height: 170px; } }
+
 .dict-video .dict-iframe { max-width: min(520px, 100%); }
 
 /* 헤더 로고 */
@@ -1381,3 +1379,27 @@ input, textarea, select { font-size: 1rem; min-height: 48px; }
   color: #fff;
   background: #B76E79;
 }
+
+/* --- 히어로: 이미지를 자르지 않고 크게, 글자는 분홍 Today's Practice만 --- */
+.hero { aspect-ratio: auto; max-height: none; background: #14100f; }
+.hero img { width: 100%; height: auto; max-height: 68dvh; object-fit: contain; display: block; }
+.hero-caption { padding: 40px 24px 18px; }
+.hero-caption .eyebrow {
+  margin: 0;
+  font-size: clamp(1rem, 2.2vw, 1.5rem);
+  letter-spacing: 0.2em;
+  color: #F6B9CB;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* --- 루틴·요약 카드는 낮게 (이미지에 공간을 양보) --- */
+.routine-card, .col-left .card:has(#summaryText) { padding: 12px 16px; }
+.routine-card h2, .col-left .card:has(#summaryText) h2 { margin: 0 0 8px; font-size: 0.85rem; }
+.routine-chip { min-height: 44px; font-size: 0.95rem; padding: 8px 0; }
+.summary-text { margin: 0; font-size: 0.9rem; }
+
+/* --- 누적 시간 게이지: 작고 여리게 --- */
+.gauge-wrap { max-width: 190px; margin: 4px auto 0; }
+
+/* --- 확대 보기: 앤티크 돋보기 아이콘 버튼 --- */
+.dict-bar .loupe-btn { min-width: 44px; padding: 6px 12px; justify-content: center; }

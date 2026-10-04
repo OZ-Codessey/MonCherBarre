@@ -187,6 +187,47 @@ let allConversations = [];  // 메모 검색에 포함할 대화 기록
 let showAll = false;
 const SHOW_LIMIT = 7;
 
+// 누적 시간 게이지: 가늘고 여린 로즈골드 링 + 가운데 숫자
+function drawTotalGauge(totalHours, pct, isDark, trackColor) {
+  if (totalChartInstance) totalChartInstance.destroy();
+  const centerText = {
+    id: "centerText",
+    afterDraw(chart) {
+      const { ctx, chartArea: a } = chart;
+      const cx = (a.left + a.right) / 2, cy = (a.top + a.bottom) / 2;
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = isDark ? "#f1dfe3" : "#6b3a4a";
+      ctx.font = '600 26px Georgia, "Noto Serif KR", serif';
+      ctx.fillText(`${Math.round(totalHours)}h`, cx, cy - 6);
+      ctx.fillStyle = isDark ? "#c9a9b1" : "#a88a93";
+      ctx.font = '12px Georgia, "Noto Serif KR", serif';
+      ctx.fillText(`${Math.round(pct)}%`, cx, cy + 17);
+      ctx.restore();
+    },
+  };
+  totalChartInstance = new Chart(document.getElementById("totalChart"), {
+    type: "doughnut",
+    data: {
+      labels: ["달성", "남은"],
+      datasets: [{
+        data: [pct, 100 - pct],
+        backgroundColor: ["#C98F8A", trackColor],
+        borderWidth: 0,
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: "90%",
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    },
+    plugins: [centerText],
+  });
+}
+
 // 통계 차트 인스턴스 (다크모드/필터 시 업데이트용)
 let monthlyChartInstance, dayChartInstance, totalChartInstance, symptomChartInstance;
 
@@ -361,8 +402,8 @@ async function loadStatistics() {
     document.getElementById("totalHours").textContent = stats.totalHours;
 
     const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-    const barColor = "#F37021";
-    const lineColor = "#F37021";
+    const barColor = "#C98F8A";
+    const lineColor = "#C98F8A";
     const textColor = isDark ? "#e8d8df" : "#4a2535";
     const axisBg = isDark ? "rgba(50,40,45,0.5)" : "rgba(244,229,234,0.5)";
 
@@ -377,7 +418,7 @@ async function loadStatistics() {
           label: "평균 분",
           data: stats.monthlyAverage,
           borderColor: lineColor,
-          backgroundColor: "rgba(243, 112, 33, 0.1)",
+          backgroundColor: "rgba(201, 143, 138, 0.16)",
           borderWidth: 2,
           fill: true,
           tension: 0.4,
@@ -423,24 +464,7 @@ async function loadStatistics() {
     const totalMinutes = stats.totalHours * 60;
     const targetMinutes = 20000; // 목표: 333시간
     const progressPct = Math.min((totalMinutes / targetMinutes) * 100, 100);
-    if (totalChartInstance) totalChartInstance.destroy();
-    totalChartInstance = new Chart(document.getElementById("totalChart"), {
-      type: "doughnut",
-      data: {
-        labels: ["달성", "남은"],
-        datasets: [{
-          data: [progressPct, 100 - progressPct],
-          backgroundColor: [barColor, axisBg],
-          borderColor: [isDark ? "#1d1719" : "#ffffff", "transparent"],
-          borderWidth: 2,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: { legend: { display: false } },
-      },
-    });
+    drawTotalGauge(stats.totalHours, progressPct, isDark, isDark ? "#4a363d" : "rgba(255, 255, 255, 0.75)");
 
     // 4️⃣ 부상별 강화운동 개수 (막대 그래프)
     const symRes = await fetch('data/symptom_map.json');
@@ -564,27 +588,7 @@ function updateFilteredStatistics() {
   // 3️⃣ 누적 시간 업데이트
   const targetMinutes = 20000;
   const progressPct = Math.min((totalMinutes / targetMinutes) * 100, 100);
-  if (totalChartInstance) totalChartInstance.destroy();
-  totalChartInstance = new Chart(document.getElementById("totalChart"), {
-    type: "doughnut",
-    data: {
-      labels: ["달성", "남은"],
-      datasets: [{
-        data: [progressPct, 100 - progressPct],
-        backgroundColor: [pieColor1, axisBg],
-        borderColor: [isDark ? "#1d1719" : "#ffffff", "transparent"],
-        borderWidth: 2,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: () => "" } },
-      },
-    },
-  });
+  drawTotalGauge(Math.round(totalMinutes / 60 * 10) / 10, progressPct, isDark, isDark ? "#4a363d" : "rgba(255, 255, 255, 0.75)");
 
   // 통계 설명 업데이트
   const totalHours = Math.round(totalMinutes / 60 * 10) / 10;
@@ -723,10 +727,17 @@ async function loadPronunciations() {
   }
 }
 
+let pronAudio = null;
+function stopPronunciation() {
+  if (pronAudio) { pronAudio.pause(); pronAudio = null; }
+}
+
 function playPronunciation(term) {
   const url = pronunciationByTerm[term];
   if (!url) return;
-  new Audio(url).play().catch(err => console.error('발음 재생 실패:', err));
+  stopPronunciation();  // 발음이 겹치지 않도록 이전 발음은 끊음
+  pronAudio = new Audio(url);
+  pronAudio.play().catch(err => console.error('발음 재생 실패:', err));
 }
 
 async function loadDictionary() {
@@ -1006,7 +1017,7 @@ function showDictionaryDetail(frenchTerm) {
   videoHtml += `
     <div class="dict-bar">
       <p class="dict-bar-text">${video ? "Royal Ballet" : "Royal Ballet 영상이 없습니다"}</p>
-      ${video ? `<button onclick="openVideoModal('${videoId}')">확대 보기</button>` : ""}
+      ${video ? `<button class="loupe-btn" onclick="openVideoModal('${videoId}')" aria-label="확대 보기" title="확대 보기"><svg viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true"><circle cx="13" cy="13" r="9" stroke-width="2.2"/><circle cx="13" cy="13" r="6.2" stroke-width="0.9" opacity=".6"/><path d="M19.6 19.6 L21.8 21.8" stroke-width="4.2"/><path d="M22.4 22.4 L28 28" stroke-width="3"/><circle cx="25.2" cy="25.2" r="1.3" fill="currentColor" stroke="none" opacity=".35"/></svg></button>` : ""}
       <a href="${video ? video.url : move.youtube_search_url}" target="_blank" rel="noopener">YouTube</a>
       <button id="favoriteBtn" onclick="addToFavorites()">⚜️ 즐겨찾기</button>
     </div>
@@ -1128,7 +1139,7 @@ function renderGraphs() {
         datasets: [{
           label: '누적 분',
           data: stats.dayOfWeekData,
-          backgroundColor: '#F37021',
+          backgroundColor: '#C98F8A',
           borderRadius: 6,
           tension: 0.3
         }]
@@ -1154,13 +1165,13 @@ function renderGraphs() {
         datasets: [{
           label: '평균 분',
           data: stats.monthlyAverage,
-          borderColor: '#F37021',
-          backgroundColor: 'rgba(243, 112, 33, 0.1)',
+          borderColor: '#C98F8A',
+          backgroundColor: 'rgba(201, 143, 138, 0.16)',
           borderWidth: 2,
           fill: true,
           tension: 0.4,
           pointRadius: 4,
-          pointBackgroundColor: '#F37021'
+          pointBackgroundColor: '#C98F8A'
         }]
       },
       options: {
@@ -1285,6 +1296,15 @@ function initAudioEvents() {
   });
 }
 
+// 이전 소리를 완전히 끊는다 (pause만으로는 일부 기기에서 이전 곡이 남을 수 있어 소스를 비우고 load로 초기화)
+function hardStopRoutineAudio() {
+  loadToken++;
+  const audio = document.getElementById('audioPlayer');
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
+}
+
 // --- 루틴 시작 ---
 function startRoutine(minutes) {
   if (!routineData || !musicMappingData) {
@@ -1296,6 +1316,8 @@ function startRoutine(minutes) {
     alert(`Aucune séance de ${minutes} minutes.`);
     return;
   }
+  hardStopRoutineAudio();  // 다른 루틴을 누르면 이전 루틴 곡은 즉시 멈춤
+  stopPronunciation();
   currentRoutine = { minutes, sectionIndex: 0, musicIndex: 0, isPlaying: false, allSections: routine.sections };
   document.querySelectorAll('.routine-chip').forEach(c => c.classList.toggle('active', c.dataset.min === String(minutes)));
   document.getElementById('musicPlayer').classList.remove('hidden');
@@ -1318,14 +1340,15 @@ async function playCurrent() {
   updateMusicList();
 
   const audio = document.getElementById('audioPlayer');
-  const token = ++loadToken;
-  audio.pause();
+  hardStopRoutineAudio();
+  const token = loadToken;
   try {
     const url = await getAudioUrl(musicInfo.file);
-    if (token !== loadToken) return;  // 그사이 다른 곡이 선택됨
+    if (token !== loadToken) return;  // 그사이 다른 곡·루틴이 선택됨
     audio.src = url;
     audio.currentTime = 0;
     await audio.play();
+    if (token !== loadToken) audio.pause();  // 재생이 시작되는 사이 다른 선택이 있었다면 바로 정지
   } catch (err) {
     console.error('음악 재생 실패:', musicInfo.file, err);
   }
@@ -1389,10 +1412,7 @@ function updateMusicList() {
 
 // --- 루틴 종료 ---
 function stopRoutine() {
-  loadToken++;
-  const audio = document.getElementById('audioPlayer');
-  audio.pause();
-  audio.removeAttribute('src');
+  hardStopRoutineAudio();
   setPlayingUI(false);
   document.getElementById('musicPlayer').classList.add('hidden');
   document.querySelectorAll('.routine-chip').forEach(c => c.classList.remove('active'));
@@ -1419,6 +1439,10 @@ function loadYouTubeApi() {
 }
 
 async function openVideoModal(videoId) {
+  // 영상 소리와 음악이 섞이지 않도록 루틴 음악은 멈춤
+  const music = document.getElementById('audioPlayer');
+  if (!music.paused) music.pause();
+  stopPronunciation();
   const modal = document.getElementById('videoModal');
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
