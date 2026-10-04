@@ -2590,6 +2590,12 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 .music-section { display: flex; justify-content: center; margin: 8px 0 4px; }
 .music-player .now-playing h3 { text-align: center; }
 
+/* --- 연습 통계 상단 배지 3개: 절반 크기, 가운데 정렬 --- */
+.stats-badges { justify-content: center; gap: 6px; margin-bottom: 10px; }
+.badge { padding: 2px 9px; gap: 3px; font-size: 0.55rem; letter-spacing: 0.04em; }
+.badge strong { font-size: 0.6rem; }
+.badge .badge-icon { font-size: 0.5rem; }
+
 /* --- 구역 이름표: 한 단계 키우고, 이름표를 가운데 두고 양옆으로 뻗는 구분선(꼬치 모양) --- */
 .area-lg { padding: 5px 12px 5px 10px; gap: 6px; }
 .area-lg i { width: 17px; height: 17px; }
