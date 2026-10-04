@@ -2525,3 +2525,6 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 /* --- 날씨 상태 글씨만 기울임 유지 --- */
 .wc-label { font-style: italic !important; }
 
+/* --- 알파벳 글자: 분홍기를 빼서 차분한 회분홍 --- */
+.alphabet-btn, .alphabet-btn[aria-pressed="false"] { color: #A58E94; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7); }
+
