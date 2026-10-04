@@ -2451,3 +2451,16 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 }
 [data-theme="dark"] #chat-section.active .chat-form { background: rgba(29, 23, 25, 0.94); border-color: rgba(224, 138, 165, 0.35); }
 
+/* --- 앱(홈 화면)으로 열 때 상태바(시계·배터리)와 겹치지 않게 위쪽 여유 --- */
+.topbar { padding-top: calc(env(safe-area-inset-top, 0px) + 14px); padding-bottom: 12px; }
+.tabs { top: env(safe-area-inset-top, 0px); }
+@supports (padding: max(0px)) {
+  .topbar { padding-top: max(calc(env(safe-area-inset-top, 0px) + 12px), 14px); }
+}
+
+/* --- 메뉴 줄: 크기는 그대로, 글씨를 또렷하게 (굵기·색 대비만 높임) --- */
+.tab-btn { font-weight: 400; color: #5C4E54; }
+.tab-btn.active { font-weight: 500; color: #A9566C; }
+.tab-btn::after { color: rgba(183, 110, 121, 0.7); }
+[data-theme="dark"] .tab-btn { color: #D9C7CD; }
+[data-theme="dark"] .tab-btn.active { color: #F0A9BD; }
