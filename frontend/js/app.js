@@ -1351,8 +1351,8 @@ function initAudioEvents() {
   audio.addEventListener('loadedmetadata', () => {
     document.getElementById('timeTotal').textContent = fmtTime(audio.duration);
   });
-  audio.addEventListener('play', () => setPlayingUI(true));
-  audio.addEventListener('pause', () => setPlayingUI(false));
+  audio.addEventListener('play', () => { setPlayingUI(true); keepScreenOn(true); });
+  audio.addEventListener('pause', () => { setPlayingUI(false); keepScreenOn(false); });
   audio.addEventListener('ended', () => skipToMusic(1));
   initMediaSessionActions();
   document.getElementById('progressBar').addEventListener('click', (e) => {
@@ -1385,6 +1385,41 @@ function updateMediaSession(title, area) {
 }
 
 // 잠금 화면 버튼: 재생/일시정지, 이전·다음 곡, ±4초
+// 앱을 닫거나 다른 화면으로 나가면 음악도 함께 멈춤 (백그라운드에서 계속 흐르지 않게)
+let wakeLock = null;
+async function keepScreenOn(on) {
+  try {
+    if (on && 'wakeLock' in navigator && !wakeLock) {
+      wakeLock = await navigator.wakeLock.request('screen');   // 루틴 연습 중엔 자동 잠금 방지
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch { wakeLock = null; }
+}
+
+// 기본: 앱을 나가도(탭·페이지 전환, 홈, 화면 잠금) 음악은 계속 흐르고, 멈춘 위치도 그대로 유지됨.
+// 헤더의 헤드폰 스위치를 끄면 앱이 화면에서 사라질 때 음악을 자동으로 일시정지(수동 제어용).
+let bgPlay = true;
+try { bgPlay = localStorage.getItem('bgPlay') !== 'off'; } catch {}
+
+function initLeaveHandlers() {
+  document.addEventListener('visibilitychange', () => {
+    const audio = document.getElementById('audioPlayer');
+    if (!audio) return;
+    if (document.hidden) { if (!bgPlay && !audio.paused) audio.pause(); }       // 스위치가 꺼져 있을 때만 정지
+    else if (!audio.paused) keepScreenOn(true);                                  // 돌아오면 화면 꺼짐 방지만 복구 (자동 재생 없음)
+  });
+  const t = document.getElementById('bgPlayToggle');
+  if (t) {
+    const sync = () => {
+      t.classList.toggle('off', !bgPlay);
+      t.setAttribute('aria-pressed', bgPlay);
+      t.title = bgPlay ? 'Background play · ON (keeps playing when you leave)' : 'Background play · OFF (pauses when you leave)';
+    };
+    t.addEventListener('click', () => { bgPlay = !bgPlay; try { localStorage.setItem('bgPlay', bgPlay ? 'on' : 'off'); } catch {} sync(); });
+    sync();
+  }
+}
+
 function initMediaSessionActions() {
   if (!('mediaSession' in navigator)) return;
   const audio = document.getElementById('audioPlayer');
@@ -1888,6 +1923,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ["searchDate", "searchStart", "searchEnd"].forEach(id => document.getElementById(id)?.addEventListener("change", applyFilter));
   initWeather();
   initUiSound();
+  initLeaveHandlers();
   loadPracticeDataWithCache().then(() => {
     loadDataList();
     loadStatistics();

@@ -2498,3 +2498,7 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
   #chat-section.active .chat-card { padding-bottom: 76px; }
 }
 
+/* 백그라운드 재생 스위치: 켜짐=금색 헤드폰 / 꺼짐=회색 + 사선 (소리 스위치와 같은 모양) */
+.bg-toggle .slash { display: none; }
+.bg-toggle.off { color: #A8A096; }
+.bg-toggle.off .slash { display: inline; }
