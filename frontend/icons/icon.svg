@@ -8,10 +8,14 @@
       <stop offset="0" stop-color="#FFD6E0" stop-opacity=".40"/>
       <stop offset="1" stop-color="#FFD6E0" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="gd" gradientUnits="userSpaceOnUse" x1="60" y1="90" x2="460" y2="480">
+    <linearGradient id="gd" gradientUnits="userSpaceOnUse" x1="60" y1="60" x2="460" y2="480">
       <stop offset="0" stop-color="#FFF6E6"/>
       <stop offset=".5" stop-color="#F8DDB0"/>
       <stop offset="1" stop-color="#E2B66E"/>
+    </linearGradient>
+    <linearGradient id="tutu" gradientUnits="userSpaceOnUse" x1="150" y1="250" x2="390" y2="300">
+      <stop offset="0" stop-color="#FFE3EA"/>
+      <stop offset="1" stop-color="#F7BFD0"/>
     </linearGradient>
   </defs>
   <rect width="512" height="512" fill="url(#bg)"/>
@@ -19,29 +23,40 @@
   <rect x="20" y="20" width="472" height="472" rx="8" fill="none" stroke="#F8DDB0" stroke-opacity=".75" stroke-width="2.5"/>
   <rect x="30" y="30" width="452" height="452" rx="5" fill="none" stroke="#F8DDB0" stroke-opacity=".3" stroke-width="1.5"/>
 
-  <g fill="url(#gd)" stroke="none">
-    <!-- 몸통과 목: 하나의 곡선으로 이어져 뒤로 젖혀진 목 -->
-    <path d="M250 292 C 254 270 256 256 256 242 C 254 224 246 208 246 192 C 247 178 254 164 264 150 C 270 143 274 139 279 137 C 288 135 293 141 291 149 C 288 161 284 171 280 184 C 279 202 276 222 270 240 C 268 256 272 274 276 292 Z"/>
-    <!-- 머리: 턱을 들고 뒤로 젖힘 -->
-    <ellipse cx="290" cy="122" rx="16" ry="18" transform="rotate(28 290 122)"/>
-    <!-- 쪽머리 -->
-    <circle cx="312" cy="112" r="9"/>
-    <!-- 지지하는 다리: 푸앵트 -->
-    <path d="M246 290 C 250 340 244 396 236 446 C 235 452 232 462 229 472 C 233 468 238 456 242 448 C 254 396 266 340 274 292 Z"/>
-    <!-- 뒤로 뻗은 다리 -->
-    <path d="M264 288 C 324 282 386 250 440 196 C 447 189 453 184 462 178 C 455 192 447 204 439 212 C 386 268 322 306 274 310 Z"/>
-    <!-- 튜튜 -->
-    <path d="M138 304 C 182 278 238 270 264 272 C 302 270 346 278 394 304 C 344 328 188 330 138 304 Z" fill-opacity=".96"/>
-    <path d="M168 298 C 214 312 318 312 366 298" fill="none" stroke="#C9608A" stroke-opacity=".35" stroke-width="2.5"/>
+  <!-- 지지하는 다리: 길게, 푸앵트 -->
+  <g fill="url(#gd)" stroke="url(#gd)" stroke-width="6" stroke-linejoin="round">
+    <path d="M246 252 C 250 330 244 396 236 446 C 235 452 232 462 229 472 C 233 468 238 456 242 448 C 254 396 266 332 274 254 Z"/>
   </g>
 
-  <g fill="none" stroke="url(#gd)" stroke-linecap="round">
-    <!-- 앞으로 뻗은 팔 -->
-    <path d="M248 182 C 194 182 130 164 70 144" stroke-width="10"/>
-    <path d="M70 144 C 60 141 52 142 44 146" stroke-width="5"/>
-    <!-- 뒤로 뻗은 팔 -->
-    <path d="M276 188 C 324 186 372 174 414 150" stroke-width="9"/>
-    <path d="M414 150 C 424 144 432 138 438 130" stroke-width="5"/>
-    <path d="M176 482 C 210 476 262 476 296 482" stroke-width="2.5" stroke="#F8DDB0" stroke-opacity=".8"/>
+  <!-- 상체·뒷다리·치마는 한 덩어리로 위로 올림 (다리가 더 길어 보이게) -->
+  <g transform="translate(0 -40)">
+    <!-- 뒤로 뻗은 다리 (길게) -->
+    <g fill="url(#gd)" stroke="url(#gd)" stroke-width="6" stroke-linejoin="round">
+      <path d="M264 288 C 326 282 392 248 446 190 C 454 182 462 176 474 168 C 466 184 456 198 446 208 C 390 268 324 306 274 310 Z"/>
+    </g>
+
+    <!-- 치마: 연한 핑크, 다리와 구분되는 와인색 외곽선 -->
+    <g transform="rotate(-18 262 292)">
+      <path d="M150 301 C 194 288 240 286 264 287 C 302 286 346 290 386 301 C 340 309 196 311 150 301 Z"
+            fill="url(#tutu)" stroke="#8C2E55" stroke-opacity=".75" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M180 298 C 220 304 310 304 356 298" fill="none" stroke="#D77FA0" stroke-opacity=".7" stroke-width="2"/>
+    </g>
+
+    <!-- 상체: 몸통·목·머리·팔 (허리 기준 0.8배) -->
+    <g transform="translate(262 290) scale(0.8) translate(-262 -290)">
+      <g fill="url(#gd)" stroke="url(#gd)" stroke-width="6" stroke-linejoin="round">
+        <path d="M250 292 C 254 270 256 256 256 242 C 254 224 246 208 246 192 C 247 178 254 164 264 150 C 270 142 276 133 284 124 C 290 119 296 123 294 131 C 291 144 286 154 282 168 C 281 174 281 178 280 184 C 279 202 276 222 270 240 C 268 256 272 274 276 292 Z"/>
+        <ellipse cx="298" cy="110" rx="17" ry="19" transform="rotate(28 298 110)"/>
+        <circle cx="320" cy="99" r="9"/>
+      </g>
+      <g fill="none" stroke="url(#gd)" stroke-linecap="round">
+        <path d="M248 182 C 194 182 130 164 70 144" stroke-width="13"/>
+        <path d="M70 144 C 60 141 52 142 44 146" stroke-width="7"/>
+        <path d="M276 188 C 324 186 372 174 414 150" stroke-width="12"/>
+        <path d="M414 150 C 424 144 432 138 438 130" stroke-width="7"/>
+      </g>
+    </g>
   </g>
+
+  <path d="M176 482 C 210 476 262 476 296 482" fill="none" stroke="#F8DDB0" stroke-opacity=".8" stroke-width="2.5" stroke-linecap="round"/>
 </svg>
