@@ -2613,3 +2613,12 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 .music-player .now-playing h3#nowPlayingArea::after, .music-section::after { background: linear-gradient(270deg, rgba(176, 138, 46, 0), rgba(176, 138, 46, 0.6)); }
 .music-section { border-bottom: 0; }
 
+/* --- 헤더 상단: 엷은 그레이 그라데이션 (위가 회색, 아래로 갈수록 크림색으로 번짐) --- */
+.topbar { background: linear-gradient(180deg, rgba(140, 132, 128, 0.2) 0%, rgba(140, 132, 128, 0.08) 55%, rgba(250, 247, 245, 0) 100%); }
+.tabs {
+  background: linear-gradient(180deg, rgba(150, 142, 138, 0.26) 0%, rgba(205, 198, 194, 0.55) 40%, rgba(250, 247, 245, 0.8) 100%);
+  -webkit-backdrop-filter: saturate(150%) blur(14px);
+  backdrop-filter: saturate(150%) blur(14px);
+}
+[data-theme="dark"] .topbar { background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 60%, transparent 100%); }
+[data-theme="dark"] .tabs { background: linear-gradient(180deg, rgba(120, 112, 108, 0.35) 0%, rgba(40, 36, 34, 0.7) 45%, rgba(20, 18, 15, 0.82) 100%); }
