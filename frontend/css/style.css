@@ -2511,3 +2511,17 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 .bg-toggle .slash { display: none; }
 .bg-toggle.off { color: #A8A096; }
 .bg-toggle.off .slash { display: inline; }
+
+/* --- 지금 재생 중 헤더: 구역 이름표·곡명·동작을 가운데 정렬, 이름표의 한글은 더 작고 바르게 --- */
+.music-player .now-playing { text-align: center; }
+.music-player .now-playing h3 { margin: 0 0 8px; }
+.area-lg { margin: 0 auto; }
+.area-lg .ap-text { align-items: flex-start; }
+.area-lg small { font-size: 0.56rem; letter-spacing: 0.1em; }
+
+/* --- 앱 전체 기울임체 해제 --- */
+*, *::before, *::after { font-style: normal !important; }
+
+/* --- 날씨 상태 글씨만 기울임 유지 --- */
+.wc-label { font-style: italic !important; }
+
