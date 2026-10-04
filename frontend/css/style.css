@@ -1985,6 +1985,25 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
 .dict-description { font-weight: 350; line-height: 1.85; letter-spacing: 0.035em; }
 .dictionary-item-term { font-weight: 500; letter-spacing: 0.04em; }
 
+/* --- 날씨 칩: 더 진하고 또렷하게, 아이콘은 날씨별 색 --- */
+.weather-chip { letter-spacing: 0.07em; }
+.weather-chip svg { width: 15px; height: 15px; stroke-width: 1.5; }
+.wc-city { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.2em; color: #5E3441; }
+.wc-temp { font-size: 0.76rem; font-weight: 700; color: #2A1F23; }
+.wc-label { font-size: 0.68rem; font-weight: 600; color: #8F4A5D; }
+.weather-chip[data-wx="moon"] svg { color: #1C1F2B; fill: #1C1F2B; }
+.weather-chip[data-wx="sun"] svg { color: #F0A800; }
+.weather-chip[data-wx="cloud"] svg { color: #6F7A88; }
+.weather-chip[data-wx="rain"] svg { color: #4F78B0; }
+.weather-chip[data-wx="snow"] svg { color: #6FA5D6; }
+.weather-chip[data-wx="storm"] svg { color: #6A55A8; }
+.weather-chip[data-wx="fog"] svg { color: #8A9097; }
+.weather-chip[data-wx="wind"] svg { color: #3F8A8F; }
+[data-theme="dark"] .wc-city { color: #E8CBD3; }
+[data-theme="dark"] .wc-temp { color: #FFFFFF; }
+[data-theme="dark"] .wc-label { color: #F0A9BD; }
+[data-theme="dark"] .weather-chip[data-wx="moon"] svg { color: #F2E7B8; fill: #F2E7B8; }
+
 /* 섹션 제목도 같은 서체로, "전체" 버튼은 한 줄로 */
 .container h2 { font-family: "Jost", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif; font-weight: 500; letter-spacing: 0.08em; }
 .alphabet-btn { white-space: nowrap; padding: 0 14px; min-width: 48px; }

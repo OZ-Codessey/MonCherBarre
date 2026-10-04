@@ -1655,6 +1655,7 @@ async function loadWeather() {
     const w = (await res.json()).current_weather;
     const [label, icon] = describeWeather(w.weathercode, w.is_day === 1, w.windspeed);
     chip.innerHTML = `${W_ICONS[icon]}<span class="wc-city">Seoul</span><span class="wc-temp">${Math.round(w.temperature)}°C</span><span class="wc-label">${label}</span>`;
+    chip.dataset.wx = icon;
     chip.title = `Seoul · ${w.temperature}°C · wind ${w.windspeed} km/h`;
   } catch (err) {
     console.error("날씨 조회 실패:", err);
