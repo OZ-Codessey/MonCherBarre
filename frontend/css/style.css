@@ -1403,3 +1403,5 @@ input, textarea, select { font-size: 1rem; min-height: 48px; }
 
 /* --- 확대 보기: 앤티크 돋보기 아이콘 버튼 --- */
 .dict-bar .loupe-btn { min-width: 44px; padding: 6px 12px; justify-content: center; }
+
+.stats-note::before { content: "◆"; margin-right: 8px; font-size: 0.7em; color: #C98F8A; vertical-align: 2px; }

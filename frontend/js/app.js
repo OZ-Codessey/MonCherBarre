@@ -500,9 +500,9 @@ async function loadStatistics() {
 
 function updateStatsNote(stats) {
   const note = document.getElementById("statsNote");
-  const streakText = stats.streak > 0 ? `🔥 ${stats.streak}일 연속` : "아직 없음";
+  const streakText = stats.streak > 0 ? `${stats.streak}일 연속` : "아직 없음";
   const bestDayText = stats.bestDay !== "-" ? `${stats.bestDay}요일` : "데이터 부족";
-  note.textContent = `📊 총 ${stats.totalHours}시간 연습 · ${streakText} · 최다 요일 ${bestDayText}`;
+  note.textContent = `총 ${stats.totalHours}시간 연습 · ${streakText} · 최다 요일 ${bestDayText}`;
 }
 
 // 필터된 데이터로 차트 업데이트 (search/filter 적용 시)
@@ -594,7 +594,7 @@ function updateFilteredStatistics() {
   const totalHours = Math.round(totalMinutes / 60 * 10) / 10;
   const count = filteredItems.length;
   const note = document.getElementById("statsNote");
-  note.textContent = `📊 선택 기간: ${count}개 기록 · ${totalHours}시간 · 평균 ${Math.round(totalMinutes / count)}분/기록`;
+  note.textContent = `선택 기간: ${count}개 기록 · ${totalHours}시간 · 평균 ${Math.round(totalMinutes / count)}분/기록`;
 }
 
 // 다크모드 전환 시 차트 색상도 업데이트
@@ -1290,6 +1290,7 @@ function initAudioEvents() {
   audio.addEventListener('play', () => setPlayingUI(true));
   audio.addEventListener('pause', () => setPlayingUI(false));
   audio.addEventListener('ended', () => skipToMusic(1));
+  initMediaSessionActions();
   document.getElementById('progressBar').addEventListener('click', (e) => {
     const r = e.currentTarget.getBoundingClientRect();
     if (audio.duration) audio.currentTime = audio.duration * Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
@@ -1303,6 +1304,34 @@ function hardStopRoutineAudio() {
   audio.pause();
   audio.removeAttribute('src');
   audio.load();
+}
+
+// 잠금 화면·제어 센터에 표시되는 재생 정보 (Media Session): 곡명, 구역, 큰 아트워크
+function updateMediaSession(title, area) {
+  if (!('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title,
+    artist: area,
+    album: 'MonCherBarre ballet agent',
+    artwork: [
+      { src: 'icons/artwork-512.png', sizes: '512x512', type: 'image/png' },
+      { src: 'icons/artwork-1024.png', sizes: '1024x1024', type: 'image/png' },
+    ],
+  });
+}
+
+// 잠금 화면 버튼: 재생/일시정지, 이전·다음 곡, ±4초
+function initMediaSessionActions() {
+  if (!('mediaSession' in navigator)) return;
+  const audio = document.getElementById('audioPlayer');
+  const set = (name, fn) => { try { navigator.mediaSession.setActionHandler(name, fn); } catch {} };
+  set('play', () => audio.play());
+  set('pause', () => audio.pause());
+  set('previoustrack', () => skipToMusic(-1));
+  set('nexttrack', () => skipToMusic(1));
+  set('seekbackward', () => skipTime(-4));
+  set('seekforward', () => skipTime(4));
+  set('seekto', (d) => { if (d.seekTime != null) audio.currentTime = d.seekTime; });
 }
 
 // --- 루틴 시작 ---
@@ -1338,6 +1367,7 @@ async function playCurrent() {
     .map(no => movesData.find(m => m.no === no)?.term)
     .filter(Boolean).slice(0, 4).join(' · ');
   updateMusicList();
+  updateMediaSession(musicInfo.name_fr, AREA_FR[section.area] || section.area);
 
   const audio = document.getElementById('audioPlayer');
   hardStopRoutineAudio();
