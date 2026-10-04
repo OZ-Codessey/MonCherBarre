@@ -1861,6 +1861,22 @@ function alphaIndex(el) {
   return /^[A-Z]$/.test(t) ? t.charCodeAt(0) - 65 : 0;   // ALL은 가장 낮은 음
 }
 
+// 채팅 입력창을 화면 아래에 고정. 가로 화면에서는 오른쪽 채팅 칸의 위치·폭에 맞춤
+function positionChatBar() {
+  const form = document.getElementById('chatForm'), card = document.querySelector('.chat-card');
+  if (!form || !card) return;
+  if (window.innerWidth >= 900) {
+    const r = card.getBoundingClientRect();
+    form.style.setProperty('--bar-left', `${Math.round(r.left + 12)}px`);
+    form.style.setProperty('--bar-width', `${Math.round(r.width - 24)}px`);
+  } else {
+    form.style.removeProperty('--bar-left'); form.style.removeProperty('--bar-width');
+  }
+}
+window.addEventListener('resize', positionChatBar);
+window.addEventListener('load', positionChatBar);
+document.addEventListener('DOMContentLoaded', () => { setTimeout(positionChatBar, 300); });
+
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
   // 메모 검색: 글자를 입력하는 즉시(일부만 입력해도) 결과가 갱신됨

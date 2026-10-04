@@ -2475,3 +2475,26 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 }
 [data-theme="dark"] .tabs { background: rgba(20, 18, 15, 0.72); border-bottom-color: rgba(224, 138, 165, 0.16); box-shadow: 0 6px 16px -10px rgba(0, 0, 0, 0.6); }
 
+/* --- 채팅 입력창: 모든 화면에서 화면 아래에 고정 (가로는 채팅 칸 위치에 맞춤) --- */
+@media (min-width: 900px) {
+  #chat-section.active .chat-form {
+    position: fixed;
+    left: var(--bar-left, auto);
+    right: auto;
+    transform: none;
+    width: var(--bar-width, 480px);
+    bottom: max(10px, env(safe-area-inset-bottom));
+    z-index: 40;
+    margin: 0;
+    padding: 10px 12px;
+    background: rgba(252, 248, 246, 0.94);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(183, 110, 121, 0.3);
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(120, 60, 80, 0.22);
+    filter: none;
+  }
+  #chat-section.active .chat-card { padding-bottom: 76px; }
+}
+
