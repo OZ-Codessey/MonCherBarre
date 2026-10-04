@@ -18,7 +18,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&family=Noto+Serif+KR:wght@500;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="css/style.css?v=19" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<link rel="stylesheet" href="css/style.css?v=31" />
 </head>
 <body>
   <div id="splash" class="splash">
@@ -64,7 +65,7 @@
           </div>
 
           <div class="card routine-card">
-            <h2>루틴 선택</h2>
+            <h2 class="rt-title">Séance</h2>
             <div class="routine-grid">
               <button class="routine-chip" data-min="10">10분</button>
               <button class="routine-chip" data-min="20">20분</button>
@@ -88,22 +89,22 @@
               </div>
 
               <div class="player-controls">
-                <button class="btn-secondary btn-icon" onclick="skipToMusic(-1)" aria-label="Précédent">⏮️</button>
-                <button class="btn-secondary btn-icon" onclick="skipTime(-4)" aria-label="-4 s">⏪</button>
-                <button class="btn-primary btn-play" onclick="togglePlayPause()" id="playPauseBtn" aria-label="Jouer">▶️</button>
-                <button class="btn-secondary btn-icon" onclick="skipTime(4)" aria-label="+4 s">⏩</button>
-                <button class="btn-secondary btn-icon" onclick="skipToMusic(1)" aria-label="Suivant">⏭️</button>
+                <button class="btn-secondary btn-icon" onclick="skipToMusic(-1)" aria-label="Précédent"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5v14"/><path d="M19 6l-9 6 9 6z" fill="currentColor" stroke="none"/></svg></button>
+                <button class="btn-secondary btn-icon" onclick="skipTime(-4)" aria-label="-4 s"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 6l-7 6 7 6z" fill="currentColor" stroke="none"/><path d="M20 6l-7 6 7 6z" fill="currentColor" stroke="none"/></svg></button>
+                <button class="btn-primary btn-play" onclick="togglePlayPause()" id="playPauseBtn" aria-label="Jouer"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg></button>
+                <button class="btn-secondary btn-icon" onclick="skipTime(4)" aria-label="+4 s"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 6l7 6-7 6z" fill="currentColor" stroke="none"/><path d="M4 6l7 6-7 6z" fill="currentColor" stroke="none"/></svg></button>
+                <button class="btn-secondary btn-icon" onclick="skipToMusic(1)" aria-label="Suivant"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 5v14"/><path d="M5 6l9 6-9 6z" fill="currentColor" stroke="none"/></svg></button>
               </div>
               <div id="musicList" class="music-list" style="margin-top: 12px;"></div>
 
-              <button class="btn-secondary" onclick="stopRoutine()" style="width:100%; margin-top:10px;">⏹️ Terminer</button>
+              <button class="btn-secondary" onclick="stopRoutine()" style="width:100%; margin-top:10px;"><span class="stop-ico">⏹︎</span> Terminer</button>
             </div>
           </div>
         </section>
 
         <section class="col col-right">
           <div class="card chat-card">
-            <h2>AI 비서에게 물어보기</h2>
+            <h2>오늘의 발레 연습 추천해주세요</h2>
             <div id="chatBox" class="chat-box">
               <div class="msg assistant">안녕하세요, 오늘 연습은 어떠셨나요? 데이터 요약을 참고해서 답해드릴게요.</div>
             </div>
@@ -340,6 +341,6 @@
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="js/app.js?v=19"></script>
+  <script src="js/app.js?v=31"></script>
 </body>
 </html>

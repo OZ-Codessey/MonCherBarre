@@ -112,6 +112,26 @@ let coldStartTimer = null;
 
 function setLoading(isLoading) {
   document.getElementById("loadingRow").classList.toggle("hidden", !isLoading);
+  // 응답을 기다리는 동안 입력·전송을 잠그고 버튼에 진행 표시
+  const form = document.getElementById("chatForm");
+  const btn = form.querySelector("button[type=submit]");
+  const input = document.getElementById("chatInput");
+  btn.disabled = isLoading;
+  input.disabled = isLoading;
+  btn.classList.toggle("sending", isLoading);
+  btn.textContent = isLoading ? "답변 중" : "보내기";
+  // 채팅창 안에 "답변을 준비하는 중" 표시를 넣고, 응답이 오면 제거
+  const box = document.getElementById("chatBox");
+  const old = document.getElementById("typingRow");
+  if (old) old.remove();
+  if (isLoading) {
+    const t = document.createElement("div");
+    t.id = "typingRow";
+    t.className = "msg assistant typing";
+    t.innerHTML = '<span class="typing-text">답변을 준비하고 있어요</span><span class="typing-dots"><i></i><i></i><i></i></span>';
+    box.appendChild(t);
+    box.scrollTop = box.scrollHeight;
+  }
   const notice = document.getElementById("coldStartNotice");
   if (isLoading) {
     // 5초 후에도 응답 없으면 콜드스타트 안내 표시
@@ -127,6 +147,7 @@ let currentConvId = null;
 async function sendMessage(message) {
   appendMessage(message, "user");
   setLoading(true);
+  const startedAt = Date.now();
   try {
     const res = await fetch(`${API_BASE_URL}/api/chat`, {
       method: "POST",
@@ -140,6 +161,9 @@ async function sendMessage(message) {
   } catch (err) {
     appendMessage("답변을 받지 못했어요. 다시 시도해주세요.", "assistant");
   } finally {
+    // 서버가 너무 빨리 실패해도 "처리 중" 표시가 눈에 보이도록 최소 0.8초는 유지
+    const wait = Math.max(0, 800 - (Date.now() - startedAt));
+    if (wait) await new Promise(r => setTimeout(r, wait));
     setLoading(false);
   }
 }
@@ -148,7 +172,14 @@ document.getElementById("chatForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const input = document.getElementById("chatInput");
   const message = input.value.trim();
-  if (!message) return;
+  if (!message) {
+    // 빈 입력으로 눌러도 반응이 보이도록 입력창을 살짝 흔들고 포커스
+    input.classList.remove("shake");
+    void input.offsetWidth;
+    input.classList.add("shake");
+    input.focus();
+    return;
+  }
   input.value = "";
   sendMessage(message);
 });
@@ -1249,8 +1280,22 @@ function initRoutineChips() {
 
 // 구역 이름 (원어)
 const AREA_FR = { '매트': 'Barre au sol', '바': 'Barre', '센터': 'Au milieu' };
-const ICON_PLAY = '▶️';
-const ICON_PAUSE = '⏸️';
+const AREA_KO = { '매트': '플로어 바', '바': '바', '센터': '센터' };
+const AREA_KEY = { '매트': 'sol', '바': 'barre', '센터': 'milieu' };
+const AREA_ICON = {
+  // 마름모(바닥) · 토슈즈(바) · 발레리나(센터): 가는 선 아이콘
+  sol: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"><path d="M16 3l9 9-9 17L7 12z"/><path d="M7 12h18M12 12l4 17M20 12l-4 17M12 12l4-9M20 12l-4-9"/></svg>',
+  barre: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"><path d="M9 5c-1 5-2 9-1 14 .5 3 3 4 4 6l-3 3 4 1 3-4c-1-3-3-5-3-8 0-3 1-6 0-10z"/><path d="M19 6c-1 5-2 9-1 14 .5 3 3 4 4 6l-3 3 4 1 3-4c-1-3-3-5-3-8 0-3 1-6 0-10z"/></svg>',
+  milieu: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"><circle cx="15" cy="5.5" r="2"/><path d="M15 8c-.5 4-.5 8 0 12M15 20c-1 3-1 6-1 9M15 20c4-1 8-3 11-6M15 10c-4 1-8 1-11-1M15 10c4-1 7-3 10-6M9 17h12"/></svg>',
+};
+
+// 구역 이름표: 프랑스어(크게) + 한글(작게), 아이콘과 색으로 구역을 구분
+function areaPlate(area, size = 'sm') {
+  const key = AREA_KEY[area] || 'barre';
+  return `<span class="area-plate area-${key} area-${size}"><i>${AREA_ICON[key]}</i><span class="ap-text"><b>${AREA_FR[area] || area}</b>${size === 'lg' ? `<small>${AREA_KO[area] || ''}</small>` : ''}</span></span>`;
+}
+const ICON_PLAY = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>';
 
 // 음원은 통째로 내려받아 메모리(Blob)에서 재생 → 서버가 구간 요청을 지원하지 않아도 ±4초 이동이 정확히 동작
 const audioBlobCache = new Map();
@@ -1274,7 +1319,7 @@ function fmtTime(sec) {
 function setPlayingUI(playing) {
   currentRoutine.isPlaying = playing;
   const btn = document.getElementById('playPauseBtn');
-  btn.textContent = playing ? ICON_PAUSE : ICON_PLAY;
+  btn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
   btn.setAttribute('aria-label', playing ? 'Pause' : 'Jouer');
 }
 
@@ -1362,7 +1407,7 @@ async function playCurrent() {
   const musicInfo = musicName && musicMappingData[musicName];
   if (!musicInfo) return;
 
-  document.getElementById('nowPlayingArea').textContent = AREA_FR[section.area] || section.area;
+  document.getElementById('nowPlayingArea').innerHTML = areaPlate(section.area, 'lg');
   document.getElementById('nowPlayingMusic').textContent = musicInfo.name_fr;
   document.getElementById('nowPlayingMovements').textContent = musicInfo.movements
     .map(no => movesData.find(m => m.no === no)?.term)
@@ -1432,7 +1477,7 @@ function skipToMusic(direction) {
 function updateMusicList() {
   const { allSections, sectionIndex, musicIndex } = currentRoutine;
   document.getElementById('musicList').innerHTML = allSections.map((sec, si) => `
-    <div class="music-section">${AREA_FR[sec.area] || sec.area}</div>
+    <div class="music-section">${areaPlate(sec.area, 'sm')}</div>
     ${sec.music_sequence.map((name, mi) => `
       <div class="music-item ${si === sectionIndex && mi === musicIndex ? 'active' : ''}"
            onclick="goToTrack(${si}, ${mi})">

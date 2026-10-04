@@ -1503,3 +1503,438 @@ input, textarea, select { font-size: 1rem; min-height: 48px; }
 .tab-btn { padding: 0 clamp(16px, 3.4vw, 40px); }
 .tab-btn::before { left: clamp(16px, 3.4vw, 40px); right: clamp(16px, 3.4vw, 40px); }
 .tab-btn::after { right: -4px; }
+
+/* --- 히어로 캡션: 작은 크기로 복원 --- */
+#chat-section .hero-caption .eyebrow,
+.hero-caption .eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+
+/* --- 루틴 버튼: 작고 단정한 세리프 버튼 --- */
+.routine-grid { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.routine-chip {
+  flex: 0 0 auto;
+  min-width: 78px;
+  min-height: 34px;
+  padding: 4px 18px;
+  border: 1px solid rgba(183, 110, 121, 0.45);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F7E9EC 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 3px rgba(157, 90, 101, 0.16);
+  color: #8C5A66;
+  font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.routine-chip:hover { background: linear-gradient(180deg, #FFFFFF 0%, #F7E9EC 100%); color: #6E3A48; transform: none; }
+.routine-chip.active {
+  color: #fff;
+  border-color: #8F4F59;
+  background: linear-gradient(180deg, #CF8A95 0%, #B76E79 55%, #9D5A65 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.28);
+  transform: none;
+}
+[data-theme="dark"] .routine-chip:not(.active) {
+  background: linear-gradient(180deg, #3a2a30 0%, #2a1e23 100%);
+  border-color: rgba(224, 138, 165, 0.4);
+  color: #e6c9d1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.routine-chip { font-variant-numeric: lining-nums; }
+
+/* --- 구역 이름표 (Barre au sol / Barre / Au milieu) --- */
+.area-plate {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  vertical-align: middle;
+}
+.area-plate i { display: block; flex: 0 0 auto; }
+.area-plate i svg { display: block; width: 100%; height: 100%; }
+.area-plate .ap-text { display: flex; flex-direction: column; line-height: 1.15; }
+.area-plate b { font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif; font-weight: 600; letter-spacing: 0.04em; font-style: normal; text-transform: none; }
+.area-plate small { font-size: 0.62em; letter-spacing: 0.12em; opacity: 0.85; }
+
+.area-lg { padding: 8px 18px 8px 14px; }
+.area-lg i { width: 26px; height: 26px; }
+.area-lg b { font-size: 1.2rem; }
+.area-lg small { font-size: 0.7rem; }
+.area-sm { padding: 4px 12px 4px 9px; gap: 8px; }
+.area-sm i { width: 18px; height: 18px; }
+.area-sm b { font-size: 0.95rem; }
+.area-sm small { font-size: 0.6rem; }
+
+/* 흰 바탕 + 로즈골드 테두리 */
+.area-sol { background: #fff; color: #5A4A4D; border: 1.5px solid #D9A79B; box-shadow: 0 1px 4px rgba(183, 110, 121, 0.2); }
+.area-sol i { color: #C98F8A; }
+/* 발레리나 핑크 */
+.area-barre { background: linear-gradient(180deg, #F4B3B2, #EE9F9F); color: #fff; box-shadow: 0 1px 4px rgba(190, 100, 100, 0.25); }
+.area-barre i { color: #fff; }
+/* 나이트 블루 */
+.area-milieu { background: linear-gradient(180deg, #243252, #1B2742); color: #F3F0EA; box-shadow: 0 1px 4px rgba(20, 30, 60, 0.35); }
+.area-milieu i { color: #DCE3F3; }
+
+.now-playing h3 { margin: 0 0 8px; }
+.music-section { margin: 12px 0 6px; padding: 0; border: 0; }
+
+/* --- 재생기 글꼴 통일: 버튼과 같은 세리프 --- */
+.music-player, .music-player .now-playing h3, .music-player .now-playing h4, .music-player .now-playing p,
+.music-item, .music-item .no, .progress-row, .stop-btn {
+  font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif;
+}
+.music-player .now-playing h4 { font-weight: 600; font-size: 1.3rem; letter-spacing: 0.02em; }
+.music-player .now-playing p { font-style: italic; font-size: 1rem; letter-spacing: 0.02em; }
+.music-item { font-size: 1.12rem; font-weight: 500; letter-spacing: 0.02em; }
+.music-item .no { font-size: 0.85rem; opacity: 0.6; }
+.progress-row { font-size: 0.95rem; font-variant-numeric: lining-nums; }
+.btn-secondary.stop-btn, .music-player > .btn-secondary { font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.12em; }
+
+/* --- 채팅 카드: 제목 · 말풍선 · 입력창을 위쪽 카드들과 같은 톤으로 --- */
+.chat-card > h2 {
+  font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #8C5A66;
+  padding-bottom: 8px;
+  margin: 0 0 8px;
+  border-bottom: 1px solid rgba(183, 110, 121, 0.25);
+}
+
+.msg {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding: 11px 16px;
+  border-radius: 18px;
+  box-shadow: 0 1px 4px rgba(157, 90, 101, 0.12);
+}
+.msg.assistant {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAF0F2 100%);
+  border: 1px solid rgba(183, 110, 121, 0.28);
+  border-bottom-left-radius: 5px;
+  color: #3d2f33;
+}
+.msg.user {
+  background: linear-gradient(180deg, #CF8A95 0%, #B76E79 60%, #A25C68 100%);
+  border: 1px solid #9D5A65;
+  border-bottom-right-radius: 5px;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+[data-theme="dark"] .msg.assistant {
+  background: linear-gradient(180deg, #34262c 0%, #2b1f24 100%);
+  border-color: rgba(224, 138, 165, 0.3);
+  color: #f1e3e7;
+}
+
+.chat-form { gap: 10px; align-items: center; }
+.chat-form input {
+  border: 1px solid rgba(183, 110, 121, 0.4);
+  border-radius: 999px;
+  padding: 0 20px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBF3F5 100%);
+  box-shadow: inset 0 1px 3px rgba(157, 90, 101, 0.1);
+  font-family: "Noto Serif KR", "Apple SD Gothic Neo", Georgia, serif;
+}
+.chat-form input:focus { outline: none; border-color: #B76E79; box-shadow: 0 0 0 3px rgba(183, 110, 121, 0.18); }
+.chat-form button {
+  min-height: 48px;
+  padding: 0 24px;
+  border: 1px solid #8F4F59;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #CF8A95 0%, #B76E79 55%, #9D5A65 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 5px rgba(157, 90, 101, 0.3);
+  color: #fff;
+  font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+.chat-form button:active { box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] .chat-form input { background: linear-gradient(180deg, #2f2328 0%, #261b20 100%); color: #f1e3e7; }
+
+/* 곡 목록 머리글 이름표: 한글 없이 한 줄, 낮은 높이 */
+.area-sm { padding: 2px 12px 2px 8px; gap: 7px; border-radius: 6px; }
+.area-sm i { width: 15px; height: 15px; }
+.area-sm b { font-size: 0.92rem; line-height: 1.2; }
+.music-section { margin: 8px 0 4px; }
+
+/* --- 재생 컨트롤: 가는 선 아이콘 + 맑은 로즈골드 --- */
+.player-controls { justify-content: center; gap: 12px; align-items: center; }
+.player-controls .btn-icon {
+  flex: 0 0 56px;
+  min-height: 46px;
+  border: 1px solid rgba(183, 110, 121, 0.4);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAEEF1 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 5px rgba(183, 110, 121, 0.16);
+  color: #B76E79;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.player-controls .btn-icon:hover { background: linear-gradient(180deg, #FFFFFF 0%, #F8E4E9 100%); color: #9D5A65; transform: none; }
+.player-controls .btn-play {
+  flex: 0 0 120px;
+  min-height: 52px;
+  border: 1px solid #C98089;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #F0BCC4 0%, #DFA0AA 55%, #CC8794 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 3px 8px rgba(204, 135, 148, 0.4);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  text-shadow: none;
+}
+.player-controls .btn-play:hover { background: linear-gradient(180deg, #F3C5CC 0%, #E3A8B2 55%, #D08E9A 100%); transform: none; }
+.player-controls button:active { box-shadow: inset 0 2px 5px rgba(120, 50, 70, 0.28); transform: translateY(1px); }
+.progress-fill { background: linear-gradient(90deg, #E3A3AC, #C98089); }
+.progress-fill::after { background: #C98089; }
+.stop-btn, .music-player > .btn-secondary { background: linear-gradient(180deg, #FFFFFF 0%, #FAEEF1 100%); border: 1px solid rgba(183, 110, 121, 0.4); color: #9D5A65; }
+.stop-ico { display: inline-flex; vertical-align: -4px; margin-right: 4px; }
+.stop-ico svg { width: 17px; height: 17px; }
+[data-theme="dark"] .player-controls .btn-icon { background: linear-gradient(180deg, #3a2a30 0%, #2a1e23 100%); color: #e6b3be; border-color: rgba(224, 138, 165, 0.4); box-shadow: none; }
+
+/* --- 루틴 카드 제목: [ S É A N C E ] 가운데 정렬, 작고 우아하게 --- */
+.routine-card h2.rt-title {
+  text-align: center;
+  margin: 2px 0 10px;
+  font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  text-transform: uppercase;
+  color: #9D5A65;
+}
+.routine-card h2.rt-title::before { content: "[ "; font-weight: 300; color: rgba(183, 110, 121, 0.7); letter-spacing: 0; }
+.routine-card h2.rt-title::after { content: " ]"; font-weight: 300; color: rgba(183, 110, 121, 0.7); letter-spacing: 0; }
+
+/* --- 채팅 글꼴: 버튼·이름표와 같은 세리프로 통일 --- */
+.chat-card > h2,
+.msg, .msg * ,
+.chat-form input,
+.conversation-message {
+  font-family: "Cormorant Garamond", "Noto Serif KR", "AppleMyungjo", Georgia, serif;
+}
+.msg { font-size: 1.02rem; line-height: 1.7; font-weight: 500; letter-spacing: 0.01em; }
+.chat-card > h2 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.06em; text-align: center; }
+.chat-table th, .chat-table td { font-family: inherit; }
+.chat-num-no { font-family: "Cormorant Garamond", Georgia, serif; }
+
+/* --- 말풍선: 둥글게 감싸지 않고 선으로만 구분 (답답하지 않게) --- */
+.msg {
+  max-width: 92%;
+  padding: 4px 0 4px 16px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  text-shadow: none;
+}
+.msg.assistant {
+  align-self: flex-start;
+  border-left: 2px solid rgba(183, 110, 121, 0.55);
+  color: #3d2f33;
+  background: none;
+}
+.msg.user {
+  align-self: flex-end;
+  text-align: right;
+  padding: 4px 16px 4px 0;
+  border-right: 2px solid #C9A24B;
+  color: #7A4552;
+  background: none;
+  font-style: italic;
+}
+[data-theme="dark"] .msg.assistant { background: none; border-left-color: rgba(224, 138, 165, 0.6); color: #f1e3e7; }
+[data-theme="dark"] .msg.user { background: none; color: #e8c4cd; }
+.msg.assistant.has-table { max-width: 100%; }
+.chat-table-wrap { border-radius: 4px; }
+.chat-box { gap: 14px; }
+.conversation-message { border-radius: 0; }
+
+/* 말풍선 사방 테두리 제거 (한쪽 선만 남김) + 숫자는 일반 모양 */
+.msg.assistant { border: 0; border-left: 2px solid rgba(183, 110, 121, 0.55); box-shadow: none; }
+.msg.user { border: 0; border-right: 2px solid #C9A24B; box-shadow: none; }
+[data-theme="dark"] .msg.assistant { border: 0; border-left: 2px solid rgba(224, 138, 165, 0.6); }
+.msg, .msg * { font-variant-numeric: lining-nums; }
+
+/* --- 루틴 버튼: 재생 버튼보다 한 톤 진한 분홍 --- */
+.routine-chip:not(.active) {
+  background: linear-gradient(180deg, #FFF5F7 0%, #F8DDE3 100%);
+  border-color: #D79AA8;
+  color: #A24F66;
+}
+.routine-chip.active {
+  background: linear-gradient(180deg, #E8A0AE 0%, #D67A8E 55%, #C25D74 100%);
+  border-color: #B24D65;
+  color: #fff;
+  box-shadow: inset 0 2px 4px rgba(110, 30, 55, 0.3);
+}
+
+/* --- Terminer: 더 진한 로즈 + 종료 기호 --- */
+.stop-btn, .music-player > .btn-secondary {
+  background: linear-gradient(180deg, #D27A8E 0%, #BC5C73 55%, #A64A61 100%);
+  border: 1px solid #8F3C52;
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 6px rgba(143, 60, 82, 0.3);
+}
+.stop-btn:active, .music-player > .btn-secondary:active { box-shadow: inset 0 2px 5px rgba(60, 10, 25, 0.4); }
+.stop-ico { font-size: 1.05em; margin-right: 6px; vertical-align: 0; font-family: "Apple Symbols", "Segoe UI Symbol", sans-serif; }
+
+/* --- 채팅·데이터 요약 한글: 현대적인 산세리프 --- */
+.chat-card, .chat-card > h2, .msg, .msg *, .chat-form input,
+.col-left .card:has(#summaryText), .col-left .card:has(#summaryText) h2, .summary-text {
+  font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+.chat-card > h2 { font-size: 1rem; font-weight: 600; letter-spacing: 0.02em; color: #8C4F61; }
+.msg { font-size: 0.98rem; font-weight: 400; line-height: 1.7; letter-spacing: -0.005em; }
+.msg.user { font-style: normal; font-weight: 500; }
+.chat-form input { font-size: 0.98rem; }
+.col-left .card:has(#summaryText) h2 { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; color: #9D5A65; }
+.summary-text { font-size: 0.92rem; font-weight: 400; letter-spacing: -0.005em; color: var(--fg); }
+
+/* --- 응답 대기 표시: 채팅창 안의 문구 + 번지는 점, 전송 버튼 잠금 --- */
+.loading-row { display: none !important; }
+.msg.typing { color: #9D5A65; font-style: italic; opacity: 0.9; }
+.typing-dots { display: inline-flex; gap: 4px; margin-left: 8px; vertical-align: middle; }
+.typing-dots i { width: 5px; height: 5px; border-radius: 50%; background: #C9A24B; animation: pulse 1.2s infinite ease-in-out; }
+.typing-dots i:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots i:nth-child(3) { animation-delay: 0.4s; }
+.chat-form button:disabled { opacity: 0.75; cursor: progress; filter: saturate(0.85); }
+.chat-form button.sending::after {
+  content: "";
+  display: inline-block;
+  width: 12px; height: 12px;
+  margin-left: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  vertical-align: -1px;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.chat-form input:disabled { opacity: 0.7; }
+
+/* --- 루틴 버튼: 모서리를 깎은 로즈골드 금속 플레이트 / 선택 시 나이트 블루 --- */
+.routine-grid { gap: 14px; filter: drop-shadow(0 3px 3px rgba(90, 45, 35, 0.32)); }
+.routine-chip,
+.routine-chip:not(.active),
+.routine-chip.active {
+  --cut: 9px;
+  position: relative;
+  min-width: 86px;
+  min-height: 38px;
+  padding: 5px 20px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+  background: linear-gradient(135deg, #F7D9C8 0%, #C98B78 50%, #8E5545 100%);   /* 테두리(금속 광택) */
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(80, 35, 25, 0.55);
+  transform: none;
+}
+.routine-chip::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  clip-path: polygon(calc(var(--cut) - 1px) 0, calc(100% - var(--cut) + 1px) 0, 100% calc(var(--cut) - 1px), 100% calc(100% - var(--cut) + 1px), calc(100% - var(--cut) + 1px) 100%, calc(var(--cut) - 1px) 100%, 0 calc(100% - var(--cut) + 1px), 0 calc(var(--cut) - 1px));
+  background: linear-gradient(180deg, #F2C6B1 0%, #DDA591 45%, #C28470 100%);      /* 면 */
+}
+.routine-chip { z-index: 0; isolation: isolate; }
+.routine-chip:hover { filter: brightness(1.05); }
+.routine-chip:active { filter: brightness(0.92); transform: translateY(1px); }
+.routine-chip.active { background: linear-gradient(135deg, #C9D3EA 0%, #5C6E9A 50%, #28365C 100%); text-shadow: 0 1px 1px rgba(0, 0, 10, 0.5); }
+.routine-chip.active::before { background: linear-gradient(180deg, #2F4172 0%, #1F2C52 55%, #17213F 100%); }
+[data-theme="dark"] .routine-chip:not(.active) { background: linear-gradient(135deg, #F7D9C8 0%, #C98B78 50%, #8E5545 100%); color: #fff; box-shadow: none; }
+
+/* 루틴 플레이트 색을 아래 재생 컨트롤의 로즈핑크와 통일 */
+.routine-chip,
+.routine-chip:not(.active),
+.routine-chip.active { background: linear-gradient(135deg, #FBE2E7 0%, #D8939F 50%, #A25C6C 100%); text-shadow: 0 1px 1px rgba(110, 40, 60, 0.45); }
+.routine-chip::before { background: linear-gradient(180deg, #F0BCC4 0%, #DFA0AA 55%, #CC8794 100%); }
+.routine-chip.active { background: linear-gradient(135deg, #F3C3CC 0%, #C0647A 50%, #8A3A50 100%); }
+.routine-chip.active::before { background: linear-gradient(180deg, #D98396 0%, #C25F77 55%, #AB4A63 100%); }
+.routine-grid { filter: drop-shadow(0 3px 3px rgba(150, 70, 90, 0.3)); }
+[data-theme="dark"] .routine-chip:not(.active) { background: linear-gradient(135deg, #FBE2E7 0%, #D8939F 50%, #A25C6C 100%); }
+
+/* --- 보내기 버튼: 루틴 플레이트와 같은 모서리 깎인 로즈핑크 --- */
+.chat-form button[type=submit] {
+  --cut: 10px;
+  position: relative;
+  isolation: isolate;
+  min-width: 108px;
+  min-height: 48px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+  background: linear-gradient(135deg, #FBE2E7 0%, #D8939F 50%, #A25C6C 100%);
+  color: #fff;
+  font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-shadow: 0 1px 1px rgba(110, 40, 60, 0.45);
+}
+.chat-form button[type=submit]::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  clip-path: polygon(calc(var(--cut) - 1px) 0, calc(100% - var(--cut) + 1px) 0, 100% calc(var(--cut) - 1px), 100% calc(100% - var(--cut) + 1px), calc(100% - var(--cut) + 1px) 100%, calc(var(--cut) - 1px) 100%, 0 calc(100% - var(--cut) + 1px), 0 calc(var(--cut) - 1px));
+  background: linear-gradient(180deg, #E9A9B4 0%, #D58594 55%, #BF6A7E 100%);
+}
+.chat-form { filter: drop-shadow(0 2px 3px rgba(150, 70, 90, 0.25)); }
+.chat-form button[type=submit]:active:not(:disabled) { transform: translateY(1px); filter: brightness(0.92); box-shadow: none; }
+.chat-form button[type=submit]:disabled { opacity: 0.85; filter: saturate(0.8); }
+.chat-form button.sending::after { margin-left: 10px; }
+
+/* 빈 입력 안내: 입력창 흔들림 + 테두리 강조 */
+.chat-form input.shake { animation: shake 0.35s ease; border-color: #C25F77; box-shadow: 0 0 0 3px rgba(194, 95, 119, 0.2); }
+@keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+
+/* --- 재생 컨트롤: 같은 알약 모양에 금속 테두리 + 광택 면으로 입체감 (색은 유지) --- */
+.player-controls { filter: drop-shadow(0 3px 3px rgba(150, 70, 90, 0.26)); }
+.player-controls .btn-icon,
+.player-controls .btn-play {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  box-shadow: none;
+}
+.player-controls .btn-icon { background: linear-gradient(135deg, #FFFFFF 0%, #E9C4CC 55%, #BE8793 100%); }
+.player-controls .btn-play { background: linear-gradient(135deg, #FBE2E7 0%, #D58F9C 55%, #A25C6C 100%); }
+.player-controls .btn-icon::before,
+.player-controls .btn-play::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  border-radius: 999px;
+}
+.player-controls .btn-icon::before { background: linear-gradient(180deg, #FFFFFF 0%, #FBF0F2 55%, #F4DDE2 100%); box-shadow: inset 0 1px 0 #fff; }
+.player-controls .btn-play::before { background: linear-gradient(180deg, #F0BCC4 0%, #DFA0AA 55%, #CC8794 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55); }
+.player-controls .btn-icon:hover, .player-controls .btn-play:hover { filter: brightness(1.04); }
+.player-controls button:active { transform: translateY(1px); filter: brightness(0.93); box-shadow: none; }
+[data-theme="dark"] .player-controls .btn-icon { background: linear-gradient(135deg, #6a4a54 0%, #3a2a30 55%, #241a1e 100%); }
+[data-theme="dark"] .player-controls .btn-icon::before { background: linear-gradient(180deg, #3a2a30 0%, #2a1e23 100%); box-shadow: none; }
+
+/* --- 루틴 플레이트: 색을 조금씩 빼서 한층 엷게 --- */
+.routine-chip,
+.routine-chip:not(.active) { background: linear-gradient(135deg, #FDF1F3 0%, #E9BDC6 50%, #C98F9C 100%); }
+.routine-chip::before { background: linear-gradient(180deg, #F8DCE1 0%, #EDBFC8 55%, #E2AAB6 100%); }
+.routine-chip.active { background: linear-gradient(135deg, #F9DDE3 0%, #D58798 50%, #A85A6E 100%); }
+.routine-chip.active::before { background: linear-gradient(180deg, #E6A2B1 0%, #D78598 55%, #C86C82 100%); }
+.routine-chip, .routine-chip.active { text-shadow: 0 1px 1px rgba(130, 60, 80, 0.4); }
+.routine-grid { filter: drop-shadow(0 3px 3px rgba(150, 70, 90, 0.22)); }
