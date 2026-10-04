@@ -4,7 +4,16 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>MonCherBarre — 발레 AI 비서</title>
-<link rel="stylesheet" href="css/style.css?v=6" />
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#2B0F1B" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Mon Cher Barre" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="stylesheet" href="css/style.css?v=8" />
 </head>
 <body>
   <div id="splash" class="splash">
@@ -13,7 +22,7 @@
 
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark">⚜️</span>
+      <img class="brand-icon" src="icons/icon.svg" alt="" />
       <span class="brand-name">Mon Cher Barre</span>
     </div>
     <button id="themeToggle" class="theme-toggle" aria-label="다크모드 전환">
@@ -228,6 +237,9 @@
           <div id="conversationsListContainer" class="conversations-list">
             <p class="loading">불러오는 중…</p>
           </div>
+          <div id="convShowMoreRow" class="show-more-row hidden">
+            <button class="btn-secondary btn-small" id="convShowMoreBtn" onclick="toggleConvShowMore()">더 보기</button>
+          </div>
         </div>
 
         <div id="conversationDetail" class="card conversation-detail hidden">
@@ -321,6 +333,6 @@
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

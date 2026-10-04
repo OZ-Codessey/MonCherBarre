@@ -59,11 +59,50 @@ Promise.all([loadSummary(), splashMinDelay]).then(() => {
 });
 
 // --- 채팅 ---
+// 챗봇 답변(마크다운 표 · 번호 목록 · 굵게)을 안전하게 HTML로 변환 (HTML은 모두 이스케이프)
+function renderChatMarkdown(text) {
+  const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const inline = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  const lines = text.split("\n");
+  let html = "";
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (line.startsWith("|")) {
+      const rows = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        rows.push(lines[i].trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim()));
+        i++;
+      }
+      const body = rows.filter(r => !r.every(c => /^:?-{2,}:?$/.test(c)));
+      const head = body.shift();
+      html += '<div class="chat-table-wrap"><table class="chat-table"><thead><tr>' +
+        head.map(c => `<th>${inline(c)}</th>`).join("") + "</tr></thead><tbody>" +
+        body.map(r => "<tr>" + r.map(c => `<td>${inline(c)}</td>`).join("") + "</tr>").join("") +
+        "</tbody></table></div>";
+      continue;
+    }
+    const num = line.match(/^(\d+)[.)]\s+(.*)$/);
+    if (num) {
+      html += `<div class="chat-num"><span class="chat-num-no">${num[1]}</span><span>${inline(num[2])}</span></div>`;
+    } else if (line) {
+      html += `<p class="chat-p">${inline(line)}</p>`;
+    }
+    i++;
+  }
+  return html;
+}
+
 function appendMessage(text, role) {
   const box = document.getElementById("chatBox");
   const div = document.createElement("div");
   div.className = `msg ${role}`;
-  div.textContent = text;
+  if (role === "assistant") {
+    div.innerHTML = renderChatMarkdown(text);
+    if (div.querySelector(".chat-table")) div.classList.add("has-table");
+  } else {
+    div.textContent = text;
+  }
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 }
@@ -146,7 +185,7 @@ let allItems = [];
 let filteredItems = [];
 let allConversations = [];  // 메모 검색에 포함할 대화 기록
 let showAll = false;
-const SHOW_LIMIT = 20;
+const SHOW_LIMIT = 7;
 
 // 통계 차트 인스턴스 (다크모드/필터 시 업데이트용)
 let monthlyChartInstance, dayChartInstance, totalChartInstance, symptomChartInstance;
@@ -558,32 +597,58 @@ function updateFilteredStatistics() {
 themeToggle.addEventListener("click", () => loadStatistics());
 
 // --- 대화 기록 ---
+let convList = [];
+let convShowAll = false;
+
 async function loadConversationsList() {
   const container = document.getElementById("conversationsListContainer");
   try {
     const res = await fetch(`${API_BASE_URL}/api/conversations`);
     if (!res.ok) throw new Error();
-    const convs = await res.json();
-
-    if (convs.length === 0) {
-      container.innerHTML = "<p class='loading'>저장된 대화가 없어요.</p>";
-      return;
-    }
-
-    container.innerHTML = convs.reverse().map((c) => `
-      <div class="conversation-item">
-        <div class="conversation-item-info">
-          <div class="conversation-item-title">${c.title}</div>
-          <div class="data-item-meta">${c.messages.length}개 메시지</div>
-        </div>
-        <div class="conversation-item-actions">
-          <button class="btn-small btn-load" onclick="loadConversation('${c.id}', '${c.title.replace(/"/g, '\\"')}')">불러오기</button>
-        </div>
-      </div>
-    `).join("");
+    convList = (await res.json()).reverse();
+    convShowAll = false;
+    renderConversations();
   } catch (err) {
     container.innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
   }
+}
+
+// 7개만 보여주고 나머지는 접기 버튼 속에 보관
+function renderConversations() {
+  const container = document.getElementById("conversationsListContainer");
+  const row = document.getElementById("convShowMoreRow");
+  const btn = document.getElementById("convShowMoreBtn");
+
+  if (convList.length === 0) {
+    container.innerHTML = "<p class='loading'>저장된 대화가 없어요.</p>";
+    row.classList.add("hidden");
+    return;
+  }
+
+  const shown = convShowAll ? convList : convList.slice(0, SHOW_LIMIT);
+  container.innerHTML = shown.map((c) => `
+    <div class="conversation-item">
+      <div class="conversation-item-info">
+        <div class="conversation-item-title">${c.title}</div>
+        <div class="data-item-meta">${c.messages.length}개 메시지</div>
+      </div>
+      <div class="conversation-item-actions">
+        <button class="btn-small btn-load" onclick="loadConversation('${c.id}', '${c.title.replace(/"/g, '\\"')}')">불러오기</button>
+      </div>
+    </div>
+  `).join("");
+
+  if (convList.length > SHOW_LIMIT) {
+    row.classList.remove("hidden");
+    btn.textContent = convShowAll ? "접기 ↑" : `더 보기 (${convList.length - SHOW_LIMIT}개 더) ↓`;
+  } else {
+    row.classList.add("hidden");
+  }
+}
+
+function toggleConvShowMore() {
+  convShowAll = !convShowAll;
+  renderConversations();
 }
 
 function loadConversation(convId, title) {
@@ -597,7 +662,7 @@ function loadConversation(convId, title) {
       document.getElementById("conversationTitle").textContent = conv.title;
       msgContainer.innerHTML = conv.messages.map((m) => `
         <div class="conversation-message ${m.role}">
-          ${m.content}
+          ${renderChatMarkdown(m.content || "")}
         </div>
       `).join("");
       detail.classList.remove("hidden");
@@ -961,8 +1026,10 @@ async function loadPracticeDataWithCache() {
     const cacheKey = 'practice_logs_cache';
     const cached = localStorage.getItem(cacheKey);
 
-    if (cached) {
-      practiceLogsCache = JSON.parse(cached);
+    // 빈 배열이 캐시된 경우(서버 콜드스타트 실패 등)는 무시하고 다시 불러옴
+    const parsed = cached ? JSON.parse(cached) : null;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      practiceLogsCache = parsed;
       return;
     }
 
@@ -971,7 +1038,7 @@ async function loadPracticeDataWithCache() {
     if (!res.ok) throw new Error(`status ${res.status}`);
 
     practiceLogsCache = await res.json();
-    localStorage.setItem(cacheKey, JSON.stringify(practiceLogsCache));
+    if (practiceLogsCache.length > 0) localStorage.setItem(cacheKey, JSON.stringify(practiceLogsCache));
   } catch (err) {
     console.error('연습 기록 로드 실패:', err);
     practiceLogsCache = [];
