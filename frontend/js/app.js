@@ -1676,9 +1676,151 @@ function initWeather() {
   document.addEventListener("visibilitychange", () => { if (!document.hidden) loadWeather(); });  // 다시 열면 갱신
 }
 
+// ============================================================================
+// UI 사운드: 버튼을 누르면 맑은 피아노 음, 알파벳 위를 훑으면 또로롱 아르페지오
+// (파일 없이 Web Audio로 합성. 루틴 음악이 재생 중일 땐 소리를 내지 않음)
+// ============================================================================
+const UiSound = (() => {
+  let ctx = null, master = null, lastAt = 0;
+  let enabled = true;
+  try { enabled = localStorage.getItem("uiSound") !== "off"; } catch {}
+  const PENTA = [0, 2, 4, 7, 9];                       // 펜타토닉: 어떤 순서로 울려도 어울림
+  const noteFreq = (i) => 523.25 * Math.pow(2, (PENTA[i % 5] + 12 * Math.floor(i / 5)) / 12);
+
+  function ensure() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = 0.32;
+      // 반짝이는 잔향(짧은 피드백 딜레이)
+      const delay = ctx.createDelay(0.5); delay.delayTime.value = 0.17;
+      const fb = ctx.createGain(); fb.gain.value = 0.3;
+      const wet = ctx.createGain(); wet.gain.value = 0.28;
+      master.connect(ctx.destination);
+      master.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(ctx.destination);
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    return true;
+  }
+
+  function musicPlaying() {
+    const a = document.getElementById("audioPlayer");
+    return a && !a.paused && !!a.src;
+  }
+
+  function play(i, vel = 1, dur = 1.5) {
+    if (!enabled || musicPlaying() || !ensure()) return;
+    const t = ctx.currentTime, f = noteFreq(Math.max(0, Math.min(24, i)));
+    const out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(0.5 * vel, t + 0.006);   // 빠른 타건
+    out.gain.exponentialRampToValueAtTime(0.0001, t + dur);          // 길게 사그라듦
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 7000;
+    out.connect(lp); lp.connect(master);
+    [[1, 0.9, "sine"], [2, 0.32, "sine"], [3, 0.12, "sine"], [4.01, 0.05, "triangle"]].forEach(([m, g, type], k) => {
+      const o = ctx.createOscillator(), og = ctx.createGain();
+      o.type = type; o.frequency.value = f * m; og.gain.value = g;
+      og.gain.setValueAtTime(g, t);
+      og.gain.exponentialRampToValueAtTime(0.0001, t + dur / (1 + k * 0.8));  // 높은 배음일수록 빨리 사라짐
+      o.connect(og); og.connect(out);
+      o.start(t); o.stop(t + dur + 0.05);
+    });
+  }
+
+  // 아주 작고 낮은 "톡": 울림 없이 짧게, 들릴 듯 말 듯한 크기
+  function knock(vel = 1, pitch = 1) {
+    if (!enabled || musicPlaying() || !ensure()) return;
+    const t = ctx.currentTime;
+    const f0 = 180 * pitch * (0.97 + Math.random() * 0.06);
+    const out = ctx.createGain(); out.gain.value = 0.55;
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900;
+    out.connect(lp); lp.connect(master);
+    const o = ctx.createOscillator(), og = ctx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(f0 * 1.15, t);
+    o.frequency.exponentialRampToValueAtTime(f0 * 0.85, t + 0.03);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.4 * vel, t + 0.002);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);          // 0.05초 만에 사라짐 (여운 없음)
+    o.connect(og); og.connect(out); o.start(t); o.stop(t + 0.06);
+    const len = Math.floor(ctx.sampleRate * 0.012), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / len, 2);
+    const ns = ctx.createBufferSource(); ns.buffer = buf;
+    const ng = ctx.createGain(); ng.gain.value = 0.12 * vel;
+    ns.connect(ng); ng.connect(out); ns.start(t);
+  }
+
+  return {
+    play,
+    knock(vel, pitch) { knock(vel, pitch); },
+    knockDouble() { knock(0.9, 1); setTimeout(() => knock(0.7, 1.1), 100); },   // 톡톡 (아주 작게)
+    sweep(i) {                                          // 훑을 때: 너무 촘촘하면 간격 조절
+      const n = performance.now();
+      if (n - lastAt < 38) return;
+      lastAt = n;
+      play(i, 0.7, 1.1);
+    },
+    press(i = 12) { play(i, 1, 1.6); },
+    isOn: () => enabled,
+    toggle() {
+      enabled = !enabled;
+      try { localStorage.setItem("uiSound", enabled ? "on" : "off"); } catch {}
+      if (enabled) play(14, 1, 1.4);
+      return enabled;
+    },
+  };
+})();
+
+function initUiSound() {
+  const tapLike = 'button, .tab-btn, .routine-chip, .alphabet-btn, .dict-bar a';
+  // 버튼 누를 때: 종류별로 높낮이를 달리해 단조롭지 않게
+  document.addEventListener("pointerdown", (e) => {
+    const el = e.target.closest(tapLike);
+    if (!el || el.disabled || el.id === "soundToggle") return;
+    // 발레 사전 영역(알파벳 등)은 맑은 피아노, 그 밖의 모든 버튼은 둔탁한 노크(톡)
+    if (el.classList.contains("alphabet-btn")) { UiSound.play(alphaIndex(el), 1, 1.7); return; }
+    if (el.closest("#dictionary-section")) { UiSound.press(12 + Math.floor(Math.random() * 6)); return; }
+    if (el.matches('button[type="submit"], .btn-primary, .btn-play, .routine-chip')) { UiSound.knockDouble(); return; }
+    UiSound.knock(1, 1);
+  }, true);
+
+  // 알파벳 위를 훑을 때 (마우스·터치)
+  const filter = document.getElementById("alphabetFilter");
+  if (filter) {
+    let lastEl = null;
+    const over = (el) => { if (el && el !== lastEl && el.classList.contains("alphabet-btn")) { lastEl = el; UiSound.sweep(alphaIndex(el)); } };
+    filter.addEventListener("pointerover", (e) => { if (e.pointerType === "mouse") over(e.target.closest(".alphabet-btn")); });
+    filter.addEventListener("pointerleave", () => { lastEl = null; });
+    filter.addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse" && e.buttons) over(document.elementFromPoint(e.clientX, e.clientY)?.closest(".alphabet-btn"));
+    });
+  }
+
+  // 소리 켜기/끄기
+  const toggle = document.getElementById("soundToggle");
+  if (toggle) {
+    const sync = () => {
+      const on = UiSound.isOn();
+      toggle.classList.toggle("off", !on);
+      toggle.setAttribute("aria-pressed", on);
+      toggle.title = on ? "Button sounds · ON" : "Button sounds · OFF";
+    };
+    toggle.addEventListener("click", () => { UiSound.toggle(); sync(); });
+    sync();
+  }
+}
+
+function alphaIndex(el) {
+  const t = el.textContent.trim();
+  return /^[A-Z]$/.test(t) ? t.charCodeAt(0) - 65 : 0;   // ALL은 가장 낮은 음
+}
+
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
   initWeather();
+  initUiSound();
   loadPracticeDataWithCache().then(() => {
     loadDataList();
     loadStatistics();
