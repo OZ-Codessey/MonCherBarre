@@ -2025,6 +2025,35 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
 .card-label::after { content: " ]"; font-weight: 300; letter-spacing: 0; }
 [data-theme="dark"] .container h2.page-label, [data-theme="dark"] .routine-card h2.rt-title, [data-theme="dark"] .card-label { color: #E3C46E; }
 
+/* --- 다크 모드 토글: 가는 금테 알약 + 로즈골드 손잡이, 해/달 아이콘 --- */
+.theme-toggle {
+  width: 54px;
+  height: 28px;
+  border: 1px solid #C9A24B;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F7ECEE 100%);
+  box-shadow: inset 0 1px 2px rgba(120, 80, 60, 0.18);
+  transition: background 0.25s ease;
+}
+.theme-toggle .dot {
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #A7656F;
+  background: linear-gradient(180deg, #E9A9B4 0%, #CC8794 100%) center / 100% 100% no-repeat;
+  box-shadow: 0 1px 3px rgba(120, 50, 70, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: transform 0.25s ease;
+}
+.theme-toggle .dot::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  background: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-theme="dark"] .theme-toggle { background: linear-gradient(180deg, #2a2025 0%, #1c1519 100%); border-color: #C9A24B; }
+[data-theme="dark"] .theme-toggle .dot { transform: translateX(26px); background: linear-gradient(180deg, #3a2f45 0%, #241d2e 100%); border-color: #C9A24B; }
+[data-theme="dark"] .theme-toggle .dot::after { background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F4E3A8'%3E%3Cpath d='M20 14.2A8 8 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2z'/%3E%3C/svg%3E"); }
+
 /* ============================================================================
    텍스트 색: 검정 대신 진한 그레이/브라운 골드
    ============================================================================ */
