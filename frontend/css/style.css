@@ -2528,6 +2528,10 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 /* --- 알파벳 글자: 분홍기를 빼서 차분한 회분홍 --- */
 .alphabet-btn, .alphabet-btn[aria-pressed="false"] { color: #A58E94; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7); }
 
+/* --- Au milieu 카드: 시커먼 남색 대신 진한 그레이 골드 --- */
+.area-milieu { background: linear-gradient(180deg, #9A8A5C, #7C6D43); color: #FBF6E8; box-shadow: 0 1px 4px rgba(90, 75, 35, 0.3); }
+.area-milieu i { color: #F4EBD0; }
+
 /* --- 아이콘 툴팁: 작고 선명한 한글 설명 --- */
 [data-tip] { position: relative; }
 [data-tip]::after {
@@ -2574,4 +2578,32 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 }
 [data-tip][data-tip-pos="bottom"]::after { bottom: auto; top: calc(100% + 5px); }
 [data-theme="dark"] [data-tip]::after { background: #E3D3A0; color: #3B3120; }
+
+/* --- 구역 이름표 3종(Barre au sol / Barre / Au milieu): 크기를 절반으로, 가운데 정렬 --- */
+.area-lg { padding: 4px 10px 4px 8px; gap: 5px; border-radius: 5px; }
+.area-lg i { width: 13px; height: 13px; }
+.area-lg b { font-size: 0.62rem; letter-spacing: 0.03em; }
+.area-lg small { font-size: 0.34rem; letter-spacing: 0.08em; }
+.area-sm { padding: 1px 7px 1px 5px; gap: 4px; border-radius: 4px; }
+.area-sm i { width: 8px; height: 8px; }
+.area-sm b { font-size: 0.5rem; letter-spacing: 0.03em; }
+.music-section { display: flex; justify-content: center; margin: 8px 0 4px; }
+.music-player .now-playing h3 { text-align: center; }
+
+/* --- 구역 이름표: 한 단계 키우고, 이름표를 가운데 두고 양옆으로 뻗는 구분선(꼬치 모양) --- */
+.area-lg { padding: 5px 12px 5px 10px; gap: 6px; }
+.area-lg i { width: 17px; height: 17px; }
+.area-lg b { font-size: 0.82rem; }
+.area-lg small { font-size: 0.44rem; }
+.area-sm { padding: 2px 9px 2px 7px; gap: 5px; }
+.area-sm i { width: 11px; height: 11px; }
+.area-sm b { font-size: 0.68rem; }
+
+.music-player .now-playing h3#nowPlayingArea,
+.music-section { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.music-player .now-playing h3#nowPlayingArea::before, .music-player .now-playing h3#nowPlayingArea::after,
+.music-section::before, .music-section::after { content: ""; flex: 1 1 0; height: 1px; }
+.music-player .now-playing h3#nowPlayingArea::before, .music-section::before { background: linear-gradient(90deg, rgba(176, 138, 46, 0), rgba(176, 138, 46, 0.6)); }
+.music-player .now-playing h3#nowPlayingArea::after, .music-section::after { background: linear-gradient(270deg, rgba(176, 138, 46, 0), rgba(176, 138, 46, 0.6)); }
+.music-section { border-bottom: 0; }
 
