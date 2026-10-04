@@ -1772,7 +1772,7 @@ const UiSound = (() => {
       if (!AC) return false;
       ctx = new AC();
       master = ctx.createGain();
-      master.gain.value = 0.32;
+      master.gain.value = 0.1;   // 전체 음량: 기존의 약 30% (눌렸다는 느낌만 들릴 정도)
       // 반짝이는 잔향(짧은 피드백 딜레이)
       const delay = ctx.createDelay(0.5); delay.delayTime.value = 0.17;
       const fb = ctx.createGain(); fb.gain.value = 0.3;
@@ -1794,7 +1794,7 @@ const UiSound = (() => {
     const t = ctx.currentTime, f = noteFreq(Math.max(0, Math.min(24, i)));
     const out = ctx.createGain();
     out.gain.setValueAtTime(0.0001, t);
-    out.gain.exponentialRampToValueAtTime(0.5 * vel, t + 0.006);   // 빠른 타건
+    out.gain.exponentialRampToValueAtTime(0.15 * vel, t + 0.006);  // 빠른 타건 (피아노음 크기: 기존의 30%)
     out.gain.exponentialRampToValueAtTime(0.0001, t + dur);          // 길게 사그라듦
     const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 7000;
     out.connect(lp); lp.connect(master);
