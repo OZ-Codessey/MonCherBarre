@@ -2118,6 +2118,9 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
   text-transform: none;
 }
 
+/* --- 그래프 영역 글자: 진한 그레이 골드 --- */
+.chart-container h4, .chart-label, .chart-container p, .stats-note, .stats-note * { color: #6B5E36; }
+
 /* --- 발레 사전 알파벳 버튼: 연한 핑크 + 입체 플레이트 (선택 시 한 톤 진하게) --- */
 .alphabet-filter { gap: 10px; filter: drop-shadow(0 2px 2px rgba(150, 70, 90, 0.2)); }
 .alphabet-btn, .alphabet-btn[aria-pressed="false"] {
@@ -2241,6 +2244,27 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
 .vp-hot { position: absolute; left: 0; right: 0; bottom: 0; height: 45%; z-index: 1; cursor: pointer; }
 .vp-hot.full { top: 0; height: auto; }
 .vp-overlay { z-index: 2; }
+
+/* --- 통계: 그래프 제목·보조 글자 작게(진한 그레이 골드), 상단 배지는 CSV/JSON 버튼 크기로 --- */
+.chart-container h4 { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; color: #6B5E36; margin: 0 0 2px; }
+.chart-container .chart-label { font-size: 0.66rem; font-weight: 400; color: #9A8C62; margin: 0 0 6px; }
+.stats-note { font-size: 0.72rem; }
+.stats-badges { gap: 8px; margin-bottom: 12px; }
+.badge {
+  min-height: 0;
+  padding: 4px 14px;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: #8E8056;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(215, 154, 168, 0.55);
+  border-radius: 999px;
+  box-shadow: none;
+}
+.badge strong { font-size: 0.78rem; font-weight: 600; color: #7A6C42; }
+.badge .badge-icon { font-size: 0.7rem; color: #C3A0A8; }
 
 /* --- 메뉴 줄: 글씨는 더 가볍고 작게, 색은 한 톤만 진하게 (제목 크기보다 작게) --- */
 .tab-btn { font-size: clamp(0.72rem, 1.3vw, 0.82rem); font-weight: 300; letter-spacing: 0.16em; color: #74656B; }

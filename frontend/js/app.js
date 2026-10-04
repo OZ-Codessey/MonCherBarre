@@ -1,3 +1,12 @@
+// 차트 글꼴도 본문과 같은 서체로
+if (window.Chart) {
+  Chart.defaults.color = '#6B5E36';        // 그래프 글자(축·범례·툴팁 제외): 진한 그레이 골드
+  Chart.defaults.font.size = 8;            // 글자 크기 축소 (제목에 맞춰 함께 줄임)
+  Chart.defaults.plugins.legend.labels.color = '#6B5E36';
+  Chart.defaults.scale.ticks.color = '#6B5E36';
+}
+if (window.Chart) Chart.defaults.font.family = '"Jost", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif';
+
 const API_BASE_URL = window.API_BASE_URL || "https://moncherbarre.onrender.com";
 
 // --- 랜덤 이미지 ---
@@ -230,11 +239,11 @@ function drawTotalGauge(totalHours, pct, isDark, trackColor) {
       ctx.save();
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = isDark ? "#f1dfe3" : "#6b3a4a";
-      ctx.font = '600 26px Georgia, "Noto Serif KR", serif';
+      ctx.fillStyle = isDark ? "#f1dfe3" : "#5E5230";
+      ctx.font = '600 19px Georgia, "Noto Serif KR", serif';
       ctx.fillText(`${Math.round(totalHours)}h`, cx, cy - 6);
-      ctx.fillStyle = isDark ? "#c9a9b1" : "#a88a93";
-      ctx.font = '12px Georgia, "Noto Serif KR", serif';
+      ctx.fillStyle = isDark ? "#c9a9b1" : "#8A7B4E";
+      ctx.font = '10px Georgia, "Noto Serif KR", serif';
       ctx.fillText(`${Math.round(pct)}%`, cx, cy + 17);
       ctx.restore();
     },
