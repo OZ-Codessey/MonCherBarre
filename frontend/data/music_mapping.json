@@ -12,7 +12,8 @@
       89
     ],
     "fixed_daily": true,
-    "description": "매일 고정 동작 1번"
+    "description": "매일 고정 동작 1번",
+    "name_fr": "Pliés · Ronds de jambe"
   },
   "tendu_degage": {
     "name": "탱뒤·데가제",
@@ -27,7 +28,8 @@
       79
     ],
     "fixed_daily": true,
-    "description": "매일 고정 동작 2번"
+    "description": "매일 고정 동작 2번",
+    "name_fr": "Tendus · Dégagés"
   },
   "adagio": {
     "name": "아다지오",
@@ -46,7 +48,8 @@
       85
     ],
     "fixed_daily": false,
-    "description": "매일 변동 - 그날 컨디션에 따라"
+    "description": "매일 변동 - 그날 컨디션에 따라",
+    "name_fr": "Adage"
   },
   "frappe_allegro": {
     "name": "프라페·쁘띠 알레그로",
@@ -80,7 +83,8 @@
       92
     ],
     "fixed_daily": false,
-    "description": "매일 변동 - 둘 중 선택"
+    "description": "매일 변동 - 둘 중 선택",
+    "name_fr": "Frappés · Petit allegro"
   },
   "grand": {
     "name": "그랑 계열",
@@ -101,7 +105,8 @@
       94
     ],
     "fixed_daily": false,
-    "description": "매일 변동 - 둘 중 선택"
+    "description": "매일 변동 - 둘 중 선택",
+    "name_fr": "Grand allegro"
   },
   "turns": {
     "name": "턴 왈츠",
@@ -122,7 +127,8 @@
     ],
     "fixed_daily": false,
     "exclude_when": "무지외반 통증",
-    "description": "매일 변동 - 통증 상태 확인"
+    "description": "매일 변동 - 통증 상태 확인",
+    "name_fr": "Tours · Valse"
   },
   "waltz_general": {
     "name": "3박자 범용(마주르카·폴로네즈 등)",
@@ -134,6 +140,7 @@
       81
     ],
     "fixed_daily": false,
-    "description": "매일 변동 - 루틴 마무리"
+    "description": "매일 변동 - 루틴 마무리",
+    "name_fr": "Valse · Mazurka · Polonaise"
   }
 }

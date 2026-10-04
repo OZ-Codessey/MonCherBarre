@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MonCherBarre — 발레 AI 비서</title>
-<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/style.css?v=3" />
 </head>
 <body>
   <div id="splash" class="splash">
@@ -13,7 +13,7 @@
 
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark">✦</span>
+      <span class="brand-mark">⚜️</span>
       <span class="brand-name">Mon Cher Barre</span>
     </div>
     <button id="themeToggle" class="theme-toggle" aria-label="다크모드 전환">
@@ -26,7 +26,7 @@
     <button class="tab-btn" data-tab="data">데이터</button>
     <button class="tab-btn" data-tab="conversations">대화</button>
     <button class="tab-btn" data-tab="dictionary">발레 사전</button>
-    <button class="tab-btn" data-tab="favorites">✦ Mes Sélections</button>
+    <button class="tab-btn" data-tab="favorites">⚜️ Mes Sélections</button>
   </nav>
 
   <main class="container">
@@ -56,30 +56,32 @@
               <button class="routine-chip" data-min="60">60분</button>
             </div>
 
-            <!-- 음악 플레이어 -->
             <div id="musicPlayer" class="music-player hidden">
               <div class="now-playing">
-                <h3 id="nowPlayingArea">구역</h3>
-                <h4 id="nowPlayingMusic">음악 이름</h4>
-                <p id="nowPlayingMovements">동작 불러오는 중...</p>
+                <h3 id="nowPlayingArea">Barre</h3>
+                <h4 id="nowPlayingMusic">—</h4>
+                <p id="nowPlayingMovements"></p>
               </div>
 
-              <!-- 음악 플레이어 (시간 표시) -->
-              <audio id="audioPlayer" style="width:100%; margin-bottom:8px;"></audio>
+              <audio id="audioPlayer" preload="auto"></audio>
 
-              <!-- 메인 재생 컨트롤 -->
+              <div class="progress-row">
+                <span id="timeNow">0:00</span>
+                <div class="progress" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+                <span id="timeTotal">0:00</span>
+              </div>
+
               <div class="player-controls">
-                <button class="btn-secondary btn-icon" onclick="skipToMusic(-1)" title="이전 곡">⏮️</button>
-                <button class="btn-secondary btn-icon" onclick="skipTime(-4)" title="4초 뒤로">⏪</button>
-                <button class="btn-primary btn-play" onclick="togglePlayPause()" id="playPauseBtn">▶️ 재생</button>
-                <button class="btn-secondary btn-icon" onclick="skipTime(4)" title="4초 앞으로">⏩</button>
-                <button class="btn-secondary btn-icon" onclick="skipToMusic(1)" title="다음 곡">⏭️</button>
+                <button class="btn-secondary btn-icon" onclick="skipToMusic(-1)" aria-label="Précédent">⏮️</button>
+                <button class="btn-secondary btn-icon" onclick="skipTime(-4)" aria-label="-4 s">⏪</button>
+                <button class="btn-primary btn-play" onclick="togglePlayPause()" id="playPauseBtn" aria-label="Jouer">▶️</button>
+                <button class="btn-secondary btn-icon" onclick="skipTime(4)" aria-label="+4 s">⏩</button>
+                <button class="btn-secondary btn-icon" onclick="skipToMusic(1)" aria-label="Suivant">⏭️</button>
               </div>
 
-              <!-- 곡 목록 (현재 섹션의 음악들) -->
               <div id="musicList" class="music-list" style="margin-top: 12px;"></div>
 
-              <button class="btn-secondary" onclick="stopRoutine()" style="width:100%; margin-top:10px;">⏹️ 루틴 종료</button>
+              <button class="btn-secondary" onclick="stopRoutine()" style="width:100%; margin-top:10px;">⏹️ Terminer</button>
             </div>
           </div>
         </section>
@@ -269,7 +271,6 @@
           </div>
           <div class="dict-actions">
             <button class="btn-primary" id="moreVideosBtn" onclick="searchMoreVideos()" style="display:none;">🔍 더 많은 영상 찾기</button>
-            <button class="btn-favorite" id="favoriteBtn" onclick="addToFavorites()">✦ 즐겨찾기</button>
           </div>
           <button class="btn-secondary" onclick="closeDictionaryDetail()">닫기</button>
         </div>
@@ -279,7 +280,7 @@
     <!-- 즐겨찾기 섹션 -->
     <section id="favorites-section" class="tab-section">
       <div class="favorites-container">
-        <h2>✦ Mes Sélections</h2>
+        <h2>⚜️ Mes Sélections</h2>
 
         <div class="card favorites-list-card">
           <div id="favoritesList" class="favorites-list">
@@ -293,6 +294,6 @@
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>

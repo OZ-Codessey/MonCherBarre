@@ -781,7 +781,7 @@ h1, h2 {
 }
 
 .btn-favorite {
-  background: #F37021;
+  background: #B76E79;
   color: #F5F0EB;
   border: none;
   padding: 10px 16px;
@@ -796,13 +796,13 @@ h1, h2 {
 }
 
 .btn-favorite:hover {
-  background: #e05a0a;
+  background: #9d5a65;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(243, 112, 33, 0.3);
+  box-shadow: 0 4px 12px rgba(183, 110, 121, 0.3);
 }
 
 .btn-favorite.active {
-  background: #d94c05;
+  background: #8f4f59;
 }
 
 .favorites-container {
@@ -812,8 +812,8 @@ h1, h2 {
 
 .favorites-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
 }
 
 .favorite-card {
@@ -827,30 +827,30 @@ h1, h2 {
 }
 
 .favorite-card:hover {
-  border-color: #F37021;
-  box-shadow: 0 4px 12px rgba(243, 112, 33, 0.15);
+  border-color: #B76E79;
+  box-shadow: 0 4px 12px rgba(183, 110, 121, 0.15);
 }
 
 .favorite-card-header {
-  padding: 14px;
-  background: #F37021;
+  padding: 8px 10px;
+  background: #B76E79;
   color: #F5F0EB;
 }
 
 .favorite-card-header h4 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
 .favorite-card-header p {
-  margin: 4px 0 0;
-  font-size: 0.8rem;
+  margin: 2px 0 0;
+  font-size: 0.72rem;
   color: rgba(245, 240, 235, 0.9);
 }
 
 .favorite-card-body {
-  padding: 12px 14px;
+  padding: 6px 10px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -858,7 +858,7 @@ h1, h2 {
 }
 
 .favorite-meta {
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   color: var(--mut);
 }
 
@@ -874,26 +874,26 @@ h1, h2 {
 
 .favorite-card-footer {
   display: flex;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: 6px;
+  padding: 6px 10px;
   border-top: 1px solid var(--line);
 }
 
 .btn-play {
   flex: 1;
-  background: #F37021;
+  background: #B76E79;
   color: #F5F0EB;
   border: none;
-  padding: 8px 12px;
+  padding: 5px 10px;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 600;
 }
 
 .btn-play:hover {
-  background: #e05a0a;
+  background: #9d5a65;
 }
 
 .btn-remove {
@@ -1005,7 +1005,7 @@ h1, h2 {
 }
 
 .player-controls .btn-play:hover {
-  background: #e05a0a;
+  background: #9d5a65;
   transform: scale(1.02);
 }
 
@@ -1050,3 +1050,95 @@ h1, h2 {
     transform: translateY(0);
   }
 }
+
+/* --- 영상 없음 한 줄 바 (안내 문구 + 유튜브 검색 + 즐겨찾기) --- */
+.dict-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  background: var(--acc-soft);
+  border-radius: 8px;
+}
+
+.dict-bar .dict-bar-text {
+  flex: 1;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--mut);
+}
+
+.dict-bar a, .dict-bar button {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid #B76E79;
+  color: #B76E79;
+  transition: all 0.15s ease;
+}
+
+.dict-bar a:hover, .dict-bar button:hover { background: #B76E79; color: #fff; }
+.dict-bar button.active { background: #B76E79; color: #fff; }
+
+/* --- 루틴 곡 목록 구역 머리글 / 진행 막대 --- */
+.music-section {
+  margin: 10px 0 2px;
+  padding: 0 4px;
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-size: 0.78rem;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  color: var(--acc);
+  border-bottom: 1px solid var(--acc-soft);
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.8rem;
+  color: var(--mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress { flex: 1; height: 14px; position: relative; cursor: pointer; }
+.progress::before { content: ""; position: absolute; left: 0; right: 0; top: 5px; height: 4px; border-radius: 2px; background: var(--acc-soft); }
+.progress-fill { position: absolute; left: 0; top: 5px; height: 4px; width: 0; border-radius: 2px; background: var(--acc); }
+.music-list { max-height: 200px; }
+
+.now-playing h3 { text-transform: none; font-family: Georgia, "Noto Serif KR", serif; font-style: italic; font-size: 0.95rem; letter-spacing: 0.04em; }
+
+.music-item .no { display: inline-block; min-width: 22px; margin-right: 6px; opacity: 0.6; font-size: 0.8rem; }
+
+/* 영상 바: 골드 문구 + 눌러서 실행하는 입체 버튼 */
+.dict-bar .dict-bar-text {
+  font-family: Georgia, "Noto Serif KR", serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #A8802F;
+}
+
+.dict-bar a, .dict-bar button {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  border: 0;
+  background: linear-gradient(180deg, #CF8A95 0%, #B76E79 55%, #9D5A65 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 5px rgba(157, 90, 101, 0.4);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.dict-bar a { background: linear-gradient(180deg, #A9505F 0%, #8A3A4A 60%, #702E3C 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 5px rgba(112, 46, 60, 0.45); }
+
+.dict-bar a:hover, .dict-bar button:hover { filter: brightness(1.08); transform: translateY(-1px); background: linear-gradient(180deg, #CF8A95 0%, #B76E79 55%, #9D5A65 100%); color: #fff; }
+.dict-bar a:hover { background: linear-gradient(180deg, #A9505F 0%, #8A3A4A 60%, #702E3C 100%); }
+.dict-bar a:active, .dict-bar button:active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); }
