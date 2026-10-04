@@ -1938,3 +1938,51 @@ input, textarea, select { font-size: 1rem; min-height: 48px; }
 .routine-chip.active::before { background: linear-gradient(180deg, #E6A2B1 0%, #D78598 55%, #C86C82 100%); }
 .routine-chip, .routine-chip.active { text-shadow: 0 1px 1px rgba(130, 60, 80, 0.4); }
 .routine-grid { filter: drop-shadow(0 3px 3px rgba(150, 70, 90, 0.22)); }
+
+/* ============================================================================
+   글자 크기 유동화(화면 폭에 비례) + 가늘고 우아한 한글 서체
+   ============================================================================ */
+/* 탭·채팅·요약의 한글: 가는 산세리프 + 넓은 자간 (영문 탭 서체와 같은 결) */
+.tab-btn, .chat-card, .chat-card > h2, .msg, .msg *, .chat-form input,
+.col-left .card:has(#summaryText), .col-left .card:has(#summaryText) h2, .summary-text {
+  font-family: "Jost", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+.tab-btn { font-weight: 400; letter-spacing: 0.14em; }
+.chat-card > h2 { font-size: clamp(0.82rem, 1.7vw, 1.02rem); font-weight: 500; letter-spacing: 0.1em; }
+.msg { font-size: clamp(0.82rem, 1.55vw, 0.98rem); font-weight: 300; line-height: 1.8; letter-spacing: 0.04em; }
+.msg.user { font-weight: 400; letter-spacing: 0.04em; }
+.msg strong { font-weight: 500; }
+.chat-table { font-size: clamp(0.78rem, 1.4vw, 0.9rem); }
+.chat-form input { font-size: clamp(0.82rem, 1.5vw, 0.98rem); font-weight: 300; letter-spacing: 0.04em; }
+.col-left .card:has(#summaryText) h2 { font-size: clamp(0.66rem, 1.2vw, 0.78rem); font-weight: 500; letter-spacing: 0.16em; }
+.summary-text { font-size: clamp(0.78rem, 1.45vw, 0.9rem); font-weight: 300; letter-spacing: 0.04em; }
+
+/* ============================================================================
+   전체 페이지 한글 서체 통일: 영문은 Jost, 한글은 Pretendard(가늘게, 넓은 자간)
+   ============================================================================ */
+body {
+  font-family: "Jost", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-weight: 350;
+  letter-spacing: 0.03em;
+}
+button, input, textarea, select { font-family: inherit; }
+h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
+.data-item, .conversation-item, .dictionary-item, .favorite-card, .dict-description, .stats-note,
+.chart-container, .chart-label, label, td, th, p, li, small {
+  font-family: "Jost", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+.dict-description { font-weight: 350; line-height: 1.85; letter-spacing: 0.035em; }
+.dictionary-item-term { font-weight: 500; letter-spacing: 0.04em; }
+
+/* ============================================================================
+   텍스트 색: 검정 대신 진한 그레이/브라운 골드
+   ============================================================================ */
+:root { --fg: #4B3F2A; }
+.msg.assistant { color: #4B3F2A; }
+.wc-temp { color: #4B3A22; }
+.chat-card, .summary-text, .dict-description, .stats-note { color: #4B3F2A; }
+
+/* --- 메뉴 줄: 글씨는 더 가볍고 작게, 색은 한 톤만 진하게 (제목 크기보다 작게) --- */
+.tab-btn { font-size: clamp(0.72rem, 1.3vw, 0.82rem); font-weight: 300; letter-spacing: 0.16em; color: #74656B; }
+.tab-btn.active { font-weight: 400; }
+
