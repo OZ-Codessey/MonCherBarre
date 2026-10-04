@@ -2498,6 +2498,15 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
   #chat-section.active .chat-card { padding-bottom: 76px; }
 }
 
+/* --- 발레 사전 · Mes Sélections: 카드 시작 위치와 높이를 같게 (제목이 없는 사전 쪽을 제목 높이만큼 더 내림) --- */
+.dictionary-container, .favorites-container { padding-top: 18px; }
+#dictionary-section .dictionary-container { padding-top: 62px; }          /* 18px + 오른쪽 제목 영역(약 44px) */
+.dictionary-filter-card, .favorites-list-card { min-height: 220px; }
+.dictionary-filter-card { display: flex; align-items: center; justify-content: center; }
+.dictionary-filter-card .alphabet-filter { width: 100%; justify-content: center; }
+#dictionary-section .dictionary-container { padding-top: 53px; }       /* 즐겨찾기 카드와 같은 높이에서 시작 */
+.dictionary-filter-card, .favorites-list-card { min-height: 244px; }
+
 /* 백그라운드 재생 스위치: 켜짐=금색 헤드폰 / 꺼짐=회색 + 사선 (소리 스위치와 같은 모양) */
 .bg-toggle .slash { display: none; }
 .bg-toggle.off { color: #A8A096; }
