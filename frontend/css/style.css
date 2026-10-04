@@ -2464,3 +2464,14 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 .tab-btn::after { color: rgba(183, 110, 121, 0.7); }
 [data-theme="dark"] .tab-btn { color: #D9C7CD; }
 [data-theme="dark"] .tab-btn.active { color: #F0A9BD; }
+
+/* --- 위 메뉴 줄: 스크롤 시 뒤 내용이 은은하게 비치는 반투명 유리 (선 하나만 어색하게 보이지 않게) --- */
+.tabs {
+  background: rgba(250, 247, 245, 0.78);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  backdrop-filter: saturate(160%) blur(14px);
+  border-bottom: 1px solid rgba(183, 110, 121, 0.14);
+  box-shadow: 0 6px 16px -10px rgba(120, 60, 80, 0.25);
+}
+[data-theme="dark"] .tabs { background: rgba(20, 18, 15, 0.72); border-bottom-color: rgba(224, 138, 165, 0.16); box-shadow: 0 6px 16px -10px rgba(0, 0, 0, 0.6); }
+
