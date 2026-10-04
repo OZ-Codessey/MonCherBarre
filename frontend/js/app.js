@@ -1571,8 +1571,64 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !document.getElementById('videoModal').classList.contains('hidden')) closeVideoModal();
 });
 
+// ============================================================================
+// 서울 날씨 칩 (Open-Meteo: 키·서버·DB 없이 브라우저에서 바로 조회, 10분마다 자동 갱신)
+// ============================================================================
+const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true";
+
+const W_SVG = (d) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const W_ICONS = {
+  sun:   W_SVG('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/>'),
+  moon:  W_SVG('<path d="M20 14.2A8 8 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2z"/>'),
+  cloud: W_SVG('<path d="M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.1 8.9 4.6 4.6 0 0 0 7 18z"/>'),
+  rain:  W_SVG('<path d="M7 14h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.1 4.9 4.6 4.6 0 0 0 7 14z"/><path d="M8.5 17.5l-1 2.5M12.5 17.5l-1 2.5M16.5 17.5l-1 2.5"/>'),
+  snow:  W_SVG('<path d="M7 14h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.1 4.9 4.6 4.6 0 0 0 7 14z"/><path d="M8.5 18v.1M12.5 19.5v.1M16.5 18v.1"/>'),
+  storm: W_SVG('<path d="M7 14h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.1 4.9 4.6 4.6 0 0 0 7 14z"/><path d="M12.5 14l-2 3.5h3l-2 3.5"/>'),
+  fog:   W_SVG('<path d="M4 9h16M6 13h12M4 17h16"/>'),
+  wind:  W_SVG('<path d="M3 9h10a2.5 2.5 0 1 0-2.4-3.2M3 13h14a2.5 2.5 0 1 1-2.4 3.2M3 17h6"/>'),
+};
+
+// WMO 날씨 코드 → [영문 표기, 아이콘]
+function describeWeather(code, isDay, windKmh) {
+  if (windKmh >= 30) return ["Windy", "wind"];
+  if (code === 0 || code === 1) return isDay ? ["Sunny", "sun"] : ["Clear night", "moon"];
+  if (code === 2) return ["Partly cloudy", isDay ? "cloud" : "moon"];
+  if (code === 3) return ["Overcast", "cloud"];
+  if (code === 45 || code === 48) return ["Fog", "fog"];
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return ["Rain", "rain"];
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return ["Snow", "snow"];
+  if (code >= 95) return ["Thunderstorm", "storm"];
+  return ["Cloudy", "cloud"];
+}
+
+async function loadWeather() {
+  const chip = document.getElementById("weatherChip");
+  if (!chip) return;
+  try {
+    const res = await fetch(WEATHER_URL);
+    if (!res.ok) throw new Error(res.status);
+    const w = (await res.json()).current_weather;
+    const [label, icon] = describeWeather(w.weathercode, w.is_day === 1, w.windspeed);
+    chip.innerHTML = `${W_ICONS[icon]}<span class="wc-city">Seoul</span><span class="wc-temp">${Math.round(w.temperature)}°C</span><span class="wc-label">${label}</span>`;
+    chip.title = `Seoul · ${w.temperature}°C · wind ${w.windspeed} km/h`;
+  } catch (err) {
+    console.error("날씨 조회 실패:", err);
+    chip.innerHTML = `<span class="wc-city">Seoul</span><span class="wc-temp">—</span>`;
+  }
+}
+
+function initWeather() {
+  const chip = document.getElementById("weatherChip");
+  if (!chip) return;
+  chip.addEventListener("click", loadWeather);              // 눌러서 즉시 갱신도 가능
+  loadWeather();
+  setInterval(loadWeather, 10 * 60 * 1000);                 // 10분마다 자동 갱신
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) loadWeather(); });  // 다시 열면 갱신
+}
+
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
+  initWeather();
   loadPracticeDataWithCache().then(() => {
     loadDataList();
     loadStatistics();

@@ -15,7 +15,10 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Mon Cher Barre" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="stylesheet" href="css/style.css?v=15" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&family=Noto+Serif+KR:wght@500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css?v=18" />
 </head>
 <body>
   <div id="splash" class="splash">
@@ -27,9 +30,12 @@
       <img class="brand-icon" src="icons/icon.svg" alt="" />
       <span class="brand-name">Mon Cher Barre</span>
     </div>
-    <button id="themeToggle" class="theme-toggle" aria-label="다크모드 전환">
-      <span class="dot"></span>
-    </button>
+    <div class="topbar-right">
+      <button id="weatherChip" class="weather-chip" aria-label="Seoul weather" title="Seoul weather"></button>
+      <button id="themeToggle" class="theme-toggle" aria-label="다크모드 전환">
+        <span class="dot"></span>
+      </button>
+    </div>
   </header>
 
   <nav class="tabs">
@@ -334,6 +340,6 @@
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="js/app.js?v=15"></script>
+  <script src="js/app.js?v=18"></script>
 </body>
 </html>
