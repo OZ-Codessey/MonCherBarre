@@ -794,10 +794,10 @@ async function loadDictionary() {
 
     const filterContainer = document.getElementById("alphabetFilter");
     filterContainer.innerHTML = "";
-    const alphabets = ["전체", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+    const alphabets = ["ALL", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     alphabets.forEach(letter => {
       const btn = document.createElement("button");
-      btn.className = `alphabet-btn ${letter === "전체" ? "active" : ""}`;
+      btn.className = "alphabet-btn";
       btn.textContent = letter;
       btn.onclick = () => filterDictionaryByAlphabet(letter);
       filterContainer.appendChild(btn);
@@ -811,16 +811,20 @@ async function loadDictionary() {
 }
 
 function filterDictionaryByAlphabet(letter) {
-  selectedAlphabet = letter;
+  // 눌려 있는 글자를 다시 누르면 선택 해제 → 목록이 접히고 버튼이 원래 모양으로 돌아옴
+  const deselect = selectedAlphabet === letter;
+  selectedAlphabet = deselect ? null : letter;
   closeDictionaryDetail();
 
   // 버튼 상태 업데이트
   document.querySelectorAll(".alphabet-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.textContent === letter);
-    btn.setAttribute("aria-pressed", btn.textContent === letter);
+    btn.classList.toggle("active", !deselect && btn.textContent === letter);
+    btn.setAttribute("aria-pressed", !deselect && btn.textContent === letter);
   });
 
-  if (letter === "전체") {
+  if (deselect) {
+    filteredMoves = [];
+  } else if (letter === "ALL") {
     filteredMoves = [...allMoves];
   } else {
     filteredMoves = allMoves.filter(move =>

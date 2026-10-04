@@ -1985,6 +1985,15 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
 .dict-description { font-weight: 350; line-height: 1.85; letter-spacing: 0.035em; }
 .dictionary-item-term { font-weight: 500; letter-spacing: 0.04em; }
 
+/* 발레 사전의 알파벳 버튼: 재생기와 같은 세리프 */
+.alphabet-btn {
+  font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-variant-numeric: lining-nums;
+}
+
 /* --- 날씨 칩: 더 진하고 또렷하게, 아이콘은 날씨별 색 --- */
 .weather-chip { letter-spacing: 0.07em; }
 .weather-chip svg { width: 15px; height: 15px; stroke-width: 1.5; }
@@ -2022,6 +2031,12 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
 }
 .container h2.page-label::before { content: "[ "; font-weight: 300; color: rgba(183, 110, 121, 0.7); letter-spacing: 0; }
 .container h2.page-label::after { content: " ]"; font-weight: 300; color: rgba(183, 110, 121, 0.7); letter-spacing: 0; }
+
+/* ALL 버튼: 영문이라 칸 안에 한 줄로 */
+.alphabet-btn { letter-spacing: 0.1em; }
+
+.alphabet-btn { width: auto; flex: 0 0 auto; min-width: 48px; padding: 0 16px; }
+.dictionary-list-card:has(#dictionaryListContainer:empty) { display: none; }
 
 /* --- 골드 라벨: 페이지 제목 · 카드 제목 · [ SÉANCE ] --- */
 .container h2.page-label,
@@ -2102,6 +2117,56 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
   text-indent: 0.3em;
   text-transform: none;
 }
+
+/* --- 발레 사전 알파벳 버튼: 연한 핑크 + 입체 플레이트 (선택 시 한 톤 진하게) --- */
+.alphabet-filter { gap: 10px; filter: drop-shadow(0 2px 2px rgba(150, 70, 90, 0.2)); }
+.alphabet-btn, .alphabet-btn[aria-pressed="false"] {
+  --cut: 7px;
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+  background: linear-gradient(135deg, #FDF1F3 0%, #E9BDC6 50%, #C98F9C 100%);
+  color: #A24F66;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  transform: none;
+}
+.alphabet-btn::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  clip-path: polygon(calc(var(--cut) - 1px) 0, calc(100% - var(--cut) + 1px) 0, 100% calc(var(--cut) - 1px), 100% calc(100% - var(--cut) + 1px), calc(100% - var(--cut) + 1px) 100%, calc(var(--cut) - 1px) 100%, 0 calc(100% - var(--cut) + 1px), 0 calc(var(--cut) - 1px));
+  background: linear-gradient(180deg, #FBE7EB 0%, #F4CFD6 55%, #EDBCC6 100%);
+}
+.alphabet-btn:hover { filter: brightness(1.04); }
+.alphabet-btn:active { filter: brightness(0.93); transform: translateY(1px); }
+.alphabet-btn.active, .alphabet-btn[aria-pressed="true"] {
+  background: linear-gradient(135deg, #F9DDE3 0%, #D58798 50%, #A85A6E 100%);
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(130, 60, 80, 0.4);
+  transform: translateY(1px);
+}
+.alphabet-btn.active::before, .alphabet-btn[aria-pressed="true"]::before { background: linear-gradient(180deg, #E6A2B1 0%, #D78598 55%, #C86C82 100%); }
+
+/* 발레 사전 알파벳: 한 톤 더 연하게 */
+.alphabet-btn, .alphabet-btn[aria-pressed="false"] { background: linear-gradient(135deg, #FEF6F8 0%, #EFCBD2 50%, #D6A5B0 100%); color: #B0607A; }
+.alphabet-btn::before { background: linear-gradient(180deg, #FDEEF1 0%, #F8DCE2 55%, #F2CCD5 100%); }
+/* 선택 해제된 버튼은 눌린 흔적 없이 원래 모양 */
+.alphabet-btn[aria-pressed="false"]:not(:hover):not(:active) { transform: none; filter: none; }
+
+/* --- 사전 용어 목록: 글자를 키우고 줄을 길쭉하게 --- */
+.dictionary-item { min-height: 68px; padding: 18px 20px; }
+.dictionary-item-term { font-size: clamp(1.05rem, 1.9vw, 1.25rem); letter-spacing: 0.05em; }
+.dictionary-item-pron { font-size: clamp(0.92rem, 1.6vw, 1.05rem); letter-spacing: 0.04em; }
+.rb-badge { font-size: 0.78rem; }
+
+.vp .vp-yt, .vp .vp-yt iframe { max-width: none !important; width: 100% !important; height: 100% !important; }
+.vp-hot { position: absolute; left: 0; right: 0; bottom: 0; height: 45%; z-index: 1; cursor: pointer; }
+.vp-hot.full { top: 0; height: auto; }
+.vp-overlay { z-index: 2; }
 
 /* --- 메뉴 줄: 글씨는 더 가볍고 작게, 색은 한 톤만 진하게 (제목 크기보다 작게) --- */
 .tab-btn { font-size: clamp(0.72rem, 1.3vw, 0.82rem); font-weight: 300; letter-spacing: 0.16em; color: #74656B; }
