@@ -129,8 +129,9 @@
       <div class="data-container">
         <h2 class="page-label plain">연습 기록 관리</h2>
 
+        <div class="data-top-grid">
         <div class="card data-form-card">
-          <h3>새 기록 추가</h3>
+          <h3 class="card-label">연습 기록 추가</h3>
           <form id="dataForm" class="data-form">
             <div class="form-group">
               <label>날짜</label>
@@ -169,11 +170,12 @@
               <input type="text" id="searchKeyword" placeholder="예: 바레" />
             </div>
             <div class="search-btns">
+              <p id="filterStatus" class="filter-status"></p>
               <button class="btn-primary btn-small" onclick="applyFilter()">검색</button>
               <button class="btn-secondary btn-small" onclick="clearFilter()">초기화</button>
             </div>
           </div>
-          <p id="filterStatus" class="filter-status"></p>
+        </div>
         </div>
 
         <div class="card data-list-card">
@@ -185,8 +187,8 @@
             <button class="btn-secondary btn-small" id="showMoreBtn" onclick="toggleShowMore()">더 보기</button>
           </div>
           <div class="export-row">
-            <button class="btn-secondary btn-small" onclick="exportCSV()">CSV 다운로드</button>
-            <button class="btn-secondary btn-small" onclick="exportJSON()">JSON 다운로드</button>
+            <button class="btn-secondary btn-small btn-pill" onclick="exportCSV()"><span>CSV</span> <i class="dl-ico"><svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.8 7.2L8 10.4l3.2-3.2M3 13.4h10"/></svg></i></button>
+            <button class="btn-secondary btn-small btn-pill" onclick="exportJSON()"><span>JSON</span> <i class="dl-ico"><svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.8 7.2L8 10.4l3.2-3.2M3 13.4h10"/></svg></i></button>
           </div>
         </div>
 

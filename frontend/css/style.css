@@ -2106,6 +2106,63 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
 }
 .container h2.page-label.plain.big { font-size: clamp(1rem, 2vw, 1.2rem); font-weight: 700; }
 
+/* --- 입력 라벨(날짜·연습시간·메모 등): 작게, 진한 그레이골드 --- */
+label, .form-row label, .data-form label, .filter-row label { font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em; color: #6F6038; }
+
+/* --- 데이터·대화·사전 페이지 버튼: 채팅 보내기 버튼과 같은 모서리 깎인 플레이트, 작게 --- */
+#data-section .btn-primary, #data-section .btn-secondary, #data-section .btn-small,
+#conversations-section .btn-secondary, #conversations-section .btn-small,
+#dictionary-section .dictionary-detail .btn-secondary {
+  --cut: 7px;
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  min-height: 30px;
+  padding: 4px 16px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+  background: linear-gradient(135deg, #FBE2E7 0%, #D8939F 50%, #A25C6C 100%);
+  color: #fff;
+  font-family: "Cormorant Garamond", "Noto Serif KR", Georgia, serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 1px rgba(110, 40, 60, 0.4);
+  width: auto;
+  white-space: nowrap;
+}
+#data-section .btn-primary::before, #data-section .btn-secondary::before, #data-section .btn-small::before,
+#conversations-section .btn-secondary::before, #conversations-section .btn-small::before,
+#dictionary-section .dictionary-detail .btn-secondary::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  clip-path: polygon(calc(var(--cut) - 1px) 0, calc(100% - var(--cut) + 1px) 0, 100% calc(var(--cut) - 1px), 100% calc(100% - var(--cut) + 1px), calc(100% - var(--cut) + 1px) 100%, calc(var(--cut) - 1px) 100%, 0 calc(100% - var(--cut) + 1px), 0 calc(var(--cut) - 1px));
+  background: linear-gradient(180deg, #E9A9B4 0%, #D58594 55%, #BF6A7E 100%);
+}
+/* 추가 버튼: 더 작고 연하게 */
+#data-section form button[type=submit].btn-primary { min-height: 28px; padding: 3px 14px; font-size: 0.82rem; filter: saturate(0.6) brightness(1.08); }
+#data-section .btn-delete::before { background: linear-gradient(180deg, #D9A9AF 0%, #C98A93 100%); }
+#data-section button:active, #conversations-section button:active { transform: translateY(1px); filter: brightness(0.93); }
+
+/* CSV / JSON: 둥근 알약, 다운로드 글자 대신 영문+기호 */
+#data-section .btn-pill {
+  clip-path: none;
+  border-radius: 999px;
+  border: 1px solid #D79AA8;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAEEF1 100%);
+  color: #A24F66;
+  text-shadow: none;
+  padding: 4px 16px;
+  box-shadow: 0 1px 3px rgba(183, 110, 121, 0.2);
+}
+#data-section .btn-pill::before { display: none; }
+#data-section .btn-pill i { font-style: normal; font-family: "Jost", sans-serif; margin-left: 4px; }
+#data-section form button[type=submit].btn-primary { width: auto; display: block; margin: 8px 0 0 auto; }
+
 /* --- 제목류 크기·서체 통일: 연습 기록 관리 = 저장된 대화 = 카드 제목 --- */
 .container h2.page-label.plain,
 .container h2.page-label.plain.big,
@@ -2266,7 +2323,102 @@ h1, h2, h3, h4 { font-weight: 500; letter-spacing: 0.05em; }
 .badge strong { font-size: 0.78rem; font-weight: 600; color: #7A6C42; }
 .badge .badge-icon { font-size: 0.7rem; color: #C3A0A8; }
 
+/* --- CSV / JSON: 금속 테두리 + 광택 면 + 그림자의 입체 알약 --- */
+#data-section .export-row, #data-section .btn-pill { filter: none; }
+#data-section .btn-pill {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 18px;
+  min-height: 30px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #E9C4CC 55%, #BE8793 100%);
+  box-shadow: 0 3px 5px rgba(150, 70, 90, 0.28), 0 1px 1px rgba(150, 70, 90, 0.2);
+  color: #A24F66;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+#data-section .btn-pill::before {
+  display: block;
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FBEFF2 55%, #F2D8DE 100%);
+  box-shadow: inset 0 1px 0 #fff;
+}
+#data-section .btn-pill:hover { filter: brightness(1.04); }
+#data-section .btn-pill:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(150, 70, 90, 0.3); filter: brightness(0.94); }
+
+#data-section .btn-pill .dl-ico { display: inline-flex; margin-left: 5px; vertical-align: -2px; }
+
 /* --- 메뉴 줄: 글씨는 더 가볍고 작게, 색은 한 톤만 진하게 (제목 크기보다 작게) --- */
 .tab-btn { font-size: clamp(0.72rem, 1.3vw, 0.82rem); font-weight: 300; letter-spacing: 0.16em; color: #74656B; }
 .tab-btn.active { font-weight: 400; }
+
+/* --- 연습 기록 입력(왼쪽) · 검색/필터(오른쪽) 나란히, 글자·입력창 작게 --- */
+.data-top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: stretch; margin-bottom: 14px; }
+.data-top-grid > .card { margin: 0; padding: 14px 16px; }
+@media (max-width: 700px) { .data-top-grid { grid-template-columns: 1fr; } }
+.data-top-grid label { font-size: 0.7rem; letter-spacing: 0.05em; margin-bottom: 3px; display: block; }
+.data-top-grid input { min-height: 34px; height: 34px; padding: 0 12px; font-size: 0.8rem; border-radius: 8px; }
+.data-top-grid .form-group, .data-top-grid .search-group { margin-bottom: 8px; }
+.data-top-grid .search-row { display: grid; grid-template-columns: 1fr; gap: 0; }
+.data-top-grid .range-row { display: flex; align-items: center; gap: 6px; }
+.data-top-grid .range-row input { min-width: 0; flex: 1; }
+.data-top-grid .search-btns { display: flex; gap: 8px; margin-top: 4px; }
+.data-top-grid .card-label { margin: 0 0 8px; font-size: clamp(0.9rem, 1.7vw, 1.05rem); }
+.data-top-grid .filter-status { margin: 6px 0 0; font-size: 0.7rem; }
+.data-form-card { padding-top: 38px !important; }   /* 오른쪽 카드 제목 높이에 맞춰 위쪽 정렬 */
+
+/* 자동 완성 시 생기는 파란 배경 제거 */
+input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0 100px #FBF3F5 inset; -webkit-text-fill-color: #4B3F2A; caret-color: #4B3F2A; }
+
+/* ============================================================================
+   연습 기록 입력 / 검색·필터: 행 높이·버튼 크기·글꼴 통일
+   ============================================================================ */
+.data-top-grid { --lbl-h: 28px; }
+.data-top-grid > .card { display: flex; flex-direction: column; }
+.data-form-card { padding-top: 14px !important; }
+.data-form-card::before { content: ""; display: block; height: var(--lbl-h); margin-bottom: 8px; }   /* 오른쪽 제목과 같은 높이의 빈 자리 */
+.data-top-grid .card-label { height: var(--lbl-h); line-height: var(--lbl-h); margin: 0 0 8px; padding: 0; }
+.data-top-grid .data-form { display: flex; flex-direction: column; flex: 1; }
+.data-top-grid .search-row { display: flex; flex-direction: column; flex: 1; }
+.data-top-grid .form-group, .data-top-grid .search-group { margin: 0 0 8px; }
+.data-top-grid .range-row { height: 34px; }
+
+/* 입력 줄 맨 아래, 오른쪽 정렬로 같은 높이에 놓이는 버튼들 */
+.data-top-grid .data-form > button[type=submit], .data-top-grid .search-btns { margin-top: auto; }
+.data-top-grid .search-btns { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.data-top-grid .data-form > button[type=submit] { align-self: flex-end; margin-left: 0; }
+.data-top-grid .filter-status { margin: 0 auto 0 0; font-size: 0.7rem; color: #8A7B4E; }
+
+/* 추가 · 검색 · 초기화: 같은 크기(작은 쪽에 맞춤) */
+.data-top-grid button {
+  width: 64px; min-width: 64px; height: 28px; min-height: 28px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* 데이터·대화 페이지의 작은 버튼 글꼴: 다른 글자와 같은 서체로 통일 */
+#data-section .btn-primary, #data-section .btn-secondary, #data-section .btn-small,
+#conversations-section .btn-secondary, #conversations-section .btn-small {
+  font-family: "Jost", "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+#data-section .data-top-grid button { width: 64px; min-width: 64px; max-width: 64px; height: 28px; min-height: 28px; padding: 0; margin-left: 0; filter: none; }
+#data-section .data-top-grid form button[type=submit].btn-primary { width: 64px; min-height: 28px; padding: 0; margin: auto 0 0 auto; filter: none; }
+.data-top-grid .search-group, .data-top-grid .form-group { width: 100%; flex: none; align-self: stretch; min-width: 0; }
+.data-top-grid .search-group > label, .data-top-grid .form-group > label { display: block; }
+/* 입력 한 줄(라벨 + 입력창)의 높이를 좌우 동일하게 고정 → 가로로 선이 맞음 */
+.data-top-grid .form-group, .data-top-grid .search-group { height: 64px; margin: 0 0 8px; display: flex; flex-direction: column; justify-content: flex-start; }
+.data-top-grid .form-group > label, .data-top-grid .search-group > label { height: 16px; line-height: 16px; margin: 0 0 4px; padding: 0; }
+.data-top-grid .form-group > input, .data-top-grid .search-group > input, .data-top-grid .range-row { height: 34px; margin: 0; }
+.data-top-grid .data-form, .data-top-grid .search-row { gap: 0 !important; row-gap: 0 !important; }
+
+/* 좌우 카드 제목(연습 기록 추가 / 검색·필터): 같은 크기·색·서체, 조금 더 작게 */
+.data-form-card::before { display: none; }
+.data-top-grid .card-label { font-size: clamp(0.78rem, 1.4vw, 0.92rem); letter-spacing: 0.26em; text-indent: 0.26em; }
+.data-form-card { padding-top: 14px !important; }
 
