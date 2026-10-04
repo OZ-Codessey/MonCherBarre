@@ -119,7 +119,7 @@ function setLoading(isLoading) {
   btn.disabled = isLoading;
   input.disabled = isLoading;
   btn.classList.toggle("sending", isLoading);
-  btn.textContent = isLoading ? "답변 중" : "보내기";
+  btn.textContent = isLoading ? "Sending" : "Send";
   // 채팅창 안에 "답변을 준비하는 중" 표시를 넣고, 응답이 오면 제거
   const box = document.getElementById("chatBox");
   const old = document.getElementById("typingRow");
