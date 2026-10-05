@@ -9,6 +9,98 @@ if (window.Chart) Chart.defaults.font.family = '"Jost", "Pretendard Variable", P
 
 const API_BASE_URL = window.API_BASE_URL || "https://moncherbarre.onrender.com";
 
+// ============================================================================
+// 읽어 온 기간을 쌓아 두는 저장소: 한 번 읽은 기간은 브라우저에 보관하고 다시 읽지 않는다.
+// 새로 필요한 기간(아직 안 읽은 부분)만 서버에 요청하므로 Firestore 읽기가 그만큼만 발생한다.
+// ============================================================================
+function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+function todayStr() { return ymd(new Date()); }
+function addDays(dateStr, n) { const d = new Date(dateStr + "T00:00:00"); d.setDate(d.getDate() + n); return ymd(d); }
+const FULL_START = "1900-01-01", FULL_END = "2999-12-31";
+
+function makeRangeStore({ key, url, dateOf, idOf }) {
+  let records = {}, ranges = [];
+  try {
+    const raw = JSON.parse(localStorage.getItem(key) || "null");
+    if (raw) { records = raw.records || {}; ranges = raw.ranges || []; }
+  } catch (e) { /* 저장소를 못 읽으면 빈 상태로 시작 */ }
+  const persist = () => { try { localStorage.setItem(key, JSON.stringify({ records, ranges })); } catch (e) { /* 용량 초과 등: 메모리에만 유지 */ } };
+  const mergeRanges = () => {
+    ranges.sort((a, b) => a[0].localeCompare(b[0]));
+    const out = [];
+    for (const r of ranges) {
+      const last = out[out.length - 1];
+      if (last && r[0] <= addDays(last[1], 1)) { if (r[1] > last[1]) last[1] = r[1]; }
+      else out.push([r[0], r[1]]);
+    }
+    ranges = out;
+  };
+  // [start,end] 중 아직 읽지 않은 구간들
+  const gaps = (start, end) => {
+    let cur = start; const out = [];
+    for (const [a, b] of ranges) {
+      if (b < cur) continue;
+      if (a > end) break;
+      if (a > cur) out.push([cur, addDays(a, -1)]);
+      cur = addDays(b, 1);
+      if (cur > end) break;
+    }
+    if (cur <= end) out.push([cur, end]);
+    return out;
+  };
+  return {
+    // 아직 안 읽은 구간만 서버에서 읽어 쌓는다. 서버에 요청한 횟수를 돌려준다.
+    async ensure(start, end) {
+      const need = gaps(start, end);
+      for (const [a, b] of need) {
+        const res = await fetch(`${API_BASE_URL}${url}?start=${a}&end=${b}`);
+        if (!res.ok) throw new Error(`status ${res.status}`);
+        (await res.json()).forEach((r) => { records[idOf(r)] = r; });
+        ranges.push([a, b]); mergeRanges(); persist();
+      }
+      return need.length;
+    },
+    list: (start, end) => Object.values(records)
+      .filter((r) => { const d = dateOf(r); return d && d >= start && d <= end; })
+      .sort((x, y) => dateOf(x).localeCompare(dateOf(y))),
+    all: () => Object.values(records),
+    get: (id) => records[id],
+    upsert(r) { records[idOf(r)] = r; persist(); },
+    remove(id) { delete records[id]; persist(); },
+    // 어느 구간을 "아직 안 읽음"으로 되돌림 (다른 기기에서 바뀐 내용을 하루 한 번 반영할 때)
+    forget(start, end) {
+      const out = [];
+      for (const [a, b] of ranges) {
+        if (b < start || a > end) { out.push([a, b]); continue; }
+        if (a < start) out.push([a, addDays(start, -1)]);
+        if (b > end) out.push([addDays(end, 1), b]);
+      }
+      ranges = out; persist();
+    },
+    importFull(rows) { rows.forEach((r) => { records[idOf(r)] = r; }); ranges = [[FULL_START, FULL_END]]; persist(); },
+    hasRanges: () => ranges.length > 0,
+  };
+}
+const PracticeStore = makeRangeStore({ key: "practice_store_v2", url: "/api/data", dateOf: (r) => r.date, idOf: (r) => r.id });
+const ConvStore = makeRangeStore({ key: "conv_store_v1", url: "/api/conversations", dateOf: (r) => (r.updated_at || "").slice(0, 10), idOf: (r) => r.id });
+// 예전 방식으로 보관해 둔 전체 기록이 있으면 그대로 옮겨 와서 다시 읽지 않는다
+try {
+  const old = JSON.parse(localStorage.getItem("practice_logs_cache") || "null");
+  if (Array.isArray(old) && old.length > 0 && !PracticeStore.hasRanges()) PracticeStore.importFull(old);
+  localStorage.removeItem("practice_logs_cache");
+} catch (e) { /* 무시 */ }
+
+// 비서가 참고할 활동(조회한 용어, 본 영상): 브라우저에 모았다가 다음 채팅 요청에 함께 보낸다 (클릭마다 서버에 쓰지 않음)
+const ACT_KEY = "assistant_activity_v1";
+function readActivity() { try { return JSON.parse(localStorage.getItem(ACT_KEY) || "{}"); } catch (e) { return {}; } }
+function trackActivity(kind, term) {
+  if (!term) return;
+  const a = readActivity();
+  a[kind] = (a[kind] || []).concat(term).slice(-50);
+  try { localStorage.setItem(ACT_KEY, JSON.stringify(a)); } catch (e) { /* 무시 */ }
+}
+function clearActivity() { try { localStorage.removeItem(ACT_KEY); } catch (e) { /* 무시 */ } }
+
 // --- 랜덤 이미지 ---
 const STUDIO_IMAGES = [
   'avi-richards-G-BPjqxb0ho-unsplash.jpg',
@@ -47,8 +139,19 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
     document.querySelectorAll(".tab-section").forEach((s) => s.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById(`${btn.dataset.tab}-section`).classList.add("active");
+    lazyLoadTab(btn.dataset.tab);
   });
 });
+
+// 탭을 처음 열 때 한 번만 데이터를 불러옴 (페이지를 열자마자 모든 걸 읽지 않도록)
+const _tabLoaded = {};
+function lazyLoadTab(tab) {
+  if (_tabLoaded[tab]) return;
+  _tabLoaded[tab] = true;
+  if (tab === "data") loadDataList();
+  if (tab === "conversations") loadConversationsList();
+  if (tab === "favorites") loadFavorites();
+}
 
 // --- 스플래시 ---
 async function loadSummary() {
@@ -163,6 +266,32 @@ function setLoading(isLoading) {
 
 let currentConvId = null;
 
+// 비서 메모에 합칠 활동: 조회한 용어·본 영상(모아 둔 것)과 즐겨찾기 이름(보관함에 있을 때만)
+function buildActivity() {
+  const a = readActivity();
+  return {
+    terms: a.terms || [],
+    videos: a.videos || [],
+    favorites: Array.isArray(favoritesCache) ? favoritesCache.map((f) => f.korean_name || f.french_term) : undefined,
+  };
+}
+
+// 방금 나눈 대화를 대화 보관함에 바로 반영 (서버에서 다시 읽지 않음)
+async function syncConvAfterChat(message, reply, convId, wasNewRoom) {
+  try {
+    const now = new Date();
+    const iso = `${ymd(now)}T${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+    const pair = [{ role: "user", content: message }, { role: "assistant", content: reply }];
+    const kept = ConvStore.get(convId);
+    if (kept) ConvStore.upsert({ ...kept, messages: [...(kept.messages || []), ...pair], updated_at: iso });
+    else if (wasNewRoom) ConvStore.upsert({ id: convId, title: message.slice(0, 15), messages: pair, updated_at: iso });
+    else {                                           // 보관함에 없는 옛 방에 이어 쓴 경우: 그 방 1개만 읽어 온다
+      const res = await fetch(`${API_BASE_URL}/api/conversations/${convId}`);
+      if (res.ok) { const c = await res.json(); if (c && c.id) ConvStore.upsert({ ...c, updated_at: iso }); }
+    }
+  } catch (e) { /* 보관함 반영 실패는 무시: 다음 조회 때 서버에서 읽음 */ }
+}
+
 async function sendMessage(message) {
   appendMessage(message, "user");
   setLoading(true);
@@ -171,12 +300,15 @@ async function sendMessage(message) {
     const res = await fetch(`${API_BASE_URL}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, conversation_id: currentConvId }),
+      body: JSON.stringify({ message, conversation_id: currentConvId, activity: buildActivity() }),
     });
     if (!res.ok) throw new Error(`status ${res.status}`);
     const data = await res.json();
+    const wasNewRoom = !currentConvId;
     currentConvId = data.conversation_id;
+    clearActivity();                                  // 서버가 비서 메모에 합쳤으니 모아 둔 활동은 비움
     appendMessage(data.reply, "assistant");
+    syncConvAfterChat(message, data.reply, data.conversation_id, wasNewRoom);
   } catch (err) {
     appendMessage("답변을 받지 못했어요. 다시 시도해주세요.", "assistant");
   } finally {
@@ -203,6 +335,7 @@ document.getElementById("chatForm").addEventListener("submit", (e) => {
   sendMessage(message);
 });
 
+// 루틴 버튼: 재생기(initRoutineChips)와 함께 채팅에도 "N분 루틴 시작해요"를 보내 그날의 동작을 추천받는다
 document.querySelectorAll(".routine-chip").forEach((btn) => {
   btn.addEventListener("click", () => {
     sendMessage(`${btn.dataset.min}분 루틴 시작해요`);
@@ -223,9 +356,10 @@ document.getElementById("dataForm").addEventListener("submit", async (e) => {
       body: JSON.stringify({ date, value, memo }),
     });
     if (!res.ok) throw new Error();
+    PracticeStore.upsert(await res.json());
     alert("기록이 추가됐습니다!");
     e.target.reset();
-    loadDataList();
+    afterDataChange();
   } catch (err) {
     alert("추가에 실패했어요.");
   }
@@ -282,20 +416,21 @@ function drawTotalGauge(totalHours, pct, isDark, trackColor) {
 // 통계 차트 인스턴스 (다크모드/필터 시 업데이트용)
 let monthlyChartInstance, dayChartInstance, totalChartInstance, symptomChartInstance;
 
+// 데이터 탭: 기본은 최근 14일만 읽는다. 날짜·기간을 정하면 그 기간 중 아직 안 읽은 부분만 읽는다.
+let dataView = { start: addDays(todayStr(), -13), end: todayStr() };
+
+function computeDataView() {
+  const date = document.getElementById("searchDate").value;
+  const start = document.getElementById("searchStart").value;
+  const end = document.getElementById("searchEnd").value;
+  const today = todayStr();
+  if (date) return { start: date, end: date };
+  if (start || end) { const e = end || today; return { start: start || addDays(e, -13), end: e }; }
+  return { start: addDays(today, -13), end: today };
+}
+
 async function loadDataList() {
-  const container = document.getElementById("dataListContainer");
-  try {
-    const dataRes = await fetch(`${API_BASE_URL}/api/data`);
-    if (!dataRes.ok) throw new Error();
-    const items = await dataRes.json();
-    // D5: 날짜 내림차순 정렬(최신이 위) — 추가/수정/삭제 후에도 일관성 보장
-    allItems = items.sort((a, b) => b.date.localeCompare(a.date));
-    filteredItems = [...allItems];
-    showAll = false;
-    renderDataList();
-  } catch (err) {
-    container.innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
-  }
+  return applyFilter();
 }
 
 function renderDataList() {
@@ -304,9 +439,9 @@ function renderDataList() {
   const showMoreBtn = document.getElementById("showMoreBtn");
 
   if (filteredItems.length === 0) {
-    container.innerHTML = "<p class='loading'>검색 결과가 없어요.</p>";
+    container.innerHTML = "<p class='loading'>이 기간에 해당하는 기록이 없어요.</p>";
     showMoreRow.classList.add("hidden");
-    document.getElementById("filterStatus").textContent = "검색 결과 없음";
+    document.getElementById("filterStatus").textContent = `${dataView.start} ~ ${dataView.end} 기록 없음`;
     return;
   }
 
@@ -337,10 +472,12 @@ function renderDataList() {
   }
 
   // 필터 상태 표시
+  const isDefault = dataView.start === addDays(todayStr(), -13) && dataView.end === todayStr();
+  const span = isDefault ? "최근 14일" : `${dataView.start} ~ ${dataView.end}`;
   document.getElementById("filterStatus").textContent =
     allItems.length !== filteredItems.length
-      ? `전체 ${allItems.length}개 중 ${filteredItems.length}개 표시`
-      : `전체 ${allItems.length}개`;
+      ? `${span} ${allItems.length}개 중 ${filteredItems.length}개 표시`
+      : `${span} ${allItems.length}개`;
 }
 
 // D1: 더보기/접기 토글
@@ -360,38 +497,37 @@ function highlightMatch(text, word) {
   return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + word.length)) + "</mark>" + esc(text.slice(i + word.length));
 }
 
-function applyFilter() {
-  const date    = document.getElementById("searchDate").value;
-  const start   = document.getElementById("searchStart").value;
-  const end     = document.getElementById("searchEnd").value;
+async function applyFilter() {
   const keyword = document.getElementById("searchKeyword").value.trim().toLowerCase();
   searchWord = document.getElementById("searchKeyword").value.trim();
-
-  filteredItems = allItems.filter((item) => {
-    if (date    && item.date !== date)                                     return false;
-    if (start   && item.date < start)                                      return false;
-    if (end     && item.date > end)                                        return false;
-    if (keyword) {
-      // 메모 검색: 연습 기록의 메모만 대상으로 함 (대화 기록은 검색하지 않음)
-      if (!(item.memo || "").toLowerCase().includes(keyword)) return false;
-    }
-    return true;
-  });
-
+  const container = document.getElementById("dataListContainer");
+  dataView = computeDataView();
+  try {
+    await PracticeStore.ensure(dataView.start, dataView.end);   // 아직 안 읽은 기간만 서버에서 읽음
+  } catch (err) {
+    container.innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
+    return;
+  }
+  allItems = PracticeStore.list(dataView.start, dataView.end).reverse();   // 최신이 위
+  // 메모 검색은 지금 불러온 기간 안의 기록만 대상으로 함
+  filteredItems = keyword ? allItems.filter((i) => (i.memo || "").toLowerCase().includes(keyword)) : [...allItems];
   showAll = false;
   renderDataList();
-  updateFilteredStatistics();  // 필터된 데이터로 차트 업데이트
 }
 
 function clearFilter() {
   searchWord = "";
-  ["searchDate","searchStart","searchEnd","searchKeyword"].forEach((id) => {
+  ["searchDate", "searchStart", "searchEnd", "searchKeyword"].forEach((id) => {
     document.getElementById(id).value = "";
   });
-  filteredItems = [...allItems];
-  showAll = false;
-  renderDataList();
-  loadStatistics();  // 전체 통계 복원
+  applyFilter();
+}
+
+// 기록을 추가·수정·삭제한 뒤: 서버가 돌려준 내용을 보관함에 바로 반영하고 목록만 다시 그린다 (다시 읽지 않음)
+function afterDataChange() {
+  statsDirty = true;
+  applyFilter();
+  refreshStatsIfShown();
 }
 
 async function deleteData(id) {
@@ -399,7 +535,8 @@ async function deleteData(id) {
   try {
     const res = await fetch(`${API_BASE_URL}/api/data/${id}`, { method: "DELETE" });
     if (!res.ok) throw new Error();
-    loadDataList();
+    PracticeStore.remove(id);
+    afterDataChange();
   } catch (err) {
     alert("삭제에 실패했어요.");
   }
@@ -434,8 +571,8 @@ async function updateData(e, id) {
       body: JSON.stringify({ date, value, memo }),
     });
     if (!res.ok) throw new Error();
-    loadDataList();
-    loadStatistics();
+    PracticeStore.upsert(await res.json());
+    afterDataChange();
   } catch (err) {
     alert("수정에 실패했어요.");
   }
@@ -444,9 +581,8 @@ async function updateData(e, id) {
 // --- 통계 차트 (4개: 월별평균, 요일별분포, 누적시간, 부상별운동) ---
 async function loadStatistics() {
   try {
-    // 캐시된 데이터에서 로컬 계산 (Firestore 읽기 0회)
-    await loadPracticeDataWithCache();
-    const stats = calculateStats();
+    // 이미 읽어 둔 기록으로 계산 (Firestore 읽기 0회)
+    const stats = calculateStats(PracticeStore.list(statsRange.start, statsRange.end));
 
     // 배지 업데이트
     document.getElementById("streakDays").textContent = stats.streak;
@@ -461,7 +597,7 @@ async function loadStatistics() {
     const axisBg = isDark ? "rgba(50,40,45,0.5)" : "rgba(244,229,234,0.5)";
 
     // 1️⃣ 월별 평균 (선 그래프)
-    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    const monthLabels = stats.monthly.map((m) => m.label);
     if (monthlyChartInstance) monthlyChartInstance.destroy();
     monthlyChartInstance = new Chart(document.getElementById("monthlyChart"), {
       type: "line",
@@ -469,7 +605,7 @@ async function loadStatistics() {
         labels: monthLabels,
         datasets: [{
           label: "평균 분",
-          data: stats.monthlyAverage,
+          data: stats.monthly.map((m) => m.avg),
           borderColor: lineColor,
           backgroundColor: "rgba(201, 143, 138, 0.16)",
           borderWidth: 2,
@@ -513,37 +649,6 @@ async function loadStatistics() {
       },
     });
 
-    // 3️⃣ 누적 시간 (도넛 게이지)
-    const totalMinutes = stats.totalHours * 60;
-    const targetMinutes = 20000; // 목표: 333시간
-    const progressPct = Math.min((totalMinutes / targetMinutes) * 100, 100);
-    drawTotalGauge(stats.totalHours, progressPct, isDark, isDark ? "#4a363d" : "rgba(255, 255, 255, 0.75)");
-
-    // 4️⃣ 부상별 강화운동 개수 (막대 그래프)
-    const symRes = await fetch('data/symptom_map.json');
-    const symptoms = await symRes.json();
-    if (symptomChartInstance) symptomChartInstance.destroy();
-    symptomChartInstance = new Chart(document.getElementById("symptomChart"), {
-      type: "bar",
-      data: {
-        labels: symptoms.map(s => s.symptom),
-        datasets: [{
-          label: "강화운동 개수",
-          data: symptoms.map(s => s.strengthening_exercises.length),
-          backgroundColor: barColor,
-          borderRadius: 6
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: axisBg } },
-        },
-      },
-    });
-
     // 통계 설명 생성
     updateStatsNote(stats);
   } catch (err) {
@@ -553,151 +658,122 @@ async function loadStatistics() {
 
 function updateStatsNote(stats) {
   const note = document.getElementById("statsNote");
-  const streakText = stats.streak > 0 ? `${stats.streak}일 연속` : "아직 없음";
+  const streakText = stats.streak > 0 ? `${stats.streak}일 연속` : "연속 없음";
   const bestDayText = stats.bestDay !== "-" ? `${stats.bestDay}요일` : "데이터 부족";
-  note.textContent = `총 ${stats.totalHours}시간 연습 · ${streakText} · 최다 요일 ${bestDayText}`;
+  const span = statsRange ? `${statsRange.start} ~ ${statsRange.end}` : "";
+  note.textContent = `${span} · 기록 ${stats.count}일 · 총 ${stats.totalHours}시간 연습 · 최장 ${streakText} · 최다 요일 ${bestDayText}`;
 }
 
-// 필터된 데이터로 차트 업데이트 (search/filter 적용 시)
-function updateFilteredStatistics() {
-  if (filteredItems.length === 0) {
-    document.getElementById("statsNote").textContent = "선택한 기간/키워드에 해당하는 데이터가 없어요.";
-    return;
-  }
-
-  const DAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"];
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  const barColor = isDark ? "rgba(210,170,190,0.75)" : "rgba(160,90,115,0.75)";
-  const pieColor1 = isDark ? "rgba(210,170,190,0.85)" : "rgba(160,90,115,0.85)";
-  const pieColor2 = isDark ? "rgba(175,130,155,0.85)" : "rgba(190,130,155,0.85)";
-  const textColor = isDark ? "#e8d8df" : "#4a2535";
-  const axisBg = isDark ? "rgba(50,40,45,0.5)" : "rgba(244,229,234,0.5)";
-
-  // 필터된 데이터 분석
-  const monthly = {};
-  const dayTotals = {};
-  let totalMinutes = 0;
-
-  filteredItems.forEach(item => {
-    const dt = new Date(item.date);
-    const monthKey = item.date.substring(0, 7);
-    const dayIdx = dt.getDay() === 0 ? 6 : dt.getDay() - 1;
-    const dayName = DAY_NAMES[dayIdx];
-
-    monthly[monthKey] = (monthly[monthKey] || 0) + item.value;
-    dayTotals[dayName] = (dayTotals[dayName] || 0) + item.value;
-    totalMinutes += item.value;
-  });
-
-  // 월별 평균 (월별 합계 / 그 달의 기록 개수)
-  const monthCounts = {};
-  filteredItems.forEach(item => {
-    const monthKey = item.date.substring(0, 7);
-    monthCounts[monthKey] = (monthCounts[monthKey] || 0) + 1;
-  });
-  const monthlyAvg = Object.entries(monthly).reduce((acc, [k, v]) => {
-    acc[k] = Math.round((v / monthCounts[k]) * 10) / 10;
-    return acc;
-  }, {});
-
-  // 1️⃣ 월별 평균 업데이트
-  if (monthlyChartInstance) monthlyChartInstance.destroy();
-  monthlyChartInstance = new Chart(document.getElementById("monthlyChart"), {
-    type: "bar",
-    data: {
-      labels: Object.keys(monthlyAvg),
-      datasets: [{ label: "분", data: Object.values(monthlyAvg), backgroundColor: barColor, borderRadius: 6 }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { labels: { color: textColor }, display: false } },
-      scales: {
-        x: { ticks: { color: textColor, font: { size: 11 } }, grid: { display: false } },
-        y: { ticks: { color: textColor, font: { size: 11 } }, beginAtZero: true, grid: { color: axisBg } },
-      },
-    },
-  });
-
-  // 2️⃣ 요일별 분포 업데이트
-  if (dayChartInstance) dayChartInstance.destroy();
-  dayChartInstance = new Chart(document.getElementById("dayChart"), {
-    type: "bar",
-    data: {
-      labels: DAY_NAMES,
-      datasets: [{ label: "분", data: DAY_NAMES.map(d => dayTotals[d] || 0), backgroundColor: barColor, borderRadius: 6 }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { labels: { color: textColor }, display: false } },
-      scales: {
-        x: { ticks: { color: textColor, font: { size: 11 } }, grid: { display: false } },
-        y: { ticks: { color: textColor, font: { size: 11 } }, beginAtZero: true, grid: { color: axisBg } },
-      },
-    },
-  });
-
-  // 3️⃣ 누적 시간 업데이트
-  const targetMinutes = 20000;
-  const progressPct = Math.min((totalMinutes / targetMinutes) * 100, 100);
-  drawTotalGauge(Math.round(totalMinutes / 60 * 10) / 10, progressPct, isDark, isDark ? "#4a363d" : "rgba(255, 255, 255, 0.75)");
-
-  // 통계 설명 업데이트
-  const totalHours = Math.round(totalMinutes / 60 * 10) / 10;
-  const count = filteredItems.length;
-  const note = document.getElementById("statsNote");
-  note.textContent = `선택 기간: ${count}개 기록 · ${totalHours}시간 · 평균 ${Math.round(totalMinutes / count)}분/기록`;
-}
 
 // 다크모드 전환 시 차트 색상도 업데이트
-themeToggle.addEventListener("click", () => loadStatistics());
+themeToggle.addEventListener("click", () => refreshStatsIfShown());
 
 // --- 대화 기록 ---
 let convList = [];
 let convShowAll = false;
 
-async function loadConversationsList() {
+let convRangeLabel = "최근 7일";
+let convKeyword = "";
+let convView = { start: addDays(todayStr(), -6), end: todayStr() };
+
+// 대화 목록: 기본은 최근 7일 방만 읽는다. 기간을 정하면 그 기간 중 아직 안 읽은 방만 읽고, 읽은 방은 보관해 다시 읽지 않는다.
+async function loadConversationsList(start, end, forceRecent) {
   const container = document.getElementById("conversationsListContainer");
   try {
-    const res = await fetch(`${API_BASE_URL}/api/conversations`);
-    if (!res.ok) throw new Error();
-    convList = (await res.json()).reverse();
+    const t = todayStr();
+    if (!start && !end) {
+      convView = { start: addDays(t, -6), end: t };
+      convRangeLabel = "최근 7일";
+      // 다른 기기에서 만든 대화를 반영하도록, 최근 7일 구간은 하루에 한 번만 새로 읽는다
+      let stamp = null;
+      try { stamp = localStorage.getItem("conv_recent_stamp"); } catch (e) { /* 무시 */ }
+      if (forceRecent || stamp !== t) {
+        ConvStore.forget(convView.start, convView.end);
+        try { localStorage.setItem("conv_recent_stamp", t); } catch (e) { /* 무시 */ }
+      }
+    } else {
+      convView = { start: start || FULL_START, end: end || t };
+      convRangeLabel = `${start || "처음"} ~ ${end || "오늘"}`;
+    }
+    await ConvStore.ensure(convView.start, convView.end);
     convShowAll = false;
     renderConversations();
   } catch (err) {
-    container.innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
+    container.innerHTML = "<p class='loading'>대화 기록을 불러오지 못했어요.</p>";
   }
 }
 
-// 7개만 보여주고 나머지는 접기 버튼 속에 보관
+function initConversationToolbar() {
+  const s = document.getElementById("convStart"), e = document.getElementById("convEnd");
+  document.getElementById("convRangeBtn")?.addEventListener("click", () => {
+    if (!s.value && !e.value) { s.focus(); return; }
+    loadConversationsList(s.value, e.value);
+  });
+  document.getElementById("convRecentBtn")?.addEventListener("click", () => {
+    s.value = ""; e.value = "";
+    document.getElementById("convKeyword").value = ""; convKeyword = "";
+    loadConversationsList(undefined, undefined, true);
+  });
+  // 검색: 지금까지 읽어 둔 모든 대화에서 찾는다. 아직 안 읽은 옛 대화까지 찾으려면 '전체에서 검색'(안 읽은 방만 읽음)
+  document.getElementById("convAllBtn")?.addEventListener("click", async () => {
+    const btn = document.getElementById("convAllBtn");
+    btn.disabled = true; btn.textContent = "불러오는 중…";
+    try { await ConvStore.ensure(FULL_START, todayStr()); } catch (err) { alert("불러오지 못했어요."); }
+    btn.disabled = false; btn.textContent = "전체 기간에서 검색";
+    renderConversations();
+  });
+  let t = null;
+  document.getElementById("convKeyword")?.addEventListener("input", (ev) => {
+    clearTimeout(t);
+    t = setTimeout(() => { convKeyword = ev.target.value.trim(); convShowAll = false; renderConversations(); }, 120);
+  });
+}
+
 function renderConversations() {
   const container = document.getElementById("conversationsListContainer");
   const row = document.getElementById("convShowMoreRow");
   const btn = document.getElementById("convShowMoreBtn");
+  const note = document.getElementById("convRangeNote");
 
-  if (convList.length === 0) {
-    container.innerHTML = "<p class='loading'>저장된 대화가 없어요.</p>";
+  // 검색어가 있으면 지금까지 읽어 둔 모든 대화에서, 없으면 선택한 기간(기본 최근 7일)의 대화를 보여준다
+  const kw = convKeyword.toLowerCase();
+  const byNew = (a, b) => (b.updated_at || "").localeCompare(a.updated_at || "");
+  convList = ConvStore.list(convView.start, convView.end).sort(byNew);
+  const list = kw
+    ? ConvStore.all().filter((c) => (c.title || "").toLowerCase().includes(kw) || (c.messages || []).some((m) => (m.content || "").toLowerCase().includes(kw))).sort(byNew)
+    : convList;
+  const allBtn = document.getElementById("convAllBtn");
+  if (allBtn) allBtn.classList.toggle("hidden", !kw);
+  if (note) note.textContent = kw
+    ? `읽어 둔 대화 ${ConvStore.all().length}개 중 검색 결과 ${list.length}개`
+    : `${convRangeLabel} · 대화 ${convList.length}개`;
+
+  if (list.length === 0) {
+    container.innerHTML = `<p class='loading'>${kw ? "검색 결과가 없어요." : "이 기간에 저장된 대화가 없어요."}</p>`;
     row.classList.add("hidden");
     return;
   }
 
-  const shown = convShowAll ? convList : convList.slice(0, SHOW_LIMIT);
-  container.innerHTML = shown.map((c) => `
+  const shown = convShowAll ? list : list.slice(0, SHOW_LIMIT);
+  container.innerHTML = shown.map((c) => {
+    const hit = kw ? (c.messages || []).find((m) => (m.content || "").toLowerCase().includes(kw)) : null;
+    const snippet = hit ? `<div class="data-item-meta conv-snippet">${highlightMatch(String(hit.content).replace(/\s+/g, " ").slice(0, 90), convKeyword)}</div>` : "";
+    return `
     <div class="conversation-item">
       <div class="conversation-item-info">
-        <div class="conversation-item-title">${c.title}</div>
-        <div class="data-item-meta">${c.messages.length}개 메시지</div>
+        <div class="conversation-item-title">${kw ? highlightMatch(c.title || "", convKeyword) : c.title}</div>
+        <div class="data-item-meta">${(c.updated_at || "").slice(0, 10)} · ${(c.messages || []).length}개 메시지</div>
+        ${snippet}
       </div>
       <div class="conversation-item-actions">
-        <button class="btn-small btn-load" onclick="loadConversation('${c.id}', '${c.title.replace(/"/g, '\\"')}')">불러오기</button>
+        <button class="btn-small btn-load" onclick="loadConversation('${c.id}', '${(c.title || "").replace(/'/g, "\\'").replace(/"/g, '\\"')}')">불러오기</button>
       </div>
-    </div>
-  `).join("");
+    </div>`;
+  }).join("");
 
-  if (convList.length > SHOW_LIMIT) {
+  if (list.length > SHOW_LIMIT) {
     row.classList.remove("hidden");
-    btn.textContent = convShowAll ? "접기 ↑" : `더 보기 (${convList.length - SHOW_LIMIT}개 더) ↓`;
+    btn.textContent = convShowAll ? "접기 ↑" : `더 보기 (${list.length - SHOW_LIMIT}개 더) ↓`;
   } else {
     row.classList.add("hidden");
   }
@@ -711,19 +787,22 @@ function toggleConvShowMore() {
 function loadConversation(convId, title) {
   const detail = document.getElementById("conversationDetail");
   const msgContainer = document.getElementById("conversationMessages");
-
+  const show = (conv) => {
+    currentConvId = convId;
+    document.getElementById("conversationTitle").textContent = conv.title;
+    msgContainer.innerHTML = (conv.messages || []).map((m) => `
+      <div class="conversation-message ${m.role}">
+        ${renderChatMarkdown(m.content || "")}
+      </div>
+    `).join("");
+    detail.classList.remove("hidden");
+  };
+  // 이미 읽어 둔 대화는 서버에 다시 묻지 않는다
+  const kept = ConvStore.get(convId);
+  if (kept && kept.messages) { show(kept); return; }
   fetch(`${API_BASE_URL}/api/conversations/${convId}`)
     .then((res) => res.json())
-    .then((conv) => {
-      currentConvId = convId;
-      document.getElementById("conversationTitle").textContent = conv.title;
-      msgContainer.innerHTML = conv.messages.map((m) => `
-        <div class="conversation-message ${m.role}">
-          ${renderChatMarkdown(m.content || "")}
-        </div>
-      `).join("");
-      detail.classList.remove("hidden");
-    })
+    .then(show)
     .catch(() => alert("불러오지 못했어요."));
 }
 
@@ -740,9 +819,9 @@ function triggerDownload(content, filename, type) {
 
 async function exportCSV() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/data`);
-    if (!res.ok) throw new Error();
-    const items = await res.json();
+    // 내보내기는 전체가 필요하므로, 아직 안 읽은 부분만 읽어 와서 보관함 전체로 만든다
+    await PracticeStore.ensure(FULL_START, FULL_END);
+    const items = PracticeStore.all().sort((a, b) => a.date.localeCompare(b.date));
     const header = "날짜,연습시간(분),메모";
     const rows = items.map((i) => `${i.date},${i.value},"${i.memo || ""}"`);
     triggerDownload([header, ...rows].join("\n"), "moncherbarre_data.csv", "text/csv;charset=utf-8;");
@@ -753,9 +832,8 @@ async function exportCSV() {
 
 async function exportJSON() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/data`);
-    if (!res.ok) throw new Error();
-    const items = await res.json();
+    await PracticeStore.ensure(FULL_START, FULL_END);
+    const items = PracticeStore.all().sort((a, b) => a.date.localeCompare(b.date));
     triggerDownload(JSON.stringify(items, null, 2), "moncherbarre_data.json", "application/json");
   } catch {
     alert("내보내기에 실패했어요.");
@@ -939,7 +1017,17 @@ async function addToFavorites() {
       }),
     });
 
-    if (response.ok) {
+    const saved = response.ok ? await response.json() : null;
+    if (saved && saved.success) {
+      const item = {
+        id: saved.id, french_term: move.french_term, korean_name: move.korean_name,
+        video_id: video.url.split("v=")[1] || "search", video_title: video.title, video_url: video.url,
+        channel: video.channel, source: video.source, saved_at: new Date().toISOString(),
+      };
+      if (Array.isArray(favoritesCache)) {
+        favoritesCache = favoritesCache.filter((f) => f.id !== item.id).concat(item);
+        saveFavCache();
+      }
       const btn = document.getElementById("favoriteBtn");
       btn.classList.add("active");
       btn.dataset.tip = "저장됨";
@@ -956,12 +1044,22 @@ async function addToFavorites() {
 }
 
 // 즐겨찾기 목록 로드
-async function loadFavorites() {
+// 즐겨찾기는 한 번 읽어 브라우저에 보관하고, 추가·삭제는 보관함에 바로 반영한다(서버에서 다시 읽지 않음)
+const FAV_KEY = "favorites_cache_v1";
+let favoritesCache = null;
+try { favoritesCache = JSON.parse(localStorage.getItem(FAV_KEY) || "null"); } catch (e) { favoritesCache = null; }
+function saveFavCache() { try { localStorage.setItem(FAV_KEY, JSON.stringify(favoritesCache)); } catch (e) { /* 무시 */ } }
+
+async function loadFavorites(force) {
   const container = document.getElementById("favoritesList");
   try {
-    const response = await fetch(`${API_BASE_URL}/api/moves/favorites`);
-    if (!response.ok) throw new Error(`status ${response.status}`);
-    const favorites = await response.json();
+    if (!Array.isArray(favoritesCache) || force) {
+      const response = await fetch(`${API_BASE_URL}/api/moves/favorites`);
+      if (!response.ok) throw new Error(`status ${response.status}`);
+      favoritesCache = await response.json();
+      saveFavCache();
+    }
+    const favorites = favoritesCache;
 
     if (!favorites || favorites.length === 0) {
       container.innerHTML = `
@@ -1017,7 +1115,8 @@ async function removeFavorite(id) {
     });
 
     if (response.ok) {
-      loadFavorites();  // 목록 새로고침
+      if (Array.isArray(favoritesCache)) { favoritesCache = favoritesCache.filter((f) => f.id !== id); saveFavCache(); }
+      loadFavorites();  // 보관함 기준으로 목록 다시 그림 (서버 읽기 없음)
     }
   } catch (err) {
     console.error("즐겨찾기 삭제 오류:", err);
@@ -1054,6 +1153,7 @@ async function searchMoreVideos() {
 
 // 용어 선택 시 currentDictTerm 저장
 function showDictionaryDetail(frenchTerm) {
+  trackActivity('terms', frenchTerm);   // 비서가 자주 찾은 용어를 참고하도록 기록
   currentDictTerm = frenchTerm;
   const move = allMoves.find(m => m.french_term === frenchTerm);
   if (!move) {
@@ -1106,166 +1206,84 @@ function showDictionaryDetail(frenchTerm) {
 }
 
 // --- 데이터 캐싱 전역 변수 ---
-let practiceLogsCache = null;
 
-// --- 365일 데이터 캐싱 (Firestore 1회만 읽기) ---
-async function loadPracticeDataWithCache() {
-  try {
-    const cacheKey = 'practice_logs_cache';
-    const cached = localStorage.getItem(cacheKey);
+// --- 통계: 기간을 정하고 '분석'을 눌렀을 때만 (그 기간 중 아직 안 읽은 부분만 읽고, 읽어 둔 기록으로 계산) ---
+let statsShown = false, statsDirty = false, statsRange = null;
 
-    // 빈 배열이 캐시된 경우(서버 콜드스타트 실패 등)는 무시하고 다시 불러옴
-    const parsed = cached ? JSON.parse(cached) : null;
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      practiceLogsCache = parsed;
-      return;
+function initStatsButton() {
+  const run = document.getElementById("statsRunBtn"), toggle = document.getElementById("statsToggleBtn");
+  const body = document.getElementById("statsBody");
+  const s = document.getElementById("statsStart"), e = document.getElementById("statsEnd");
+  if (!run || !body) return;
+  const setOpen = (open) => {
+    statsShown = open;
+    body.classList.toggle("hidden", !open);
+    toggle.textContent = open ? "접기" : "펼치기";
+  };
+  const analyze = async () => {
+    const today = todayStr();
+    if (!e.value) e.value = today;
+    if (!s.value) s.value = addDays(e.value, -89);          // 기간을 비워 두면 최근 90일
+    if (s.value > e.value) { const t = s.value; s.value = e.value; e.value = t; }
+    run.disabled = true; run.textContent = "분석 중…";
+    try {
+      await PracticeStore.ensure(s.value, e.value);         // 이 기간 중 아직 안 읽은 부분만 서버에서 읽음
+      statsRange = { start: s.value, end: e.value };
+      toggle.classList.remove("hidden");
+      setOpen(true);
+      await loadStatistics();
+      statsDirty = false;
+    } catch (err) {
+      document.getElementById("statsNote").textContent = "기록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
+      body.classList.remove("hidden");
+    } finally {
+      run.disabled = false; run.textContent = "분석";
     }
-
-    // Firestore에서 처음 1회만 읽기
-    const res = await fetch(`${API_BASE_URL}/api/data`);
-    if (!res.ok) throw new Error(`status ${res.status}`);
-
-    practiceLogsCache = await res.json();
-    if (practiceLogsCache.length > 0) localStorage.setItem(cacheKey, JSON.stringify(practiceLogsCache));
-  } catch (err) {
-    console.error('연습 기록 로드 실패:', err);
-    practiceLogsCache = [];
-  }
+  };
+  run.addEventListener("click", analyze);
+  toggle.addEventListener("click", () => setOpen(!statsShown));   // 접었다 펼쳐도 다시 읽거나 계산하지 않음
+  document.querySelectorAll(".stats-preset").forEach((b) => b.addEventListener("click", () => {
+    const days = b.dataset.days;
+    e.value = todayStr();
+    s.value = days === "all" ? "2000-01-01" : addDays(e.value, -(parseInt(days, 10) - 1));
+    analyze();
+  }));
 }
+// 열려 있으면 이미 읽어 둔 기록으로 다시 그리고(읽기 0), 접혀 있으면 다음 '분석' 때 반영
+function refreshStatsIfShown() { if (statsShown && statsRange) loadStatistics(); else statsDirty = true; }
 
-// --- 통계 계산 (로컬 데이터만 사용) ---
-function calculateStats() {
-  if (!practiceLogsCache || practiceLogsCache.length === 0) {
-    return {
-      streak: 0,
-      bestDay: '-',
-      totalHours: 0,
-      dayOfWeekData: [0, 0, 0, 0, 0, 0, 0],
-      monthlyAverage: Array(12).fill(0)
-    };
-  }
-
-  const logs = practiceLogsCache;
-  const now = new Date();
+// --- 통계 계산 (정해진 기간의 기록만 사용) ---
+function calculateStats(logs) {
   const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
-
-  // 1️⃣ 연속 일수 (스트릭)
-  let streak = 0;
-  const sortedByDate = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
-  let checkDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  for (const log of sortedByDate) {
-    const logDate = new Date(log.date);
-    if (logDate.toDateString() === checkDate.toDateString()) {
-      streak++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else if (logDate < checkDate) {
-      break;
-    }
-  }
-
-  // 2️⃣ 요일별 분포
+  const val = (l) => (l.value ?? l.minutes) || 0;
   const dayOfWeekData = [0, 0, 0, 0, 0, 0, 0];
-  logs.forEach(log => {
-    const date = new Date(log.date);
-    const day = date.getDay() === 0 ? 6 : date.getDay() - 1; // 월=0, 일=6
-    dayOfWeekData[day] += (log.value ?? log.minutes) || 0;
+  const monthSum = {}, monthCnt = {};
+  let totalMinutes = 0;
+  [...logs].forEach((l) => {
+    const v = val(l);
+    const d = new Date(l.date + "T00:00:00");
+    dayOfWeekData[d.getDay() === 0 ? 6 : d.getDay() - 1] += v;       // 월=0, 일=6
+    const m = l.date.slice(0, 7);
+    monthSum[m] = (monthSum[m] || 0) + v; monthCnt[m] = (monthCnt[m] || 0) + 1;
+    totalMinutes += v;
   });
-
-  // 3️⃣ 월별 평균
-  const monthlyData = Array(12).fill(0);
-  const monthlyCounts = Array(12).fill(0);
-  logs.forEach(log => {
-    const date = new Date(log.date);
-    const month = date.getMonth();
-    monthlyData[month] += (log.value ?? log.minutes) || 0;
-    monthlyCounts[month]++;
+  // 최장 연속 연습일: 연습 시간이 있는 날이 하루씩 이어진 가장 긴 구간
+  let streak = 0, run = 0, prev = null;
+  logs.filter((l) => val(l) > 0).map((l) => l.date).sort().forEach((d) => {
+    run = prev && addDays(prev, 1) === d ? run + 1 : 1;
+    streak = Math.max(streak, run); prev = d;
   });
-  const monthlyAverage = monthlyData.map((total, i) =>
-    monthlyCounts[i] > 0 ? Math.round(total / monthlyCounts[i]) : 0
-  );
-
-  // 4️⃣ 최다 요일
-  const maxDayIndex = dayOfWeekData.indexOf(Math.max(...dayOfWeekData));
-  const bestDay = dayNames[maxDayIndex];
-
-  // 5️⃣ 총 시간
-  const totalMinutes = logs.reduce((sum, log) => sum + ((log.value ?? log.minutes) || 0), 0);
-  const totalHours = Math.round(totalMinutes / 60 * 10) / 10;
-
+  const months = Object.keys(monthSum).sort();
+  const monthly = months.map((m) => ({ label: `${m.slice(2, 4)}.${m.slice(5)}`, avg: Math.round(monthSum[m] / monthCnt[m]) }));
+  const max = Math.max(...dayOfWeekData);
   return {
     streak,
-    bestDay,
-    totalHours,
+    bestDay: logs.length && max > 0 ? dayNames[dayOfWeekData.indexOf(max)] : '-',
+    totalHours: Math.round(totalMinutes / 60 * 10) / 10,
     dayOfWeekData,
-    monthlyAverage
+    monthly,
+    count: logs.length,
   };
-}
-
-// --- 그래프 렌더링 (Chart.js) ---
-function renderGraphs() {
-  const stats = calculateStats();
-
-  // 1️⃣ 요일별 분포 (막대)
-  const dayCtx = document.getElementById('dayChart');
-  if (dayCtx) {
-    new Chart(dayCtx, {
-      type: 'bar',
-      data: {
-        labels: ['월', '화', '수', '목', '금', '토', '일'],
-        datasets: [{
-          label: '누적 분',
-          data: stats.dayOfWeekData,
-          backgroundColor: '#C98F8A',
-          borderRadius: 6,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
-        }
-      }
-    });
-  }
-
-  // 2️⃣ 월별 평균 (선)
-  const monthCtx = document.getElementById('monthlyChart');
-  if (monthCtx) {
-    new Chart(monthCtx, {
-      type: 'line',
-      data: {
-        labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-        datasets: [{
-          label: '평균 분',
-          data: stats.monthlyAverage,
-          borderColor: '#C98F8A',
-          backgroundColor: 'rgba(201, 143, 138, 0.16)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 4,
-          pointBackgroundColor: '#C98F8A'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }
-        }
-      }
-    });
-  }
-
-  // 3️⃣ 배지 업데이트 (스트릭, 최다요일, 총시간)
-  document.getElementById('streakDays').textContent = stats.streak;
-  document.getElementById('bestDay').textContent = stats.bestDay;
-  document.getElementById('totalHours').textContent = stats.totalHours;
 }
 
 // --- 루틴 전역 변수 ---
@@ -1689,6 +1707,7 @@ function mountInlinePlayer(videoId) {
   if (inlineVP) { inlineVP.destroy(); inlineVP = null; }
   const root = document.getElementById('inlinePlayer');
   if (!root) return;
+  trackActivity('videos', currentDictTerm);
   mountVideoPlayer(root, videoId).then(vp => { inlineVP = vp; });
 }
 function destroyInlinePlayer() { if (inlineVP) { inlineVP.destroy(); inlineVP = null; } }
@@ -1705,6 +1724,7 @@ async function openVideoModal(videoId) {
   document.body.style.overflow = 'hidden';
   try { await (modal.requestFullscreen || modal.webkitRequestFullscreen)?.call(modal); } catch {}
   try { await screen.orientation?.lock?.('landscape'); } catch {}
+  trackActivity('videos', currentDictTerm);
   modalVP = await mountVideoPlayer(document.getElementById('vmStage'), videoId, { autoplay: true, close: true, onClose: closeVideoModal });
 }
 
@@ -1729,7 +1749,7 @@ document.addEventListener('keydown', (e) => {
 // ============================================================================
 // 서울 날씨 칩 (Open-Meteo: 키·서버·DB 없이 브라우저에서 바로 조회, 10분마다 자동 갱신)
 // ============================================================================
-const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true";
+const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true&daily=precipitation_probability_max,precipitation_sum&timezone=Asia%2FSeoul&forecast_days=1";
 
 const W_SVG = (d) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const W_ICONS = {
@@ -1762,11 +1782,15 @@ async function loadWeather() {
   try {
     const res = await fetch(WEATHER_URL);
     if (!res.ok) throw new Error(res.status);
-    const w = (await res.json()).current_weather;
+    const j = await res.json();
+    const w = j.current_weather;
     const [label, icon] = describeWeather(w.weathercode, w.is_day === 1, w.windspeed);
-    chip.innerHTML = `${W_ICONS[icon]}<span class="wc-city">Seoul</span><span class="wc-temp">${Math.round(w.temperature)}°C</span><span class="wc-label">${label}</span>`;
+    // 비·눈 정보: 지금 비/눈이면 라벨(Rain/Snow)과 아이콘으로, 오늘 강수확률이 20% 이상이면 숫자도 함께 표시
+    const pop = j.daily && j.daily.precipitation_probability_max ? j.daily.precipitation_probability_max[0] : null;
+    const popTxt = (pop !== null && (pop >= 20 || icon === "rain" || icon === "snow")) ? `<span class="wc-pop">${icon === "snow" ? "눈" : "비"} ${pop}%</span>` : "";
+    chip.innerHTML = `${W_ICONS[icon]}<span class="wc-city">Seoul</span><span class="wc-temp">${Math.round(w.temperature)}°C</span><span class="wc-label">${label}</span>${popTxt}`;
     chip.dataset.wx = icon;
-    chip.title = `Seoul · ${w.temperature}°C · wind ${w.windspeed} km/h`;
+    chip.title = `Seoul · ${w.temperature}°C · wind ${w.windspeed} km/h` + (pop !== null ? ` · precipitation ${pop}%` : "") + (j.daily && j.daily.precipitation_sum ? ` · ${j.daily.precipitation_sum[0]} mm today` : "");
   } catch (err) {
     console.error("날씨 조회 실패:", err);
     chip.innerHTML = `<span class="wc-city">Seoul</span><span class="wc-temp">—</span>`;
@@ -1940,19 +1964,37 @@ function setChromeHeight() {
   const t = document.querySelector('#chat-section .layout');
   if (t) document.documentElement.style.setProperty('--chrome-h', `${Math.round(t.getBoundingClientRect().top + window.scrollY)}px`);
 }
-// 답변을 읽으며 스크롤하면 입력창을 흐리게, 터치·입력·맨 아래 도착 시 다시 선명하게
+// 답변을 읽는 동안(맨 아래가 아닐 때) 입력창을 숨기고, 입력하려는 동작(입력창 쪽 터치·마우스 이동, 입력칸 선택,
+// 글자 입력, 맨 아래 도착)이 있으면 다시 보이게 한다
 function initChatBarDim() {
   const form = document.getElementById('chatForm'), box = document.getElementById('chatBox');
-  if (!form || !box) return;
-  const undim = () => form.classList.remove('bar-dim');
-  const nearBottom = () => {
-    if (window.innerWidth >= 900) return box.scrollHeight - box.scrollTop - box.clientHeight < 60;
-    return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120;
+  const card = document.querySelector('.chat-card'), input = document.getElementById('chatInput');
+  if (!form || !box || !card) return;
+  const ZONE = 90;                                   // 화면 아래쪽 이 높이(px) 안을 건드리면 나타남
+  let hideTimer = null;
+  const landscape = () => window.innerWidth >= 900;
+  const nearBottom = () => landscape()
+    ? box.scrollHeight - box.scrollTop - box.clientHeight < 60
+    : window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120;
+  const show = () => form.classList.remove('bar-dim');
+  const hide = () => { if (!nearBottom() && document.activeElement !== input && !input.value) form.classList.add('bar-dim'); };
+  const scheduleHide = () => { clearTimeout(hideTimer); hideTimer = setTimeout(hide, 1600); };
+  const onScroll = () => { if (nearBottom()) { show(); } else { clearTimeout(hideTimer); hide(); } };
+  const inZone = (y) => {
+    const r = landscape() ? card.getBoundingClientRect() : { bottom: window.innerHeight };
+    return y > r.bottom - ZONE && y < r.bottom + 40;
   };
-  const onScroll = () => { nearBottom() ? undim() : form.classList.add('bar-dim'); };
+  const touch = (ev) => { if (inZone(ev.clientY)) { show(); scheduleHide(); } };
+
   box.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('scroll', onScroll, { passive: true });
-  ['pointerdown', 'touchstart', 'focusin', 'mouseenter'].forEach(ev => form.addEventListener(ev, undim, { passive: true }));
+  card.addEventListener('pointermove', touch, { passive: true });
+  card.addEventListener('pointerdown', touch, { passive: true });
+  window.addEventListener('pointerdown', (ev) => { if (!landscape()) touch(ev); }, { passive: true });
+  window.addEventListener('pointermove', (ev) => { if (!landscape()) touch(ev); }, { passive: true });
+  input.addEventListener('focus', () => { clearTimeout(hideTimer); show(); });
+  input.addEventListener('input', () => { clearTimeout(hideTimer); show(); });
+  form.addEventListener('transitionend', () => {});
 }
 window.addEventListener('resize', setChromeHeight);
 window.addEventListener('load', () => { setChromeHeight(); initChatBarDim(); });
@@ -1998,12 +2040,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initUiSound();
   initLeaveHandlers();
   initBrandHome();
-  loadPracticeDataWithCache().then(() => {
-    loadDataList();
-    loadStatistics();
-  });
-  loadConversationsList();
+  // 데이터 목록·대화 목록은 해당 탭을 처음 열 때만 불러오고, 통계는 '통계 보기' 버튼을 눌렀을 때만 계산한다
+  initStatsButton();
+  initConversationToolbar();
   loadDictionary();
-  loadFavorites();
   loadRoutineDataset().then(() => initRoutineChips());
 });

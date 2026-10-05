@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&family=Noto+Serif+KR:wght@500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-<link rel="stylesheet" href="css/style.css?v=72" />
+<link rel="stylesheet" href="css/style.css?v=78" />
 </head>
 <body>
   <div id="splash" class="splash">
@@ -197,13 +197,27 @@
         <!-- 통계 카드 -->
         <div class="card stats-card">
           <h3 class="card-label">연습 통계</h3>
+          <!-- 기간을 정하고 '분석'을 눌렀을 때만 그 기간의 기록을 읽어 그래프를 그립니다 -->
+          <div class="stats-controls">
+            <label>시작 <input type="date" id="statsStart"></label>
+            <label>끝 <input type="date" id="statsEnd"></label>
+            <span class="stats-presets">
+              <button type="button" class="btn-small stats-preset" data-days="30">30일</button>
+              <button type="button" class="btn-small stats-preset" data-days="90">90일</button>
+              <button type="button" class="btn-small stats-preset" data-days="365">1년</button>
+              <button type="button" class="btn-small stats-preset" data-days="all">전체</button>
+            </span>
+            <button type="button" id="statsRunBtn" class="btn-secondary btn-small">분석</button>
+            <button type="button" id="statsToggleBtn" class="btn-secondary btn-small hidden">접기</button>
+          </div>
+          <div id="statsBody" class="hidden">
           <div class="stats-badges">
-            <span class="badge"><span class="badge-icon">⟲</span> <strong id="streakDays">-</strong>일 연속</span>
+            <span class="badge"><span class="badge-icon">⟲</span> <strong id="streakDays">-</strong>일 최장 연속</span>
             <span class="badge"><span class="badge-icon">⬤</span> <strong id="bestDay">-</strong>요일</span>
             <span class="badge"><span class="badge-icon">⧖</span> <strong id="totalHours">-</strong>시간</span>
           </div>
 
-          <!-- 4개 차트 그리드 -->
+          <!-- 2개 차트 그리드 -->
           <div class="charts-grid">
             <!-- 1. 월별 평균 분 -->
             <div class="chart-container">
@@ -218,24 +232,11 @@
               <p class="chart-label">누적 분</p>
               <canvas id="dayChart" height="150"></canvas>
             </div>
-
-            <!-- 3. 누적 시간 (게이지) -->
-            <div class="chart-container">
-              <h4>총 연습 시간</h4>
-              <p class="chart-label">시간</p>
-              <div class="gauge-wrap"><canvas id="totalChart"></canvas></div>
-            </div>
-
-            <!-- 4. 부상별 운동 -->
-            <div class="chart-container">
-              <h4>부상별 강화운동</h4>
-              <p class="chart-label">운동 개수</p>
-              <canvas id="symptomChart" height="150"></canvas>
-            </div>
           </div>
 
           <!-- 검색/필터 결과 요약 -->
           <p id="statsNote" class="stats-note"></p>
+          </div>
         </div>
       </div>
     </section>
@@ -246,6 +247,16 @@
         <h2 class="page-label plain big">저장된 대화</h2>
 
         <div class="card conversations-list-card">
+          <!-- 기간 조회: 기본은 최근 7일. 기간을 정해 조회하면 그 기간의 대화방 수만큼만 읽습니다 -->
+          <div class="conv-toolbar">
+            <label>시작 <input type="date" id="convStart"></label>
+            <label>끝 <input type="date" id="convEnd"></label>
+            <button type="button" class="btn-secondary btn-small" id="convRangeBtn">기간 조회</button>
+            <button type="button" class="btn-secondary btn-small" id="convRecentBtn">최근 7일</button>
+            <input type="search" id="convKeyword" placeholder="대화 검색 (예: 무지외반)" autocomplete="off">
+            <button type="button" class="btn-secondary btn-small hidden" id="convAllBtn">전체 기간에서 검색</button>
+          </div>
+          <p id="convRangeNote" class="conv-range-note"></p>
           <div id="conversationsListContainer" class="conversations-list">
             <p class="loading">불러오는 중…</p>
           </div>
@@ -323,6 +334,6 @@
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="js/app.js?v=72"></script>
+  <script src="js/app.js?v=78"></script>
 </body>
 </html>
