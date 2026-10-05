@@ -444,6 +444,7 @@ async function loadStatistics() {
     document.getElementById("totalHours").textContent = stats.totalHours;
 
     const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    if (window.Chart) { const tc = isDark ? "#D9C896" : "#6B5E36"; Chart.defaults.color = tc; Chart.defaults.scale.ticks.color = tc; Chart.defaults.plugins.legend.labels.color = tc; }
     const barColor = "#C98F8A";
     const lineColor = "#C98F8A";
     const textColor = isDark ? "#e8d8df" : "#4a2535";

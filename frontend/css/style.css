@@ -2682,3 +2682,28 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 .alphabet-btn.active, .alphabet-btn[aria-pressed="true"] { background: linear-gradient(135deg, #F9DDE3 0%, #D58798 50%, #A85A6E 100%); color: #fff; }
 .alphabet-btn.active::before, .alphabet-btn[aria-pressed="true"]::before { background: linear-gradient(180deg, #E6A2B1 0%, #D78598 55%, #C86C82 100%); }
 
+/* ============================================================================
+   다크 모드 대비 보정: 밝은 테마용으로 고정해 둔 어두운 글자색을 다크에서는 밝게
+   ============================================================================ */
+[data-theme="dark"] { --fg: #F1E7D2; --mut: #BFAF8A; }
+[data-theme="dark"] .brand-name, [data-theme="dark"] .data-item, [data-theme="dark"] .data-item-date,
+[data-theme="dark"] .data-item-meta, [data-theme="dark"] .conversation-item-title { color: #F1E7D2; }
+[data-theme="dark"] .msg.assistant, [data-theme="dark"] .chat-card, [data-theme="dark"] .summary-text,
+[data-theme="dark"] .dict-description, [data-theme="dark"] .stats-note, [data-theme="dark"] .stats-note * { color: #F1E7D2; }
+[data-theme="dark"] .msg.user { color: #F0C9D3; }
+[data-theme="dark"] .chart-container h4 { color: #E3D3A0; }
+[data-theme="dark"] .chart-container .chart-label, [data-theme="dark"] .chart-container p { color: #BFAF8A; }
+[data-theme="dark"] label, [data-theme="dark"] .form-group label, [data-theme="dark"] .search-group label { color: #D2C08C; }
+[data-theme="dark"] .col-left .card:has(#summaryText) h2 { color: #E3C46E; }
+[data-theme="dark"] .badge { background: rgba(255, 255, 255, 0.06); color: #D7C89A; border-color: rgba(224, 138, 165, 0.35); }
+[data-theme="dark"] .badge strong { color: #F1E7D2; }
+[data-theme="dark"] .music-item { color: #EADFC6; }
+[data-theme="dark"] .music-player .now-playing h4 { color: #F1E7D2; }
+[data-theme="dark"] .music-player .now-playing p { color: #BFAF8A; }
+[data-theme="dark"] .dictionary-item-term { color: #F0B3C4; }
+[data-theme="dark"] .dictionary-item-pron { color: #BFAF8A; }
+
+/* 알파벳 버튼(다크): 어두운 면 + 밝은 글자 */
+[data-theme="dark"] .alphabet-btn, [data-theme="dark"] .alphabet-btn[aria-pressed="false"] { background: linear-gradient(135deg, var(--ag-dtop, #5a3a48), rgba(224, 138, 165, 0.45)); color: #F0DDE2; text-shadow: none; }
+[data-theme="dark"] .alphabet-btn::before { background: linear-gradient(180deg, var(--ag-dtop, #4a2f3b), var(--ag-dbot, #3a2630)); }
+[data-theme="dark"] .alphabet-btn.active, [data-theme="dark"] .alphabet-btn[aria-pressed="true"] { color: #fff; }
