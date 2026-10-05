@@ -805,10 +805,11 @@ async function loadDictionary() {
     const filterContainer = document.getElementById("alphabetFilter");
     filterContainer.innerHTML = "";
     const alphabets = ["ALL", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
-    alphabets.forEach(letter => {
+    alphabets.forEach((letter, idx) => {
       const btn = document.createElement("button");
       btn.className = "alphabet-btn";
       btn.textContent = letter;
+      paintAlphabetBtn(btn, idx, alphabets.length);
       btn.onclick = () => filterDictionaryByAlphabet(letter);
       filterContainer.appendChild(btn);
     });
@@ -818,6 +819,21 @@ async function loadDictionary() {
     console.error(err);
     document.getElementById("dictionaryListContainer").innerHTML = "<p class='loading'>불러오지 못했어요.</p>";
   }
+}
+
+// 알파벳 버튼 색: 왼쪽(ALL·A)은 연분홍, 오른쪽(Z)으로 갈수록 샴페인 골드로 옆으로 번지는 그라데이션
+const AG_FROM = [248, 220, 228], AG_TO = [244, 228, 192];     // 밝은 면 (분홍 → 골드)
+const AG_DARK_FROM = [96, 52, 70], AG_DARK_TO = [92, 78, 44];  // 다크 모드 면
+function mixRGB(a, b, t) { return a.map((v, i) => Math.round(v + (b[i] - v) * t)); }
+function paintAlphabetBtn(btn, i, n) {
+  const t = n > 1 ? i / (n - 1) : 0;
+  const lt = mixRGB(AG_FROM, AG_TO, t), dk = mixRGB(AG_DARK_FROM, AG_DARK_TO, t);
+  const rgb = (c, k = 1) => `rgb(${c.map(v => Math.max(0, Math.min(255, Math.round(v * k)))).join(',')})`;
+  btn.style.setProperty('--ag-top', rgb(lt, 1.02));
+  btn.style.setProperty('--ag-bot', rgb(lt, 0.93));
+  btn.style.setProperty('--ag-edge', rgb(lt, 0.8));
+  btn.style.setProperty('--ag-dtop', rgb(dk, 1.15));
+  btn.style.setProperty('--ag-dbot', rgb(dk, 0.85));
 }
 
 function filterDictionaryByAlphabet(letter) {

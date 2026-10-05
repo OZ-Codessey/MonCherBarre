@@ -2628,3 +2628,57 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 .brand:hover { opacity: 0.85; }
 .brand:active { opacity: 0.7; }
 .brand:focus-visible { outline: 2px solid rgba(201, 162, 75, 0.7); outline-offset: 3px; }
+
+/* ============================================================================
+   배경 카드: 글래스모피즘 (반투명 + 흐림 + 하얀 테두리 + 부드러운 그림자)
+   뒤에 은은한 색 번짐이 있어야 유리 효과가 보이므로 페이지 배경에 연한 그라데이션을 깔아 줌
+   ============================================================================ */
+body {
+  background:
+    radial-gradient(900px 520px at 8% -8%, rgba(233, 178, 190, 0.38), transparent 62%),
+    radial-gradient(800px 480px at 96% 4%, rgba(226, 196, 140, 0.32), transparent 58%),
+    radial-gradient(900px 640px at 50% 112%, rgba(214, 166, 186, 0.28), transparent 62%),
+    #FAF7F5;
+  background-attachment: fixed;
+}
+.card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.4));
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 10px 30px rgba(150, 90, 105, 0.14), 0 2px 6px rgba(150, 90, 105, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+[data-theme="dark"] body {
+  background:
+    radial-gradient(900px 520px at 8% -8%, rgba(150, 70, 100, 0.32), transparent 62%),
+    radial-gradient(800px 480px at 96% 4%, rgba(150, 120, 60, 0.22), transparent 58%),
+    radial-gradient(900px 640px at 50% 112%, rgba(110, 60, 90, 0.28), transparent 62%),
+    #14120F;
+  background-attachment: fixed;
+}
+[data-theme="dark"] .card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* --- 입력 칸(날짜·시간·메모·검색): 크림 화이트 --- */
+.card input:not([type="checkbox"]):not([type="radio"]), .chat-form input {
+  background: linear-gradient(180deg, #FFFCF3 0%, #FBF5E4 100%);
+  border-color: rgba(201, 162, 75, 0.35);
+  color: #4B3F2A;
+}
+.card input:focus, .chat-form input:focus { background: #FFFDF6; }
+input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0 100px #FCF6E6 inset; }
+[data-theme="dark"] .card input:not([type="checkbox"]):not([type="radio"]), [data-theme="dark"] .chat-form input {
+  background: linear-gradient(180deg, #2f2328 0%, #261b20 100%);
+  border-color: rgba(224, 138, 165, 0.3);
+  color: #f1e3e7;
+}
+
+/* --- 알파벳 버튼: 옆으로(A→Z) 번지는 분홍→골드 그라데이션 면 --- */
+.alphabet-btn, .alphabet-btn[aria-pressed="false"] { background: linear-gradient(135deg, var(--ag-top, #FDF1F3), var(--ag-edge, #D6A5B0)); color: #8E6E78; }
+.alphabet-btn::before { background: linear-gradient(180deg, var(--ag-top, #FDEEF1), var(--ag-bot, #F2CCD5)); }
+.alphabet-btn.active, .alphabet-btn[aria-pressed="true"] { background: linear-gradient(135deg, #F9DDE3 0%, #D58798 50%, #A85A6E 100%); color: #fff; }
+.alphabet-btn.active::before, .alphabet-btn[aria-pressed="true"]::before { background: linear-gradient(180deg, #E6A2B1 0%, #D78598 55%, #C86C82 100%); }
+
