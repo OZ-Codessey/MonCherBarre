@@ -1924,6 +1924,18 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(positionChatBar
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => document.addEventListener(t, () => clearTimeout(timer)));
 })();
 
+// 제목(로고 + Mon Cher Barre)을 누르면 홈(채팅) 화면 맨 위로 돌아감
+function initBrandHome() {
+  const brand = document.getElementById('brandHome');
+  if (!brand) return;
+  const goHome = () => {
+    document.querySelector('.tab-btn[data-tab="chat"]')?.click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  brand.addEventListener('click', goHome);
+  brand.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goHome(); } });
+}
+
 // --- 초기화 ---
 document.addEventListener("DOMContentLoaded", () => {
   // 메모 검색: 글자를 입력하는 즉시(일부만 입력해도) 결과가 갱신됨
@@ -1936,6 +1948,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initWeather();
   initUiSound();
   initLeaveHandlers();
+  initBrandHome();
   loadPracticeDataWithCache().then(() => {
     loadDataList();
     loadStatistics();
