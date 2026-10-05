@@ -2723,3 +2723,51 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 }
 /* 세로 화면: 카드가 sticky가 아니므로 가상 판의 기준이 되도록 relative 지정 (가로는 sticky가 기준 역할) */
 @media (max-width: 899px) { .chat-card { position: relative; } }
+
+/* --- 구역 카드(Barre au sol / Barre / Au milieu): 아래 한글(매트·바·센터)을 가운데 정렬 --- */
+.area-lg .ap-text { align-items: center; text-align: center; }
+.area-lg small { text-align: center; }
+
+/* ============================================================================
+   가로 화면(iPad 등): 왼쪽(재생기)과 오른쪽(채팅)이 각자 따로 스크롤.
+   페이지 전체는 움직이지 않고, 입력창은 채팅 카드 맨 아래에 자리 잡음(잘림 방지)
+   ============================================================================ */
+@media (min-width: 900px) {
+  #chat-section.active .layout {
+    height: calc(100dvh - var(--chrome-h, 146px) - 40px);
+    padding-top: 0;
+    padding-bottom: 0;
+    box-sizing: border-box;
+    align-items: stretch;
+    overflow: hidden;
+  }
+  #chat-section.active .col { min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+  #chat-section.active .col-right { overflow: hidden; }
+  #chat-section.active .chat-card { height: 100%; min-height: 0; position: relative; top: auto; padding-bottom: 14px; }
+  #chat-section.active .chat-box { min-height: 0; overscroll-behavior: contain; }
+  #chat-section.active .chat-form {
+    position: relative; left: auto; right: auto; bottom: auto; transform: none;
+    width: 100%; margin: 10px 0 0; z-index: 2; flex: 0 0 auto;
+  }
+}
+
+/* --- 재생기 곡 목록: 줄 간격을 줄여 한 화면에 들어오게 --- */
+.music-item { min-height: 34px; padding: 5px 10px; font-size: 1rem; line-height: 1.25; }
+.music-list { max-height: none; }
+.music-list .area-sm { margin: 4px 0 2px; }
+.music-player .now-playing { margin-bottom: 4px; }
+
+/* --- 입력창 구분: 더 진한 유리판 + 테두리 + 그림자 --- */
+#chat-section.active .chat-form {
+  background: linear-gradient(180deg, rgba(255,251,246, 0.94), rgba(250,241,236, 0.9));
+  border: 1.5px solid rgba(156,98,108, 0.42);
+  box-shadow: 0 -8px 22px rgba(112,65,73, 0.16), 0 8px 24px rgba(112,65,73, 0.3), inset 0 1px 0 rgba(255,255,255, 0.9);
+  transition: opacity .35s ease, filter .35s ease;
+}
+[data-theme="dark"] #chat-section.active .chat-form {
+  background: linear-gradient(180deg, rgba(52,41,34, 0.95), rgba(36,28,23, 0.92));
+  border-color: rgba(219,168,174, 0.5);
+  box-shadow: 0 -8px 22px rgba(0,0,0, 0.35), 0 8px 24px rgba(0,0,0, 0.55), inset 0 1px 0 rgba(255,255,255, 0.08);
+}
+/* 답변을 읽느라 스크롤 중일 때: 입력창을 흐리게 뒤로 물림. 터치·입력하면 다시 앞으로 */
+#chat-section.active .chat-form.bar-dim { opacity: 0.32; filter: blur(2.5px); }

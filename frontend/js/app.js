@@ -1925,6 +1925,28 @@ function positionChatBar() {
     form.style.removeProperty('--bar-left'); form.style.removeProperty('--bar-width');
   }
 }
+// 가로 화면: 위쪽 메뉴 높이만큼 뺀 높이에 두 칸을 맞춤(각 칸이 따로 스크롤)
+function setChromeHeight() {
+  const t = document.querySelector('#chat-section .layout');
+  if (t) document.documentElement.style.setProperty('--chrome-h', `${Math.round(t.getBoundingClientRect().top + window.scrollY)}px`);
+}
+// 답변을 읽으며 스크롤하면 입력창을 흐리게, 터치·입력·맨 아래 도착 시 다시 선명하게
+function initChatBarDim() {
+  const form = document.getElementById('chatForm'), box = document.getElementById('chatBox');
+  if (!form || !box) return;
+  const undim = () => form.classList.remove('bar-dim');
+  const nearBottom = () => {
+    if (window.innerWidth >= 900) return box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+    return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 120;
+  };
+  const onScroll = () => { nearBottom() ? undim() : form.classList.add('bar-dim'); };
+  box.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
+  ['pointerdown', 'touchstart', 'focusin', 'mouseenter'].forEach(ev => form.addEventListener(ev, undim, { passive: true }));
+}
+window.addEventListener('resize', setChromeHeight);
+window.addEventListener('load', () => { setChromeHeight(); initChatBarDim(); });
+document.addEventListener('DOMContentLoaded', () => { setTimeout(setChromeHeight, 300); });
 window.addEventListener('resize', positionChatBar);
 window.addEventListener('load', positionChatBar);
 document.addEventListener('DOMContentLoaded', () => { setTimeout(positionChatBar, 300); });
