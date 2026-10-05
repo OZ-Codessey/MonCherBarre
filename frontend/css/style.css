@@ -2707,3 +2707,19 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 [data-theme="dark"] .alphabet-btn, [data-theme="dark"] .alphabet-btn[aria-pressed="false"] { background: linear-gradient(135deg, var(--ag-dtop, #553c40), rgba(213,141,153, 0.45)); color: #ebd9dc; text-shadow: none; }
 [data-theme="dark"] .alphabet-btn::before { background: linear-gradient(180deg, var(--ag-dtop, #463134), var(--ag-dbot, #3a2e26)); }
 [data-theme="dark"] .alphabet-btn.active, [data-theme="dark"] .alphabet-btn[aria-pressed="true"] { color: #f6ecd8; }
+
+/* --- 채팅 카드: 유리 효과는 카드 자체가 아니라 뒤쪽 가상 판(::before)에 입힘.
+       카드에 backdrop-filter를 직접 걸면 고정 입력창이 화면이 아닌 카드 기준으로 붙어 화면 밖으로 밀려남 --- */
+.chat-card, [data-theme="dark"] .chat-card { -webkit-backdrop-filter: none; backdrop-filter: none; isolation: isolate; }
+.chat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+/* 세로 화면: 카드가 sticky가 아니므로 가상 판의 기준이 되도록 relative 지정 (가로는 sticky가 기준 역할) */
+@media (max-width: 899px) { .chat-card { position: relative; } }
