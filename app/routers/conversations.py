@@ -7,8 +7,9 @@ router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 
 
 @router.get("", response_model=list[ConversationOut])
-def list_conversations():
-    return conversation_service.list_conversations()
+def list_conversations(days: int = 7, start: str | None = None, end: str | None = None):
+    # 기본: 최근 7일. start/end(YYYY-MM-DD)를 주면 그 기간만 조회 → 기간에 해당하는 방 개수만큼만 읽는다
+    return conversation_service.list_conversations(days=days, start=start, end=end)
 
 
 @router.post("", response_model=ConversationOut, status_code=201)

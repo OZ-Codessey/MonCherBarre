@@ -12,6 +12,7 @@ class ConversationOut(BaseModel):
     id: str
     title: str
     messages: list[Message] = []
+    updated_at: Optional[str] = None
 
 
 class ConversationCreate(BaseModel):

@@ -10,7 +10,10 @@ router = APIRouter(prefix="/api/data", tags=["data"])
 
 
 @router.get("", response_model=list[DataOut])  # GET /api/data
-def list_data():
+def list_data(start: str | None = None, end: str | None = None):
+    # start/end(YYYY-MM-DD)를 주면 그 기간의 기록만 읽는다. 없으면 전체(내보내기 등)
+    if start or end:
+        return data_service.list_data_range(start, end)
     return data_service.list_data()
 
 

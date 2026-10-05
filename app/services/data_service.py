@@ -14,10 +14,62 @@ def _doc_to_out(doc) -> dict:
     return {"id": doc.id, "date": d["date"], "value": d["value"], "memo": d.get("memo")}
 
 
-# GET /api/data — 날짜순으로 전부 조회
+# Firestore 무료 한도(하루 읽기 5만 건)를 아끼기 위한 서버 메모리 캐시.
+# 같은 조회(전체 또는 같은 기간)는 6시간 재사용하고, 기록을 추가·수정·삭제할 때만 즉시 비운다.
+# (기록은 이 서버를 통해서만 바뀌므로 오래 보관해도 어긋나지 않는다)
+_CACHE_TTL = 6 * 3600
+_cache: dict = {"at": 0.0, "rows": None}
+_range_cache: dict = {}
+_summary_cache: dict = {"v": None}
+
+
+def _invalidate_cache() -> None:
+    _cache["rows"] = None
+    _range_cache.clear()
+    _summary_cache["v"] = None
+    try:  # 저장된 요약 문서는 지워 두고, 다음 요약 요청 때 한 번 다시 계산한다
+        db.collection("meta").document("summary").delete()
+    except Exception:
+        pass
+
+
+# GET /api/data — 날짜순으로 전부 조회 (전체가 꼭 필요할 때만: 내보내기, 요약 재계산)
 def list_data() -> list[dict]:
+    import time
+
+    if _cache["rows"] is not None and time.time() - _cache["at"] < _CACHE_TTL:
+        return _cache["rows"]
     docs = db.collection(COLLECTION).order_by("date").stream()
-    return [_doc_to_out(d) for d in docs]
+    rows = [_doc_to_out(d) for d in docs]
+    _cache["rows"], _cache["at"] = rows, time.time()
+    return rows
+
+
+# GET /api/data?start=&end= — 그 기간(양끝 포함, YYYY-MM-DD)의 기록만 읽는다 (읽기 = 기간 일수만큼)
+def list_data_range(start: str | None, end: str | None) -> list[dict]:
+    import time
+
+    key = (start or "", end or "")
+    hit = _range_cache.get(key)
+    if hit and time.time() - hit[0] < _CACHE_TTL:
+        return hit[1]
+    q = db.collection(COLLECTION)
+    if start:
+        q = q.where("date", ">=", start)
+    if end:
+        q = q.where("date", "<=", end)
+    rows = [_doc_to_out(d) for d in q.order_by("date").stream()]
+    _range_cache[key] = (time.time(), rows)
+    return rows
+
+
+def recent_days(days: int = 14) -> list[dict]:
+    """오늘 포함 최근 N일의 기록 (챗봇 맞춤 답변용, 읽기 N건 이하)."""
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
+
+    today = datetime.now(ZoneInfo("Asia/Seoul")).date()
+    return list_data_range((today - timedelta(days=days - 1)).isoformat(), today.isoformat())
 
 
 # POST /api/data — 날짜를 문서 ID로 사용(삭제/수정 시 날짜로 직접 접근 가능)
@@ -27,6 +79,7 @@ def create_data(item: DataCreate) -> dict:
     payload = {"date": date_str, "value": item.value, "memo": item.memo}
     ref = db.collection(COLLECTION).document(date_str)        # 날짜를 문서 ID로 지정
     ref.set(payload)
+    _invalidate_cache()
     return {"id": date_str, **payload}
 
 
@@ -40,6 +93,7 @@ def update_data(item_id: str, item: DataUpdate) -> dict:
     if "date" in payload:
         payload["date"] = payload["date"].isoformat()
     ref.update(payload)
+    _invalidate_cache()
     return _doc_to_out(ref.get())
 
 
@@ -49,6 +103,7 @@ def delete_data(item_id: str) -> None:
     if not ref.get().exists:
         raise HTTPException(status_code=404, detail="data not found")
     ref.delete()
+    _invalidate_cache()
 
 
 # GET /api/data/statistics — 월별 평균 / 최다 연습 요일 / 연속 연습일 수
@@ -116,7 +171,7 @@ def get_statistics() -> dict:
 # GET /api/data/summary — 기간/개수/평균/최대/최소/트렌드 계산
 # 트렌드 계산 방식: 전체 기간을 앞/뒤 절반으로 나눠서, 뒤쪽 절반 평균이 앞쪽보다
 # 얼마나 늘었는지(%)를 본다. ±3% 안쪽이면 "유지"로 판단.
-def get_summary() -> dict:
+def _compute_summary() -> dict:
     docs = list_data()
     if not docs:
         raise HTTPException(status_code=404, detail="no data available")
@@ -149,3 +204,19 @@ def get_summary() -> dict:
         },
         "trend": trend,
     }
+
+
+# GET /api/data/summary — 요약은 Firestore 문서 1장(meta/summary)에 저장해 두고 읽기 1번으로 돌려준다.
+# 문서가 없을 때(처음이거나 기록이 바뀐 직후)만 전체를 한 번 읽어 다시 계산해서 저장한다.
+def get_summary() -> dict:
+    if _summary_cache["v"] is not None:
+        return _summary_cache["v"]
+    ref = db.collection("meta").document("summary")
+    snap = ref.get()
+    if snap.exists:
+        result = snap.to_dict()
+    else:
+        result = _compute_summary()
+        ref.set(result)
+    _summary_cache["v"] = result
+    return result
