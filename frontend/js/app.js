@@ -72,7 +72,17 @@ Promise.all([loadSummary(), splashMinDelay]).then(() => {
 // 챗봇 답변(마크다운 표 · 번호 목록 · 굵게)을 안전하게 HTML로 변환 (HTML은 모두 이스케이프)
 function renderChatMarkdown(text) {
   const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const inline = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  // [라벨](https://...) 링크는 작은 버튼으로: 유튜브 영상은 재생(▶), 그 밖의 주소(검색 등)는 지구본(🌐)
+  const linkBtn = (label, url) => {
+    const yt = /^https?:\/\/(www\.|m\.)?(youtube\.com\/watch|youtu\.be\/)/.test(url);
+    const ico = yt
+      ? '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg>'
+      : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>';
+    return `<a class="chat-link ${yt ? "yt" : "web"}" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="${label}" title="${yt ? "영상 보기" : "웹에서 찾기"}">${ico}</a>`;
+  };
+  const inline = (t) => esc(t)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => linkBtn(label, url))
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   const lines = text.split("\n");
   let html = "";
   let i = 0;

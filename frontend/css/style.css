@@ -2771,3 +2771,19 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 }
 /* 답변을 읽느라 스크롤 중일 때: 입력창을 흐리게 뒤로 물림. 터치·입력하면 다시 앞으로 */
 #chat-section.active .chat-form.bar-dim { opacity: 0.32; filter: blur(2.5px); }
+
+/* --- 채팅 답변 속 링크 버튼: 유튜브 ▶ / 웹 🌐 (작고 둥근 로즈 버튼) --- */
+.chat-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(180deg, #f6dfe3, #e7bcc4);
+  color: #8d5560; border: 1px solid rgba(156,98,108, 0.4);
+  box-shadow: 0 1px 3px rgba(112,65,73, 0.2);
+  vertical-align: middle; text-decoration: none;
+  transition: transform .15s ease, filter .15s ease;
+}
+.chat-link:hover { transform: translateY(-1px); filter: brightness(1.04); }
+.chat-link:active { transform: translateY(1px); }
+.chat-link.web { background: linear-gradient(180deg, #f3ead7, #e2d2ad); color: #7c6636; border-color: rgba(144,114,69, 0.4); }
+[data-theme="dark"] .chat-link { background: linear-gradient(180deg, #5a4046, #46313a); color: #f0d3d8; border-color: rgba(219,168,174, 0.45); }
+[data-theme="dark"] .chat-link.web { background: linear-gradient(180deg, #5a4c33, #473b27); color: #ecdcb8; border-color: rgba(200,170,110, 0.45); }
