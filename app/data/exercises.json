@@ -1,0 +1,126 @@
+{
+ "_note": "일반적인 운동 안내이며 의료 조언이 아닙니다. 통증이 심하거나 오래가면 전문가와 상담하세요. 영상 링크는 직접 고른 것입니다.",
+ "exercises": [
+  {
+   "id": 1,
+   "symptom_id": "ankle_pain",
+   "name": "발목 강화 운동",
+   "equipment": "매트, 탄력밴드(선택)",
+   "duration": "5~8분",
+   "how_to": "앉아서 발목으로 알파벳 쓰기 → 밴드를 걸고 발목 안쪽·바깥쪽으로 10~15회 × 2세트 → 한 발 서기 20~30초",
+   "caution": "통증 없는 범위에서만. 붓거나 찌릿하면 즉시 중단",
+   "video_url": "https://www.youtube.com/watch?v=B4iX_eCIH6A",
+   "search_url": "https://www.youtube.com/results?search_query=%EB%B0%9C%EB%AA%A9+%EA%B0%95%ED%99%94+%EC%9A%B4%EB%8F%99+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 2,
+   "symptom_id": "ankle_pain",
+   "name": "발목 유연성 운동",
+   "equipment": "매트, 수건",
+   "duration": "5분",
+   "how_to": "발목 원 그리기(양방향 각 10회) → 수건으로 발끝 당겨 종아리 늘리기 20~30초 → 포인·플렉스 15회",
+   "caution": "반동 없이 천천히. 아픈 쪽은 가동 범위를 줄여서",
+   "video_url": "https://www.youtube.com/watch?v=sBXRRm0TzqQ",
+   "search_url": "https://www.youtube.com/results?search_query=%EB%B0%9C%EB%AA%A9+%EC%9C%A0%EC%97%B0%EC%84%B1+%EC%9A%B4%EB%8F%99+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 3,
+   "symptom_id": "bunion_pain",
+   "name": "발가락 강화 밴드 운동",
+   "equipment": "미니 밴드(또는 굵은 고무줄), 의자",
+   "duration": "5~7분",
+   "how_to": "앉아서 엄지발가락에 밴드를 걸고 바깥으로 천천히 벌리기 10~15회 × 2세트",
+   "caution": "엄지 관절이 아프면 저항을 낮추기. 발 아치가 무너지지 않게 유지",
+   "video_url": "https://www.youtube.com/watch?v=qb8Dxm4-xBI",
+   "search_url": "https://www.youtube.com/results?search_query=%EB%B0%9C%EA%B0%80%EB%9D%BD+%EA%B0%95%ED%99%94+%EB%B0%B4%EB%93%9C+%EC%9A%B4%EB%8F%99+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 4,
+   "symptom_id": "bunion_pain",
+   "name": "발가락 간격 벌리기 운동",
+   "equipment": "매트, 토 스프레더(선택)",
+   "duration": "3~5분",
+   "how_to": "발가락을 하나씩 들었다 내리기 → 발가락을 최대한 펼쳐 5초 유지 × 10회",
+   "caution": "억지로 벌리지 말고 편안한 범위에서. 통증이 있으면 횟수를 줄이기",
+   "video_url": "https://www.youtube.com/watch?v=7mZZXSVo95w",
+   "search_url": "https://www.youtube.com/results?search_query=%EB%B0%9C%EA%B0%80%EB%9D%BD+%EA%B0%84%EA%B2%A9+%EB%B2%8C%EB%A6%AC%EA%B8%B0+%EC%9A%B4%EB%8F%99+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 5,
+   "symptom_id": "knee_pain",
+   "name": "무릎 강화 - 쿼드 운동",
+   "equipment": "매트, 의자",
+   "duration": "6~8분",
+   "how_to": "의자에 앉아 무릎 펴기 10~15회 → 벽에 기대 얕은 스쿼트 15초 × 5회",
+   "caution": "무릎이 발끝 방향을 향하게. 깊게 굽히지 않기",
+   "video_url": "https://www.youtube.com/watch?v=mKmEudcmPDc",
+   "search_url": "https://www.youtube.com/results?search_query=%EB%AC%B4%EB%A6%8E+%EA%B0%95%ED%99%94+-+%EC%BF%BC%EB%93%9C+%EC%9A%B4%EB%8F%99+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 6,
+   "symptom_id": "knee_pain",
+   "name": "무릎 안정화 필라테스",
+   "equipment": "매트",
+   "duration": "8~10분",
+   "how_to": "브릿지 → 클램셸 → 옆으로 누워 다리 들기, 각 10~12회",
+   "caution": "골반이 흔들리지 않게 코어를 쓰며 천천히",
+   "video_url": "https://www.youtube.com/watch?v=XDmA0xL8lqY",
+   "search_url": "https://www.youtube.com/results?search_query=%EB%AC%B4%EB%A6%8E+%EC%95%88%EC%A0%95%ED%99%94+%ED%95%84%EB%9D%BC%ED%85%8C%EC%8A%A4+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 7,
+   "symptom_id": "back_pain",
+   "name": "척추 교정 - 스파인 코렉터 운동",
+   "equipment": "매트(스파인 코렉터가 있으면 사용)",
+   "duration": "5~8분",
+   "how_to": "척추를 길게 늘이는 느낌으로 천천히 호흡하며 동작 5~8회",
+   "caution": "허리를 꺾지 않기. 통증이 있으면 가동 범위를 줄이기",
+   "video_url": "https://www.youtube.com/watch?v=Y5dZPIEU3ks",
+   "search_url": "https://www.youtube.com/results?search_query=%EC%B2%99%EC%B6%94+%EA%B5%90%EC%A0%95+-+%EC%8A%A4%ED%8C%8C%EC%9D%B8+%EC%BD%94%EB%A0%89%ED%84%B0+%EC%9A%B4%EB%8F%99+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 8,
+   "symptom_id": "back_pain",
+   "name": "척추기립근 강화 운동",
+   "equipment": "매트",
+   "duration": "5~8분",
+   "how_to": "엎드려 반대쪽 팔·다리 들기 8~10회 × 2세트",
+   "caution": "허리를 과하게 젖히지 않기. 시선은 바닥, 목을 길게",
+   "video_url": "https://www.youtube.com/watch?v=7VDHzvGGNqk",
+   "search_url": "https://www.youtube.com/results?search_query=%EC%B2%99%EC%B6%94%EA%B8%B0%EB%A6%BD%EA%B7%BC+%EA%B0%95%ED%99%94+%EC%9A%B4%EB%8F%99+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 9,
+   "symptom_id": "back_pain",
+   "name": "허리 강화 - 코어 안정화",
+   "equipment": "매트",
+   "duration": "8~10분",
+   "how_to": "데드버그 10회 → 플랭크 20~30초 × 2회",
+   "caution": "허리가 바닥에서 뜨거나 처지지 않게 복부에 힘 유지",
+   "video_url": "https://www.youtube.com/watch?v=CG9sGNRBQQw",
+   "search_url": "https://www.youtube.com/results?search_query=%ED%97%88%EB%A6%AC+%EA%B0%95%ED%99%94+-+%EC%BD%94%EC%96%B4+%EC%95%88%EC%A0%95%ED%99%94+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 10,
+   "symptom_id": "back_pain",
+   "name": "장요근 스트레칭 및 강화",
+   "equipment": "매트, 쿠션",
+   "duration": "5분",
+   "how_to": "런지 자세로 엉덩이를 앞으로 밀어 장요근 늘리기 30초 × 2회(양쪽) → 브릿지 10회",
+   "caution": "허리를 꺾지 않고 골반을 말아 올리는 느낌으로",
+   "video_url": "https://www.youtube.com/watch?v=RoWGTOq2xBg",
+   "search_url": "https://www.youtube.com/results?search_query=%EC%9E%A5%EC%9A%94%EA%B7%BC+%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%B9%AD+%EB%B0%8F+%EA%B0%95%ED%99%94+%EC%9A%B4%EB%8F%99"
+  },
+  {
+   "id": 11,
+   "symptom_id": "back_pain",
+   "name": "목과 어깨 강화",
+   "equipment": "의자, 탄력밴드(선택)",
+   "duration": "5분",
+   "how_to": "어깨 으쓱했다 내리기 10회 → 밴드로 어깨뒤 모으기 10회 × 2세트",
+   "caution": "목에 힘이 들어가지 않게. 어깨는 귀에서 멀리",
+   "video_url": "https://www.youtube.com/watch?v=A5sM3oGxnMA",
+   "search_url": "https://www.youtube.com/results?search_query=%EB%AA%A9%EA%B3%BC+%EC%96%B4%EA%B9%A8+%EA%B0%95%ED%99%94+%EC%9A%B4%EB%8F%99"
+  }
+ ]
+}
