@@ -51,6 +51,18 @@ TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "get_routine",
+            "description": "사용자가 직접 만든 N분(10/20/30/60) 루틴의 구성을 조회한다: 구간(매트·바·센터), 곡 순서와 시간, 곡마다 맞춰 둔 동작(한글 설명·영상 링크 포함). 루틴 질문에는 반드시 먼저 이 도구로 구성을 확인한다.",
+            "parameters": {
+                "type": "object",
+                "properties": {"minutes": {"type": "integer", "enum": [10, 20, 30, 60], "description": "루틴 길이(분)"}},
+                "required": ["minutes"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "get_move_links",
             "description": "추천하려는 발레 동작 이름들(프랑스어 또는 한글)의 영상 링크를 찾는다. 사전에 영상이 있으면 그 링크, 없으면 유튜브 검색 링크를 돌려준다. 루틴·동작을 추천할 때 영상 열에 넣을 링크를 얻는 데 사용.",
             "parameters": {
@@ -81,5 +93,6 @@ DISPATCH = {
     "get_moves_by_symptom": lambda **kw: rag_tools.get_moves_by_symptom(kw["symptom_id"]),
     "search_term_by_meaning": lambda **kw: rag_tools.search_term_by_meaning(kw["text"]),
     "get_move_links": lambda **kw: rag_tools.get_move_links(kw["terms"][:10]),
+    "get_routine": lambda **kw: rag_tools.get_routine(kw["minutes"]),
     # save_note는 비서 메모를 바꾸므로 chat_service에서 직접 처리한다 (여기에는 없음)
 }

@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 MOVES_PATH = ROOT / "frontend" / "data" / "moves_96.json"
 SYMPTOM_PATH = ROOT / "frontend" / "data" / "symptom_map.json"
 EXERCISE_PATH = ROOT / "app" / "data" / "exercises.json"
+ROUTINE_PATH = ROOT / "frontend" / "data" / "routines.json"
+MUSIC_PATH = ROOT / "frontend" / "data" / "music_mapping.json"
 
 _moves: list[dict] | None = None
 
@@ -77,3 +79,63 @@ def symptom_info(symptom_id: str) -> dict:
         "avoid_terms": avoid,
         "strengthening_exercises": [e for e in ex if e["symptom_id"] == symptom_id],
     }
+
+
+def routine_info(minutes: int) -> dict:
+    """사용자가 만든 루틴 구성표(routines.json)와 곡별 동작표(music_mapping.json)를 그대로 돌려준다.
+
+    구간은 매트/바/센터이고 각 구간은 곡 순서(music_sequence)로 이루어진다. 곡마다 맞춰 둔 동작(movements)은
+    용어 번호이므로 사전(moves_96.json)에서 한글 설명·영상 링크를 붙여 준다. 파일에서 읽으므로 Firestore 읽기 0건.
+    """
+    routines = json.loads(ROUTINE_PATH.read_text(encoding="utf-8"))
+    music = json.loads(MUSIC_PATH.read_text(encoding="utf-8"))
+    key = str(minutes)
+    if key not in routines:
+        return {"error": "루틴은 10, 20, 30, 60분만 있어요.", "available_minutes": sorted(int(k) for k in routines)}
+    r = routines[key]
+    by_no = {str(m["no"]): m for m in load_moves()}
+    n_sec = len(r["sections"])
+    sections = []
+    for sec in r["sections"]:
+        tracks = []
+        for i, mk in enumerate(sec["music_sequence"], 1):
+            mu = music[mk]
+            moves = []
+            for no in mu.get("movements", []):
+                m = by_no.get(str(no))
+                if m:
+                    c = move_card(m)
+                    c["description_ko"] = c["description_ko"][:90]
+                    moves.append(c)
+            tracks.append({
+                "order": i,
+                "music_ko": mu["name"],
+                "music_fr": mu.get("name_fr", ""),
+                "minutes": round(mu["duration_sec"] / 60, 1),
+                "meter": mu.get("meter", ""),
+                "matched_moves": moves,
+            })
+        sections.append({
+            "area": sec["area"],                                   # 매트 / 바 / 센터
+            "nominal_minutes": r["duration_min"] // n_sec,         # 구간별 시간(10분=매트 10 / 20분=바 10+센터 10 / 60분=각 20)
+            "actual_minutes": round(sec["total_duration"] / 60, 1),
+            "tracks": tracks,
+        })
+    extras = _mat_extras(int(key))
+    for sec in sections:
+        if sec["area"] == "매트" and extras:
+            sec["extra_exercises"] = extras["items"]
+            sec["extra_focus"] = extras["focus"]
+    return {"routine_minutes": r["duration_min"], "areas": [x["area"] for x in sections], "sections": sections}
+
+
+def _mat_extras(minutes: int) -> dict | None:
+    """매트 구간에 더하는 운동. 10분 루틴 = 이완·스트레칭 위주, 60분 루틴의 매트 20분 = 복근·장요근·척추기립근 강화."""
+    data = json.loads(EXERCISE_PATH.read_text(encoding="utf-8"))
+    if minutes == 10:
+        return {"focus": "이완·스트레칭 위주(햄스트링 늘리기, 몸을 따뜻하고 부드럽게 풀기)", "items": data["warmup_stretches"]}
+    if minutes == 60:
+        want = {"허리 강화 - 코어 안정화": "복근", "장요근 스트레칭 및 강화": "장요근", "척추기립근 강화 운동": "척추기립근"}
+        items = [{**e, "target": want[e["name"]]} for e in data["exercises"] if e["name"] in want]
+        return {"focus": "복근·장요근·척추기립근 강화 운동을 매트 20분에 포함", "items": items}
+    return None

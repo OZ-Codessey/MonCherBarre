@@ -122,5 +122,61 @@
    "video_url": "https://www.youtube.com/watch?v=A5sM3oGxnMA",
    "search_url": "https://www.youtube.com/results?search_query=%EB%AA%A9%EA%B3%BC+%EC%96%B4%EA%B9%A8+%EA%B0%95%ED%99%94+%EC%9A%B4%EB%8F%99"
   }
+ ],
+ "warmup_stretches": [
+  {
+   "name": "햄스트링 스트레칭",
+   "equipment": "매트, 수건(선택)",
+   "duration": "2분",
+   "how_to": "누워서 한쪽 다리를 위로 올려 수건이나 손으로 가볍게 당겨 30초 유지, 양쪽 번갈아 2회",
+   "caution": "무릎은 살짝 굽혀도 됨. 반동 없이 호흡하며 천천히",
+   "video_url": null,
+   "search_url": "https://www.youtube.com/results?search_query=%ED%96%84%EC%8A%A4%ED%8A%B8%EB%A7%81+%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%B9%AD+%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%B9%AD"
+  },
+  {
+   "name": "목·어깨 풀기",
+   "equipment": "매트",
+   "duration": "1분",
+   "how_to": "목을 좌우로 천천히 기울이기 5회씩 → 어깨 앞뒤로 크게 돌리기 8회",
+   "caution": "목에 힘을 빼고 통증 없는 범위에서",
+   "video_url": null,
+   "search_url": "https://www.youtube.com/results?search_query=%EB%AA%A9%C2%B7%EC%96%B4%EA%B9%A8+%ED%92%80%EA%B8%B0+%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%B9%AD"
+  },
+  {
+   "name": "고양이-소 자세 (척추 이완)",
+   "equipment": "매트",
+   "duration": "1~2분",
+   "how_to": "네발 기기 자세에서 숨을 내쉬며 등을 둥글게, 마시며 길게 펴기 8회",
+   "caution": "허리가 불편하면 범위를 작게",
+   "video_url": null,
+   "search_url": "https://www.youtube.com/results?search_query=%EA%B3%A0%EC%96%91%EC%9D%B4-%EC%86%8C+%EC%9E%90%EC%84%B8+%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%B9%AD"
+  },
+  {
+   "name": "나비 자세 (고관절·내전근 이완)",
+   "equipment": "매트",
+   "duration": "1분",
+   "how_to": "앉아서 발바닥을 맞대고 등을 펴 상체를 천천히 숙여 30초 유지",
+   "caution": "무릎을 억지로 누르지 않기",
+   "video_url": null,
+   "search_url": "https://www.youtube.com/results?search_query=%EB%82%98%EB%B9%84+%EC%9E%90%EC%84%B8+%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%B9%AD"
+  },
+  {
+   "name": "종아리·발목 풀기",
+   "equipment": "매트",
+   "duration": "1분",
+   "how_to": "발목 원 그리기 양방향 10회 → 발끝 당기기·뻗기 10회",
+   "caution": "발등이나 발목에 통증이 있으면 범위를 줄이기",
+   "video_url": null,
+   "search_url": "https://www.youtube.com/results?search_query=%EC%A2%85%EC%95%84%EB%A6%AC%C2%B7%EB%B0%9C%EB%AA%A9+%ED%92%80%EA%B8%B0+%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%B9%AD"
+  },
+  {
+   "name": "어린이 자세 (등·허리 이완)",
+   "equipment": "매트",
+   "duration": "1분",
+   "how_to": "무릎을 꿇고 앉아 팔을 앞으로 뻗어 이마를 매트에 대고 호흡 5회",
+   "caution": "무릎이 불편하면 쿠션을 받치기",
+   "video_url": null,
+   "search_url": "https://www.youtube.com/results?search_query=%EC%96%B4%EB%A6%B0%EC%9D%B4+%EC%9E%90%EC%84%B8+%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%B9%AD"
+  }
  ]
 }

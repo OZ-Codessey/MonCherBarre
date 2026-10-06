@@ -125,3 +125,8 @@ def search_term_by_meaning(text: str, top_k: int = 6) -> list[dict]:
 def get_move_links(terms: list[str]) -> list[dict]:
     """추천한 동작 이름(프랑스어 또는 한글)들의 영상 링크를 찾는다. 사전에 영상이 있으면 그 링크, 없으면 유튜브 검색 링크."""
     return moves_local.move_links(terms)
+
+
+def get_routine(minutes: int) -> dict:
+    """사용자가 만든 N분 루틴의 구간(매트/바/센터), 곡 순서, 곡에 맞춰 둔 동작을 돌려준다. 파일에서 읽는다(읽기 0건)."""
+    return moves_local.routine_info(int(minutes))
