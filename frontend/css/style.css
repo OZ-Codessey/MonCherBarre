@@ -2820,3 +2820,115 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
 .stats-presets { display: inline-flex; gap: 6px; }
 .stats-controls #statsToggleBtn.hidden { display: none !important; }
 #convAllBtn.hidden { display: none !important; }
+
+/* --- 작은 화면: 통계 카드가 화면 폭에 맞춰 줄어들고, 좁으면 한 줄에 하나씩 --- */
+.stats-card { overflow: hidden; }
+.charts-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
+.chart-container { min-width: 0; overflow: hidden; }
+.chart-container canvas { max-width: 100%; }
+.stats-badges { flex-wrap: wrap; justify-content: center; }
+
+/* --- 초기화 버튼: 작은 동그란 로즈 버튼 --- */
+.btn-reset {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0; border-radius: 50%; flex: 0 0 auto;
+  background: linear-gradient(180deg, #f7e3e7, #e3b9c1); color: #8d5560;
+  border: 1px solid rgba(156,98,108, 0.45); box-shadow: 0 1px 3px rgba(112,65,73, 0.22);
+  cursor: pointer; transition: transform .15s ease, filter .15s ease;
+}
+.btn-reset:hover { filter: brightness(1.05); transform: rotate(-30deg); }
+.btn-reset:active { transform: rotate(-90deg) scale(0.94); }
+[data-theme="dark"] .btn-reset { background: linear-gradient(180deg, #5a4046, #46313a); color: #f0d3d8; border-color: rgba(219,168,174, 0.45); }
+
+/* --- 대화 탭: 접기 --- */
+.conversations-list-card.conv-folded #conversationsListContainer,
+.conversations-list-card.conv-folded #convShowMoreRow { display: none !important; }
+
+/* --- 기간 입력 칸(대화·통계): 끝을 둥글게, 조금 작게 --- */
+.card .conv-toolbar input[type="date"], .card .stats-controls input[type="date"] {
+  border-radius: 999px; min-height: 28px; height: 28px; width: 132px; padding: 0 12px;
+  font-size: 0.78rem; letter-spacing: 0.02em;
+}
+.card .conv-toolbar input[type="search"] { border-radius: 999px; min-height: 28px; height: 28px; padding: 0 14px; font-size: 0.8rem; }
+.conv-toolbar, .stats-controls { align-items: center; }
+
+/* --- 날짜 칸 안의 지우기(↺): 달력 아이콘 오른쪽, 같은 크기, 연한 색 --- */
+.date-field { position: relative; display: inline-flex; align-items: center; }
+.card .date-field input[type="date"] { padding-right: 32px; }
+.date-clear {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  width: 15px; height: 15px; padding: 0; border: 0; background: none; line-height: 0;
+  color: rgba(162,92,108, 0.42); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: color .15s ease, transform .2s ease;
+}
+.date-clear:hover { color: rgba(162,92,108, 0.9); transform: translateY(-50%) rotate(-40deg); }
+[data-theme="dark"] .date-clear { color: rgba(219,168,174, 0.5); }
+[data-theme="dark"] .date-clear:hover { color: rgba(219,168,174, 0.95); }
+.card .conv-toolbar input[type="date"], .card .stats-controls input[type="date"] { width: 150px; }
+#convRecentBtn { min-height: 24px; padding: 2px 12px; font-size: 0.74rem; }
+.date-field > input[type="date"] { flex: 1 1 auto; min-width: 0; }
+.data-top-grid .date-field { display: flex; width: 100%; }
+.data-top-grid .date-field { flex: 1 1 0; min-width: 0; }
+.date-field > input[type="date"] { padding-right: 34px !important; }
+.card .conv-toolbar input[type="date"], .card .stats-controls input[type="date"] { width: 168px; }
+/* 다른 버튼 스타일(플레이트 모양·최소 크기)이 지우기 버튼에 번지지 않게 고정 */
+.date-clear, .date-clear:hover, .date-clear:active {
+  min-width: 0 !important; min-height: 0 !important; width: 15px !important; height: 15px !important;
+  padding: 0 !important; margin: 0 !important; background: none !important; border: 0 !important;
+  box-shadow: none !important; clip-path: none !important; border-radius: 0 !important; filter: none !important; font-size: 0 !important;
+}
+.date-clear::before, .date-clear::after { display: none !important; }
+.conv-break { flex-basis: 100%; height: 0; }
+
+/* ============================================================================
+   지우기(↺) 버튼: 달력 아이콘 바로 옆의 작은 동근 음영 버튼 (칸의 가로 길이는 늘리지 않음)
+   ============================================================================ */
+.card .date-field > input[type="date"] { padding-right: 30px !important; }
+.card .conv-toolbar input[type="date"], .card .stats-controls input[type="date"] { width: 156px; }
+.date-clear, .date-clear:hover, .date-clear:active {
+  position: absolute !important; right: 8px !important; top: 50% !important; transform: translateY(-50%) !important;
+  width: 17px !important; height: 17px !important; min-width: 0 !important; min-height: 0 !important;
+  padding: 0 !important; margin: 0 !important; border-radius: 50% !important; clip-path: none !important;
+  background: linear-gradient(180deg, #fbeaee, #ebc2ca) !important;
+  border: 1px solid rgba(156,98,108, 0.32) !important;
+  box-shadow: 0 1px 2px rgba(112,65,73, 0.28), inset 0 1px 0 rgba(255,255,255, 0.85) !important;
+  color: #a25c6c !important; opacity: 0.8; display: inline-flex !important; align-items: center; justify-content: center;
+  line-height: 0 !important; font-size: 0 !important;
+}
+.date-clear svg { width: 10px; height: 10px; }
+.date-clear:hover { opacity: 1; filter: brightness(1.05) !important; }
+[data-theme="dark"] .date-clear, [data-theme="dark"] .date-clear:hover {
+  background: linear-gradient(180deg, #5a4046, #46313a) !important; color: #f0d3d8 !important;
+  border-color: rgba(219,168,174, 0.45) !important; box-shadow: 0 1px 2px rgba(0,0,0, 0.5), inset 0 1px 0 rgba(255,255,255, 0.1) !important;
+}
+
+/* ============================================================================
+   마우스를 올리면 반응: 모든 버튼이 살짝 커지고 밝아지며 앞으로 나오는 느낌 (scale은 transform과 따로 적용되어 위치 보정과 충돌하지 않음)
+   ============================================================================ */
+button, .chat-link, .tab-btn, .vp-btn {
+  transition: scale .16s ease, filter .16s ease, box-shadow .16s ease, background .16s ease, color .16s ease, opacity .16s ease;
+}
+button:not(:disabled):hover, a.chat-link:hover, a.btn-play:hover, .yt-btn:hover {
+  scale: 1.06; filter: brightness(1.08) saturate(1.06); position: relative; z-index: 2;
+}
+button:not(:disabled):active, a.chat-link:active { scale: 0.97; }
+.date-clear:hover { scale: 1.14; }
+/* 날짜 입력의 달력 아이콘: 올리면 커지고 선명해짐 */
+input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.75; transition: transform .16s ease, opacity .16s ease; border-radius: 4px; }
+input[type="date"]::-webkit-calendar-picker-indicator:hover { transform: scale(1.22); opacity: 1; background-color: rgba(201,143,138, 0.18); }
+
+/* --- 지우기(↺) 다듬기: 달력 아이콘과 같은 크기·높이, 바로 옆에 붙임, 연한 회색 선 --- */
+.card .date-field > input[type="date"] { padding-right: 28px !important; }
+.card .conv-toolbar input[type="date"], .card .stats-controls input[type="date"] { width: 146px; }
+.date-clear, .date-clear:hover, .date-clear:active {
+  right: 8px !important; width: 15px !important; height: 15px !important;
+  background: none !important; border: 0 !important; box-shadow: none !important; border-radius: 4px !important;
+  color: #9d9a98 !important; opacity: 0.85;
+}
+.date-clear svg { width: 15px; height: 15px; }
+.date-clear:hover { color: #6f6a68 !important; opacity: 1; }
+[data-theme="dark"] .date-clear, [data-theme="dark"] .date-clear:hover { background: none !important; box-shadow: none !important; border: 0 !important; color: #b7b0a8 !important; }
+[data-theme="dark"] .date-clear:hover { color: #e6ddd0 !important; }
+.card .date-field > input[type="date"] { padding-right: 27px !important; }
+.card .conv-toolbar input[type="date"], .card .stats-controls input[type="date"] { width: 158px; }
+.date-clear, .date-clear:hover, .date-clear:active { right: 7px !important; }

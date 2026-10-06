@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&family=Noto+Serif+KR:wght@500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-<link rel="stylesheet" href="css/style.css?v=78" />
+<link rel="stylesheet" href="css/style.css?v=84" />
 </head>
 <body>
   <div id="splash" class="splash">
@@ -252,6 +252,7 @@
             <label>시작 <input type="date" id="convStart"></label>
             <label>끝 <input type="date" id="convEnd"></label>
             <button type="button" class="btn-secondary btn-small" id="convRangeBtn">기간 조회</button>
+            <span class="conv-break" aria-hidden="true"></span>
             <button type="button" class="btn-secondary btn-small" id="convRecentBtn">최근 7일</button>
             <input type="search" id="convKeyword" placeholder="대화 검색 (예: 무지외반)" autocomplete="off">
             <button type="button" class="btn-secondary btn-small hidden" id="convAllBtn">전체 기간에서 검색</button>
@@ -334,6 +335,6 @@
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="js/app.js?v=78"></script>
+  <script src="js/app.js?v=84"></script>
 </body>
 </html>

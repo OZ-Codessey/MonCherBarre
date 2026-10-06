@@ -703,17 +703,59 @@ async function loadConversationsList(start, end, forceRecent) {
   }
 }
 
+let convFolded = false, convOpenKey = "recent";
+function setConvFolded(f) {
+  convFolded = f;
+  document.querySelector(".conversations-list-card")?.classList.toggle("conv-folded", f);
+  const note = document.getElementById("convRangeNote");
+  if (f && note) note.textContent = "접혀 있어요. 같은 버튼을 다시 누르면 펼쳐져요.";
+  if (!f) renderConversations();
+}
+
+// 날짜 입력 칸마다 달력 아이콘 오른쪽(칸 안)에 작은 지우기(↺) 버튼을 붙인다. 누르면 그 칸만 비운다.
+function initDateClearButtons() {
+  const ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4v4.5H8"/></svg>';
+  ["dataDate", "convStart", "convEnd", "statsStart", "statsEnd", "searchDate", "searchStart", "searchEnd"].forEach((id) => {
+    const input = document.getElementById(id);
+    if (!input || input.parentElement.classList.contains("date-field")) return;
+    const wrap = document.createElement("span");
+    wrap.className = "date-field";
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "date-clear"; btn.title = "날짜 지우기"; btn.setAttribute("aria-label", "날짜 지우기");
+    btn.innerHTML = ICON;
+    btn.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      input.value = "";
+      input.dispatchEvent(new Event("change", { bubbles: true }));   // 데이터 탭은 change로 목록을 다시 맞춘다
+    });
+    wrap.appendChild(btn);
+  });
+}
+
 function initConversationToolbar() {
   const s = document.getElementById("convStart"), e = document.getElementById("convEnd");
+  const kwInput = document.getElementById("convKeyword");
+  const showRecent = () => { convOpenKey = "recent"; setConvFolded(false); return loadConversationsList(); };
+  // 같은 버튼을 다시 누르면 접히고(사전의 알파벳 버튼처럼), 다시 누르면 펼쳐진다. 이미 읽어 둔 것은 다시 읽지 않는다.
   document.getElementById("convRangeBtn")?.addEventListener("click", () => {
     if (!s.value && !e.value) { s.focus(); return; }
+    const key = `${s.value}~${e.value}`;
+    if (convOpenKey === key && !convFolded) { setConvFolded(true); return; }
+    convOpenKey = key; setConvFolded(false);
     loadConversationsList(s.value, e.value);
   });
   document.getElementById("convRecentBtn")?.addEventListener("click", () => {
-    s.value = ""; e.value = "";
-    document.getElementById("convKeyword").value = ""; convKeyword = "";
-    loadConversationsList(undefined, undefined, true);
+    if (convOpenKey === "recent" && !convFolded) { setConvFolded(true); return; }
+    s.value = ""; e.value = ""; kwInput.value = ""; convKeyword = "";
+    showRecent();
   });
+  // 초기화: 날짜·검색어를 비우고 기본(최근 7일) 목록으로 되돌린다 (이미 읽어 둔 것이라 읽기 없음)
+  // 두 날짜 칸이 모두 비면(칸 안의 ↺로 지웠을 때) 기본(최근 7일) 목록으로 되돌린다 (이미 읽어 둔 것이라 읽기 없음)
+  [s, e].forEach((el) => el.addEventListener("change", () => {
+    if (!s.value && !e.value && convOpenKey !== "recent") { kwInput.value = ""; convKeyword = ""; showRecent(); }
+  }));
   // 검색: 지금까지 읽어 둔 모든 대화에서 찾는다. 아직 안 읽은 옛 대화까지 찾으려면 '전체에서 검색'(안 읽은 방만 읽음)
   document.getElementById("convAllBtn")?.addEventListener("click", async () => {
     const btn = document.getElementById("convAllBtn");
@@ -723,9 +765,9 @@ function initConversationToolbar() {
     renderConversations();
   });
   let t = null;
-  document.getElementById("convKeyword")?.addEventListener("input", (ev) => {
+  kwInput?.addEventListener("input", (ev) => {
     clearTimeout(t);
-    t = setTimeout(() => { convKeyword = ev.target.value.trim(); convShowAll = false; renderConversations(); }, 120);
+    t = setTimeout(() => { convKeyword = ev.target.value.trim(); convShowAll = false; setConvFolded(false); renderConversations(); }, 120);
   });
 }
 
@@ -1242,6 +1284,13 @@ function initStatsButton() {
   };
   run.addEventListener("click", analyze);
   toggle.addEventListener("click", () => setOpen(!statsShown));   // 접었다 펼쳐도 다시 읽거나 계산하지 않음
+  // 초기화: 기간·결과를 비우고 접는다 (읽기 없음)
+  [s, e].forEach((el) => el.addEventListener("change", () => {
+    if (!s.value && !e.value) {          // 두 칸이 모두 비면 결과를 접고 처음 상태로 (읽기 없음)
+      statsRange = null; setOpen(false); toggle.classList.add("hidden");
+      document.getElementById("statsNote").textContent = "";
+    }
+  }));
   document.querySelectorAll(".stats-preset").forEach((b) => b.addEventListener("click", () => {
     const days = b.dataset.days;
     e.value = todayStr();
@@ -2041,6 +2090,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initLeaveHandlers();
   initBrandHome();
   // 데이터 목록·대화 목록은 해당 탭을 처음 열 때만 불러오고, 통계는 '통계 보기' 버튼을 눌렀을 때만 계산한다
+  initDateClearButtons();
   initStatsButton();
   initConversationToolbar();
   loadDictionary();
