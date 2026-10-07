@@ -62,14 +62,15 @@ def _build_system_prompt(mem: dict | None = None) -> str:
         "(11) 루틴 요청('N분 루틴 시작해요', '20분 루틴 알려줘' 등)에는 반드시 먼저 get_routine 도구로 사용자가 만든 루틴 구성을 확인하고, "
         "**요청된 그 N분 루틴 하나에 대해서만** 답하세요. 10·20·30·60분을 나열하거나 다른 길이 루틴을 설명하지 마세요. "
         "도구 결과에 없는 구간(예: 10분 루틴의 바·센터)은 절대 설명하지 마세요. "
-        "1단계: 도구 결과의 구간별로 곡 순서, 시간, 곡에 맞춰 둔 동작을 표로 보여주세요(| 구간 | 곡 | 시간 | 동작(한글) | 영상 |). "
-        "매트 구간에 extra_exercises가 있으면 그 운동을 표(| 운동 | 준비물 | 시간 | 방법 | 주의 | 영상 |)로 함께 보여주세요: "
-        "10분 루틴의 매트는 이완·스트레칭 위주(햄스트링 늘리기 등 몸을 따뜻하고 부드럽게 푸는 것)로, "
-        "60분 루틴의 매트 20분에는 복근·장요근·척추기립근 강화 운동을 포함하세요(표의 운동 이름 옆에 target인 복근/장요근/척추기립근을 함께 적으세요). "
+        "1단계: 도구 결과의 구간·곡을 **재생기와 똑같이** 순서대로 표로 보여주세요(| 구간 | 곡 | 시간 | 동작(한글) | 영상 |). "
+        "시간 열에는 곡의 duration(mm:ss)을 그대로 쓰세요. 반올림·재계산·임의 변경 금지(재생기에 표시되는 시간과 같아야 합니다). "
+        "동작 열에는 그 곡의 matched_moves(재생기에 명시된 동작) 안에서만, 오늘 상태(통증·피로·최근 연습량)에 맞는 것을 곡마다 2~4개 골라 쓰세요. "
+        "matched_moves에 없는 동작을 지어내거나 추가하지 마세요. "
         "2단계: 그 아래에 사용자 상황(메모의 통증·최근 연습량·이전 추천·자주 찾은 용어)에 맞춘 주의점, 강도 조절, 대체 동작, 오늘 집중할 동작을 덧붙이세요. "
         "곡과 동작 구성 자체는 바꾸지 말고, 강조점과 주의점을 오늘 상황에 맞게 다르게 제안하세요. "
-        "(12) 추천하는 동작에는 영상 열을 두고, get_move_links 도구로 얻은 링크를 [영상](url) 형태로 넣으세요. "
-        "도구에 영상이 없는 동작은 도구가 준 search_url을 [검색](url) 형태로 넣으세요. 주소를 지어내지 마세요. "
+        "(12) 추천하는 동작에는 영상 열을 두세요. 도구 결과(get_routine의 matched_moves, get_move_links 등)의 video_url이 있으면 [영상](url), "
+        "그리고 모든 동작에 search_url을 [검색](url) 형태로 함께 넣으세요(영상이 있어도 검색 링크는 항상 넣기). 주소를 지어내지 마세요. "
+        "get_routine 결과의 matched_moves에는 video_url·search_url이 이미 들어 있으니 루틴 답변에서는 get_move_links를 다시 부르지 마세요. "
         "(13) 사용자가 자신의 상태(아픈 부위, 컨디션, 일정 변경, 기억해 달라는 말)를 말하면 save_note 도구로 한 줄 저장하세요. "
         "(14) 동작 이름이 기억나지 않는다는 질문에는 search_term_by_meaning을 사용하세요."
         # TODO(나중에): "오늘"이라고 물으면 오늘 날짜 기록으로 바로 답하도록 지시문 보강 필요.
@@ -79,13 +80,15 @@ def _build_system_prompt(mem: dict | None = None) -> str:
 
 def _call_with_tools(messages: list[dict], mem: dict | None = None) -> str:
     # Function Calling 루프: GPT가 도구 호출을 요청하면 실제 함수를 실행해 결과를 돌려주고,
-    # 다시 물어본다. 최대 4번까지만 반복(무한루프 방지).
+    # 다시 물어본다. 최대 6번까지만 반복(무한루프 방지).
     mem = mem if mem is not None else memory_service.load()
-    for _ in range(4):
+    for turn in range(6):
+        last = turn == 5   # 마지막 차례에는 도구를 못 부르게 해서, 반드시 최종 답을 쓰게 한다
         completion = _client.chat.completions.create(
             model=OPENAI_MODEL,
             messages=messages,
             tools=tool_schemas.TOOLS,
+            tool_choice="none" if last else "auto",
             max_completion_tokens=3000,
             reasoning_effort="low",
         )

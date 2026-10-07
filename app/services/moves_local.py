@@ -4,6 +4,7 @@
 백엔드는 같은 저장소 안의 그 파일을 디스크에서 직접 읽으므로 Firestore 읽기가 0건이다.
 """
 import json
+import random
 from pathlib import Path
 from urllib.parse import quote_plus
 
@@ -81,6 +82,10 @@ def symptom_info(symptom_id: str) -> dict:
     }
 
 
+def _mmss(sec: int) -> str:
+    return f"{int(sec) // 60}:{int(sec) % 60:02d}"
+
+
 def routine_info(minutes: int) -> dict:
     """사용자가 만든 루틴 구성표(routines.json)와 곡별 동작표(music_mapping.json)를 그대로 돌려준다.
 
@@ -107,18 +112,19 @@ def routine_info(minutes: int) -> dict:
                     c = move_card(m)
                     c["description_ko"] = c["description_ko"][:90]
                     moves.append(c)
+            random.shuffle(moves)   # 호출할 때마다 순서를 섞어, 그날 상태에 맞는 동작을 매번 다르게 고를 수 있게 함
             tracks.append({
                 "order": i,
                 "music_ko": mu["name"],
                 "music_fr": mu.get("name_fr", ""),
-                "minutes": round(mu["duration_sec"] / 60, 1),
+                "duration": _mmss(mu["duration_sec"]),     # 재생기에 표시되는 곡 길이와 같은 값(mm:ss). 그대로 써야 함
                 "meter": mu.get("meter", ""),
-                "matched_moves": moves,
+                "matched_moves": moves,                    # 재생기에 명시된 이 곡의 동작들 (이 안에서만 고른다)
             })
         sections.append({
             "area": sec["area"],                                   # 매트 / 바 / 센터
-            "nominal_minutes": r["duration_min"] // n_sec,         # 구간별 시간(10분=매트 10 / 20분=바 10+센터 10 / 60분=각 20)
-            "actual_minutes": round(sec["total_duration"] / 60, 1),
+            "label_minutes": r["duration_min"] // n_sec,           # 구간 이름용(10분=매트 10 / 20분=바 10+센터 10 / 60분=각 20). 시간 열에는 쓰지 않는다
+            "total_duration": _mmss(sec["total_duration"]),        # 구간 전체 재생 시간(mm:ss)
             "tracks": tracks,
         })
     extras = _mat_extras(int(key))
