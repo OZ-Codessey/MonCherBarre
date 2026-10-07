@@ -142,7 +142,12 @@ function showTab(tab) {
   if (!TAB_NAMES.includes(tab)) tab = "chat";
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
   document.querySelectorAll(".tab-section").forEach((s) => s.classList.toggle("active", s.id === `${tab}-section`));
+  const changed = tab !== currentTab;
   currentTab = tab;
+  if (changed) {   // 선택한 탭이 한 번 반짝임
+    const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+    if (btn) { btn.classList.remove("tab-flash"); void btn.offsetWidth; btn.classList.add("tab-flash"); setTimeout(() => btn.classList.remove("tab-flash"), 950); }
+  }
   lazyLoadTab(tab);
 }
 
@@ -1574,6 +1579,8 @@ function startRoutine(minutes) {
   document.querySelectorAll('.routine-chip').forEach(c => c.classList.toggle('active', c.dataset.min === String(minutes)));
   document.getElementById('musicPlayer').classList.remove('hidden');
   playCurrent();
+  // 사진이 위에 있으므로, 시작하면 재생기가 보이도록 왼쪽 칸을 그 위치로 부드럽게 내린다
+  setTimeout(() => document.querySelector('.routine-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
 }
 
 // --- 현재 위치의 곡 재생 ---
@@ -2103,9 +2110,13 @@ document.addEventListener('DOMContentLoaded', () => { setTimeout(positionChatBar
 function initBrandHome() {
   const brand = document.getElementById('brandHome');
   if (!brand) return;
+  // 첫 화면으로: 채팅 탭의 왼쪽(대표 사진이 있는 맨 위)과 채팅 맨 위로 돌아간다. 대표 사진은 접속할 때 정해진 그대로이고, 재생 중인 음악은 계속 나온다.
   const goHome = () => {
     document.querySelector('.tab-btn[data-tab="chat"]')?.click();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.querySelector('#chat-section .col-left')?.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('chatBox')?.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('conversationDetail')?.classList.add('hidden');
   };
   brand.addEventListener('click', goHome);
   brand.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goHome(); } });

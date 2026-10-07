@@ -2734,6 +2734,7 @@ input:-webkit-autofill, input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0
    ============================================================================ */
 @media (min-width: 900px) {
   #chat-section.active .layout {
+    height: calc(100vh - var(--chrome-h, 146px) - 40px);   /* dvh를 모르는 브라우저를 위한 대체값 */
     height: calc(100dvh - var(--chrome-h, 146px) - 40px);
     padding-top: 0;
     padding-bottom: 0;
@@ -2976,11 +2977,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { transform: scale(1
 .fluid-row .date-clear svg { width: 100%; height: 100%; }
 .card .fluid-row input[type="search"] { height: clamp(22px, 5.5vw, 28px); min-height: 0; font-size: clamp(0.58rem, 2.3vw, 0.8rem); }
 
-/* --- 메뉴 줄: 화면 폭이 줄면 글자·간격이 함께 줄어 한 줄에 모두 들어오게 --- */
-.tabs { justify-content: center; overflow: hidden; gap: 0; padding-left: clamp(2px, 1vw, 28px); padding-right: clamp(2px, 1vw, 28px); }
-.tab-btn { flex: 0 1 auto; min-width: 0; white-space: nowrap; padding-left: clamp(5px, 1.6vw, 16px); padding-right: clamp(5px, 1.6vw, 16px);
-  font-size: clamp(0.58rem, 2.9vw, 1rem); letter-spacing: clamp(0px, 0.35vw, 0.08em); }
-.tab-btn::after { right: clamp(-4px, -0.4vw, -2px); }
+
 /* 데이터 탭 위쪽 두 카드: 좁아지면 위아래로 쌓이고 화면 밖으로 나가지 않음 */
 .data-top-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
 .data-top-grid > * { min-width: 0; }
@@ -3020,3 +3017,78 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { transform: scale(1
 }
 
 .stats-controls .fluid-row:last-child > button { flex: 0 0 auto; }
+
+
+/* ============================================================================
+   메뉴 줄(채팅·데이터·대화·사전): 예전의 단정한 글자 크기·자간을 유지하면서 좁은 화면에서는 함께 줄어듦
+   ============================================================================ */
+.tabs { --tp: clamp(4px, 3.4vw, 40px); justify-content: center; overflow: hidden; gap: 0; padding-left: clamp(2px, 1vw, 28px); padding-right: clamp(2px, 1vw, 28px); }
+.tab-btn {
+  flex: 0 1 auto; min-width: 0; white-space: nowrap;
+  padding: 0 var(--tp); font-size: clamp(0.54rem, 2.3vw, 0.82rem); letter-spacing: clamp(0.02em, 0.45vw, 0.16em);
+}
+.tab-btn::before { left: var(--tp); right: var(--tp); }
+.tab-btn::after { right: -3px; }
+.tab-btn:hover, .tab-btn:not(:disabled):hover { scale: 1; filter: none; }   /* 메뉴는 호버 때 커지지 않고 색만 변함 */
+
+/* 탭을 고르면 글자와 밑줄 표시가 한 번 반짝임 */
+.tab-btn.active::before { box-shadow: 0 0 6px rgba(214,170,100, 0.55); }
+.tab-btn.tab-flash { animation: tab-shine 0.9s ease-out; }
+.tab-btn.tab-flash::before { animation: tab-underline-shine 0.9s ease-out; }
+@keyframes tab-shine {
+  0%   { text-shadow: 0 0 0 rgba(214,170,100, 0); }
+  35%  { text-shadow: 0 0 9px rgba(224,180,110, 0.95), 0 0 2px rgba(255,236,190, 0.9); }
+  100% { text-shadow: 0 0 0 rgba(214,170,100, 0); }
+}
+@keyframes tab-underline-shine {
+  0%   { box-shadow: 0 0 0 rgba(214,170,100, 0); filter: brightness(1); }
+  35%  { box-shadow: 0 0 12px 2px rgba(228,184,112, 0.95); filter: brightness(1.35); }
+  100% { box-shadow: 0 0 6px rgba(214,170,100, 0.55); filter: brightness(1); }
+}
+
+/* ============================================================================
+   좌우 칸·채팅 스크롤바: macOS에서 숨겨지지 않도록 가는 스크롤바를 항상 보이게
+   ============================================================================ */
+#chat-section .col, .chat-box { scrollbar-width: auto; }
+#chat-section .col::-webkit-scrollbar, .chat-box::-webkit-scrollbar { width: 8px; }
+#chat-section .col::-webkit-scrollbar-track, .chat-box::-webkit-scrollbar-track { background: rgba(162,92,108, 0.08); border-radius: 8px; }
+#chat-section .col::-webkit-scrollbar-thumb, .chat-box::-webkit-scrollbar-thumb { background: rgba(162,92,108, 0.38); border-radius: 8px; }
+#chat-section .col::-webkit-scrollbar-thumb:hover, .chat-box::-webkit-scrollbar-thumb:hover { background: rgba(162,92,108, 0.6); }
+[data-theme="dark"] #chat-section .col::-webkit-scrollbar-thumb, [data-theme="dark"] .chat-box::-webkit-scrollbar-thumb { background: rgba(219,168,174, 0.4); }
+
+/* ============================================================================
+   좌우 높이 맞춤: 루틴을 시작해도 대표 사진이 찌그러져 사라지지 않게(flex 수축 방지) → 왼쪽 맨 위가 오른쪽 카드와 같은 선에서 시작
+   ============================================================================ */
+#chat-section .col-left > * { flex-shrink: 0; }
+
+/* ============================================================================
+   채팅 카드 아래 여백 줄이기: 글이 보이는 영역을 넓히고, 입력창은 화면 바닥 가까이
+   ============================================================================ */
+@media (min-width: 900px) {
+  body:has(#chat-section.active) .container { padding-bottom: 10px; }
+  #chat-section.active .layout { height: calc(100vh - var(--chrome-h, 146px) - 10px); height: calc(100dvh - var(--chrome-h, 146px) - 10px); }
+  #chat-section.active .chat-card { padding-bottom: 8px; }
+  #chat-section.active .chat-form { margin-top: 6px; padding: 6px 8px; border-radius: 14px; gap: 8px; }
+}
+#chat-section.active .chat-form input { min-height: 0; height: 34px; padding-top: 0; padding-bottom: 0; font-size: 0.82rem; }
+#chat-section.active .chat-form button[type=submit] { min-height: 0; height: 34px; padding-top: 0; padding-bottom: 0; font-size: 0.78rem; }
+@media (max-width: 899px) {
+  #chat-section.active { padding-bottom: 64px; }
+  #chat-section.active .chat-form { bottom: max(6px, env(safe-area-inset-bottom)); padding: 6px 8px; }
+}
+
+/* ============================================================================
+   채팅 표: 글자가 테두리에 붙지 않게 여백, 머리글은 가운데
+   ============================================================================ */
+.chat-table th, .chat-table td { padding: 8px 12px; }
+.chat-table th { text-align: center; }
+.chat-table td:first-child, .chat-table td:nth-child(3) { text-align: center; }
+
+/* 가로 화면: 입력창을 카드 맨 아래에 겹쳐 두어(absolute), 읽는 중 숨겨지면 그 자리까지 글이 보이게 함 */
+@media (min-width: 900px) {
+  #chat-section.active .chat-card { position: relative; }
+  #chat-section.active .chat-form { position: absolute; left: 8px; right: 8px; bottom: 8px; width: auto; margin: 0; }
+  #chat-section.active .chat-box { padding-bottom: 54px; }
+  #chat-section.active .chat-card { padding-bottom: 0; }
+}
+.chat-table { min-width: 400px; }
