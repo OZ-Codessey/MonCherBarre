@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&family=Noto+Serif+KR:wght@500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-<link rel="stylesheet" href="css/style.css?v=84" />
+<link rel="stylesheet" href="css/style.css?v=92" />
 </head>
 <body>
   <div id="splash" class="splash">
@@ -199,16 +199,18 @@
           <h3 class="card-label">연습 통계</h3>
           <!-- 기간을 정하고 '분석'을 눌렀을 때만 그 기간의 기록을 읽어 그래프를 그립니다 -->
           <div class="stats-controls">
-            <label>시작 <input type="date" id="statsStart"></label>
-            <label>끝 <input type="date" id="statsEnd"></label>
-            <span class="stats-presets">
+            <div class="fluid-row">
+              <label>시작 <input type="date" id="statsStart"></label>
+              <label>끝 <input type="date" id="statsEnd"></label>
+            </div>
+            <div class="fluid-row">
               <button type="button" class="btn-small stats-preset" data-days="30">30일</button>
               <button type="button" class="btn-small stats-preset" data-days="90">90일</button>
               <button type="button" class="btn-small stats-preset" data-days="365">1년</button>
               <button type="button" class="btn-small stats-preset" data-days="all">전체</button>
-            </span>
-            <button type="button" id="statsRunBtn" class="btn-secondary btn-small">분석</button>
-            <button type="button" id="statsToggleBtn" class="btn-secondary btn-small hidden">접기</button>
+              <button type="button" id="statsRunBtn" class="btn-secondary btn-small">분석</button>
+              <button type="button" id="statsToggleBtn" class="btn-secondary btn-small hidden">접기</button>
+            </div>
           </div>
           <div id="statsBody" class="hidden">
           <div class="stats-badges">
@@ -249,12 +251,15 @@
         <div class="card conversations-list-card">
           <!-- 기간 조회: 기본은 최근 7일. 기간을 정해 조회하면 그 기간의 대화방 수만큼만 읽습니다 -->
           <div class="conv-toolbar">
-            <label>시작 <input type="date" id="convStart"></label>
-            <label>끝 <input type="date" id="convEnd"></label>
-            <button type="button" class="btn-secondary btn-small" id="convRangeBtn">기간 조회</button>
-            <span class="conv-break" aria-hidden="true"></span>
-            <button type="button" class="btn-secondary btn-small" id="convRecentBtn">최근 7일</button>
-            <input type="search" id="convKeyword" placeholder="대화 검색 (예: 무지외반)" autocomplete="off">
+            <div class="fluid-row">
+              <label>시작 <input type="date" id="convStart"></label>
+              <label>끝 <input type="date" id="convEnd"></label>
+              <button type="button" class="btn-secondary btn-small" id="convRangeBtn">기간 조회</button>
+            </div>
+            <div class="fluid-row">
+              <button type="button" class="btn-secondary btn-small" id="convRecentBtn">최근 7일</button>
+              <input type="search" id="convKeyword" placeholder="대화 검색 (예: 무지외반)" autocomplete="off">
+            </div>
             <button type="button" class="btn-secondary btn-small hidden" id="convAllBtn">전체 기간에서 검색</button>
           </div>
           <p id="convRangeNote" class="conv-range-note"></p>
@@ -335,6 +340,6 @@
   <!-- config.js를 먼저 로드해야 app.js가 배포 백엔드 주소를 읽는다 -->
   <script src="config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-  <script src="js/app.js?v=84"></script>
+  <script src="js/app.js?v=92"></script>
 </body>
 </html>

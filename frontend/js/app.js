@@ -133,14 +133,36 @@ themeToggle.addEventListener("click", () => {
 });
 
 // --- 탭 전환 ---
+// 탭을 바꿀 때 주소 뒤에 #data 처럼 기록해서(History API), 브라우저의 뒤로 가기·앞으로 가기로 탭 사이를 오갈 수 있고
+// 새로고침해도 보던 탭이 유지된다. 한 페이지 안에서 구역(섹션)만 바꾸므로 재생 중인 음악은 끊기지 않는다.
+const TAB_NAMES = [...document.querySelectorAll(".tab-btn")].map((b) => b.dataset.tab);
+let currentTab = null;
+
+function showTab(tab) {
+  if (!TAB_NAMES.includes(tab)) tab = "chat";
+  document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+  document.querySelectorAll(".tab-section").forEach((s) => s.classList.toggle("active", s.id === `${tab}-section`));
+  currentTab = tab;
+  lazyLoadTab(tab);
+}
+
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".tab-section").forEach((s) => s.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById(`${btn.dataset.tab}-section`).classList.add("active");
-    lazyLoadTab(btn.dataset.tab);
+    const tab = btn.dataset.tab;
+    if (tab !== currentTab) {
+      try { history.pushState({ tab }, "", `#${tab}`); } catch (e) { /* 무시 */ }
+    }
+    showTab(tab);
   });
+});
+window.addEventListener("popstate", (e) => {
+  showTab((e.state && e.state.tab) || location.hash.slice(1) || "chat");
+});
+// 처음 열 때: 주소의 #탭이름이 있으면 그 탭으로, 없으면 채팅. 이 항목은 새 기록을 쌓지 않고 현재 기록만 맞춘다.
+document.addEventListener("DOMContentLoaded", () => {
+  const first = TAB_NAMES.includes(location.hash.slice(1)) ? location.hash.slice(1) : "chat";
+  try { history.replaceState({ tab: first }, "", `#${first}`); } catch (e) { /* 무시 */ }
+  showTab(first);
 });
 
 // 탭을 처음 열 때 한 번만 데이터를 불러옴 (페이지를 열자마자 모든 걸 읽지 않도록)
@@ -1137,7 +1159,7 @@ async function loadFavorites(force) {
         </div>
         <div class="favorite-card-footer">
           <a href="${fav.video_url}" target="_blank" class="btn-play">🎬 재생</a>
-          <button class="btn-remove" onclick="removeFavorite('${fav.id}')">삭제</button>
+          <button class="btn-remove" data-id="${String(fav.id).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}">삭제</button>
         </div>
       </div>
     `).join("");
@@ -1148,11 +1170,17 @@ async function loadFavorites(force) {
 }
 
 // 즐겨찾기 제거
+// 삭제 버튼: id에 작은따옴표(예: air, en l')가 들어 있어도 동작하도록 인라인 onclick 대신 data-id와 이벤트 위임을 쓴다
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest(".btn-remove");
+  if (b && b.dataset.id !== undefined) removeFavorite(b.dataset.id);
+});
+
 async function removeFavorite(id) {
   if (!confirm("정말 삭제하시겠습니까?")) return;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/moves/favorites/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/moves/favorites/${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
 
@@ -1435,6 +1463,8 @@ function setPlayingUI(playing) {
   btn.setAttribute('aria-label', playing ? 'Pause' : 'Jouer');
 }
 
+let currentTrackSeconds = 0;   // 재생기에 표시하는 곡 길이: 음악 매핑표의 값(채팅 답변의 시간과 같은 값)
+
 function initAudioEvents() {
   const audio = document.getElementById('audioPlayer');
   audio.addEventListener('timeupdate', () => {
@@ -1443,7 +1473,7 @@ function initAudioEvents() {
     document.getElementById('progressFill').style.width = d ? `${(audio.currentTime / d) * 100}%` : '0%';
   });
   audio.addEventListener('loadedmetadata', () => {
-    document.getElementById('timeTotal').textContent = fmtTime(audio.duration);
+    document.getElementById('timeTotal').textContent = fmtTime(currentTrackSeconds || audio.duration);
   });
   audio.addEventListener('play', () => { setPlayingUI(true); keepScreenOn(true); });
   audio.addEventListener('pause', () => { setPlayingUI(false); keepScreenOn(false); });
@@ -1555,6 +1585,8 @@ async function playCurrent() {
   if (!musicInfo) return;
 
   document.getElementById('nowPlayingArea').innerHTML = areaPlate(section.area, 'lg');
+  currentTrackSeconds = musicInfo.duration_sec || 0;
+  document.getElementById('timeTotal').textContent = fmtTime(currentTrackSeconds);
   document.getElementById('nowPlayingMusic').textContent = musicInfo.name_fr;
   document.getElementById('nowPlayingMovements').textContent = musicInfo.movements
     .map(no => movesData.find(m => m.no === no)?.term)
@@ -1839,7 +1871,10 @@ async function loadWeather() {
     const popTxt = (pop !== null && (pop >= 20 || icon === "rain" || icon === "snow")) ? `<span class="wc-pop">${icon === "snow" ? "눈" : "비"} ${pop}%</span>` : "";
     chip.innerHTML = `${W_ICONS[icon]}<span class="wc-city">Seoul</span><span class="wc-temp">${Math.round(w.temperature)}°C</span><span class="wc-label">${label}</span>${popTxt}`;
     chip.dataset.wx = icon;
-    chip.title = `Seoul · ${w.temperature}°C · wind ${w.windspeed} km/h` + (pop !== null ? ` · precipitation ${pop}%` : "") + (j.daily && j.daily.precipitation_sum ? ` · ${j.daily.precipitation_sum[0]} mm today` : "");
+    // 툴팁은 다른 화면 요소 뒤로 가려지지 않는 사이트 공통 툴팁(data-tip)을 쓴다
+    chip.removeAttribute("title");
+    chip.dataset.tipPos = "bottom";
+    chip.dataset.tip = `서울 ${w.temperature}°C · 바람 ${w.windspeed}km/h` + (pop !== null ? ` · 강수확률 ${pop}%` : "") + (j.daily && j.daily.precipitation_sum ? ` · 오늘 ${j.daily.precipitation_sum[0]}mm` : "");
   } catch (err) {
     console.error("날씨 조회 실패:", err);
     chip.innerHTML = `<span class="wc-city">Seoul</span><span class="wc-temp">—</span>`;

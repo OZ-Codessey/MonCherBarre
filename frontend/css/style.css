@@ -2932,3 +2932,91 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { transform: scale(1
 .card .date-field > input[type="date"] { padding-right: 27px !important; }
 .card .conv-toolbar input[type="date"], .card .stats-controls input[type="date"] { width: 158px; }
 .date-clear, .date-clear:hover, .date-clear:active { right: 7px !important; }
+
+/* ============================================================================
+   툴팁은 항상 맨 앞: 위쪽 줄(소리·날씨 등)이 메뉴·카드보다 위에 오고, 툴팁을 가진 카드는 올려 둠
+   ============================================================================ */
+.topbar { position: relative; z-index: 80; }
+[data-tip]::after, [data-tip]::before { z-index: 9999; }
+[data-tip]:hover, [data-tip]:focus-visible, [data-tip].tip-show { z-index: 90; }
+.card:has([data-tip]:hover), .card:has([data-tip].tip-show), .routine-card:has([data-tip]:hover) { position: relative; z-index: 60; }
+
+/* ============================================================================
+   채팅 표: 좁아져도 글자가 한 글자씩 세로로 쪼개지지 않게 하고, 영상 칸의 링크 버튼은 한 줄로 나란히
+   ============================================================================ */
+.chat-table-wrap { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+.chat-table { min-width: 460px; width: 100%; }
+.chat-table th, .chat-table td { word-break: keep-all; overflow-wrap: break-word; vertical-align: middle; }
+.chat-table td:last-child, .chat-table th:last-child { white-space: nowrap; min-width: 84px; text-align: center; }
+.chat-table td .chat-link { margin: 1px 2px; }
+
+/* ============================================================================
+   유동 레이아웃: 화면 폭이 줄면 날짜 칸·글자·버튼이 함께 줄어들고, 기간 조회 같은 버튼은 절대 아랫줄로 밀려나지 않음
+   ============================================================================ */
+.conv-toolbar, .stats-controls { display: flex; flex-direction: column; align-items: stretch; gap: clamp(6px, 1.8vw, 10px); padding: 4px 2px 8px; }
+.conv-toolbar .conv-break { display: none; }
+.fluid-row { display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: clamp(3px, 1.4vw, 10px); width: 100%; min-width: 0; }
+.fluid-row > label { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: clamp(2px, 0.8vw, 6px); font-size: clamp(0.58rem, 2.3vw, 0.78rem); white-space: nowrap; }
+.fluid-row > label .date-field { flex: 1 1 0; min-width: 0; width: 100%; }
+.fluid-row > button { flex: 0 0 auto; min-width: 0 !important; white-space: nowrap; padding-left: clamp(6px, 2vw, 14px) !important; padding-right: clamp(6px, 2vw, 14px) !important; font-size: clamp(0.58rem, 2.3vw, 0.78rem) !important; }
+.stats-controls .fluid-row:last-child > button { flex: 1 1 auto; }
+.fluid-row > input[type="search"] { flex: 1 1 0; min-width: 0; width: auto; }
+#convAllBtn { align-self: flex-start; }
+
+/* 날짜 칸: 폭이 줄면 글자와 달력·지우기 아이콘도 함께 줄어든다 */
+.card .fluid-row input[type="date"] {
+  width: 100% !important; min-width: 0; height: clamp(22px, 5.5vw, 28px); min-height: 0;
+  font-size: clamp(0.56rem, 2.2vw, 0.78rem); padding-left: clamp(6px, 2vw, 12px) !important;
+  padding-right: calc(2 * clamp(10px, 3.2vw, 15px) + 8px) !important; letter-spacing: 0;
+}
+.fluid-row input[type="date"]::-webkit-calendar-picker-indicator { width: clamp(10px, 3.2vw, 15px); height: clamp(10px, 3.2vw, 15px); padding: 0; margin: 0; }
+.fluid-row .date-clear, .fluid-row .date-clear:hover, .fluid-row .date-clear:active {
+  width: clamp(10px, 3.2vw, 15px) !important; height: clamp(10px, 3.2vw, 15px) !important; right: clamp(4px, 1.4vw, 7px) !important;
+}
+.fluid-row .date-clear svg { width: 100%; height: 100%; }
+.card .fluid-row input[type="search"] { height: clamp(22px, 5.5vw, 28px); min-height: 0; font-size: clamp(0.58rem, 2.3vw, 0.8rem); }
+
+/* --- 메뉴 줄: 화면 폭이 줄면 글자·간격이 함께 줄어 한 줄에 모두 들어오게 --- */
+.tabs { justify-content: center; overflow: hidden; gap: 0; padding-left: clamp(2px, 1vw, 28px); padding-right: clamp(2px, 1vw, 28px); }
+.tab-btn { flex: 0 1 auto; min-width: 0; white-space: nowrap; padding-left: clamp(5px, 1.6vw, 16px); padding-right: clamp(5px, 1.6vw, 16px);
+  font-size: clamp(0.58rem, 2.9vw, 1rem); letter-spacing: clamp(0px, 0.35vw, 0.08em); }
+.tab-btn::after { right: clamp(-4px, -0.4vw, -2px); }
+/* 데이터 탭 위쪽 두 카드: 좁아지면 위아래로 쌓이고 화면 밖으로 나가지 않음 */
+.data-top-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.data-top-grid > * { min-width: 0; }
+/* 아주 좁은 화면(≈360px 이하): 라벨·여백·글자를 더 줄여 한 줄에 모두 들어오게 */
+@media (max-width: 380px) {
+  .fluid-row { gap: 3px; }
+  .fluid-row > label { gap: 1px; font-size: 0.52rem; }
+  .card .fluid-row input[type="date"] { font-size: 0.5rem; padding-left: 4px !important; padding-right: 22px !important; }
+  .fluid-row input[type="date"]::-webkit-calendar-picker-indicator { width: 9px; height: 9px; }
+  .fluid-row .date-clear, .fluid-row .date-clear:hover { width: 9px !important; height: 9px !important; right: 3px !important; }
+  .fluid-row > button { padding-left: 5px !important; padding-right: 5px !important; font-size: 0.52rem !important; }
+  .conversations-list-card, .stats-card { padding-left: 10px; padding-right: 10px; }
+}
+
+/* ============================================================================
+   단정하고 우아하게: 버튼을 날씬하게 (옆 입력 칸과 높이를 맞추고, 글자·여백·모서리 깎임을 줄임)
+   ============================================================================ */
+.fluid-row > button, .conv-toolbar button:not(.date-clear), .stats-controls button:not(.date-clear),
+#data-section .btn-primary, #data-section .btn-secondary, #data-section .btn-small,
+#conversations-section .btn-secondary, #conversations-section .btn-small,
+#dictionary-section .dictionary-detail .btn-secondary, .show-more-row .btn-small {
+  --cut: 5px;
+  height: clamp(22px, 5.5vw, 28px) !important;
+  min-height: 0 !important;
+  padding-top: 0 !important; padding-bottom: 0 !important;
+  line-height: 1 !important;
+  display: inline-flex; align-items: center; justify-content: center;
+  letter-spacing: 0.06em;
+}
+.fluid-row > button, .conv-toolbar button:not(.date-clear), .stats-controls button:not(.date-clear) { font-size: clamp(0.56rem, 2.1vw, 0.74rem) !important; font-weight: 500; padding-left: clamp(8px, 2.2vw, 16px) !important; padding-right: clamp(8px, 2.2vw, 16px) !important; }
+#data-section .btn-primary, #data-section .btn-secondary, #data-section .btn-small,
+#conversations-section .btn-secondary, #conversations-section .btn-small { font-size: clamp(0.62rem, 2.2vw, 0.76rem) !important; font-weight: 500; padding-left: clamp(10px, 2.4vw, 18px) !important; padding-right: clamp(10px, 2.4vw, 18px) !important; }
+/* 목록의 수정·삭제·불러오기 버튼은 더 작게 */
+.data-item-actions .btn-small, .conversation-item-actions .btn-small { height: 24px !important; font-size: 0.7rem !important; padding-left: 12px !important; padding-right: 12px !important; }
+@media (max-width: 380px) {
+  .fluid-row > button, .conv-toolbar button:not(.date-clear), .stats-controls button:not(.date-clear) { font-size: 0.52rem !important; padding-left: 6px !important; padding-right: 6px !important; }
+}
+
+.stats-controls .fluid-row:last-child > button { flex: 0 0 auto; }
