@@ -1,0 +1,55 @@
+{
+  "_note": "루틴 구간(매트=마루 바, 바, 센터)별 동작 규칙. 매트는 발레 동작이 아니라 몸을 풀고 코어를 쓰는 바닥 운동(floor_pool)만 쓴다: 곡마다 pool에서 2개씩 순서대로 배정(곡 순서 i → pool[2i], pool[2i+1], 끝에서 처음으로 순환). 바는 allowed_terms 안의 동작만, 센터는 제한 없음. 화면(재생기)과 채팅(get_routine)이 같은 파일을 쓴다.",
+  "매트": {
+    "floor_pool": [
+      "햄스트링 스트레칭",
+      "허리 강화 - 코어 안정화",
+      "장요근 스트레칭 및 강화",
+      "척추 교정 - 스파인 코렉터 운동",
+      "발가락 강화 밴드 운동",
+      "발목 강화 운동",
+      "척추기립근 강화 운동"
+    ],
+    "labels": {
+      "허리 강화 - 코어 안정화": "복근(코어)",
+      "장요근 스트레칭 및 강화": "장요근",
+      "척추 교정 - 스파인 코렉터 운동": "스파인 코렉터",
+      "발가락 강화 밴드 운동": "밴드",
+      "발목 강화 운동": "밴드(발목)",
+      "척추기립근 강화 운동": "척추기립근"
+    }
+  },
+  "바": {
+    "allowed_terms": [
+      "demi-plié",
+      "plié",
+      "rond de jambe à terre",
+      "rond de jambe en l'air",
+      "relevé",
+      "battement",
+      "battement dégagé",
+      "battement tendu",
+      "battement fondu développé",
+      "développé, temps",
+      "fondu, fondue",
+      "port de bras",
+      "retiré",
+      "battement frappé",
+      "battement sur le cou-de-pied, petit",
+      "battement, grand",
+      "battement en cloche, grand",
+      "arabesque",
+      "attitude"
+    ],
+    "fallback": {
+      "waltz_general": [
+        "port de bras",
+        "relevé"
+      ]
+    }
+  },
+  "센터": {
+    "allowed_terms": "all",
+    "fallback": {}
+  }
+}

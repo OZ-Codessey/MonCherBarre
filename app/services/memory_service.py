@@ -18,7 +18,8 @@ from app.core.firebase import db
 
 _KST = ZoneInfo("Asia/Seoul")
 _ref = lambda: db.collection("assistant").document("memory")  # noqa: E731
-_cache: dict = {"v": None}
+_cache: dict = {"v": None, "at": 0.0}
+CACHE_TTL = 300   # 초. 서버 메모리에 5분만 보관해, 문서를 직접 고쳤을 때 오래된 사본이 덮어쓰는 일을 막는다
 
 MAX_NOTES = 20
 MAX_RECENT = 12
@@ -42,7 +43,9 @@ def _default() -> dict:
 
 def load() -> dict:
     """기억 문서를 돌려준다. 서버 메모리에 있으면 읽기 0건, 없으면 1건."""
-    if _cache["v"] is None:
+    import time
+
+    if _cache["v"] is None or time.time() - _cache["at"] > CACHE_TTL:
         snap = _ref().get()
         mem = _default()
         if snap.exists:
@@ -51,14 +54,16 @@ def load() -> dict:
                 mem[k] = v
             for k in ("terms", "videos", "routines", "symptoms"):
                 mem["counts"].setdefault(k, {})
-        _cache["v"] = mem
+        _cache["v"], _cache["at"] = mem, time.time()
     return _cache["v"]
 
 
 def save(mem: dict) -> None:
     mem["updated_at"] = datetime.now(_KST).strftime("%Y-%m-%dT%H:%M:%S")
     _ref().set(mem)
-    _cache["v"] = mem
+    import time
+
+    _cache["v"], _cache["at"] = mem, time.time()
 
 
 def _bump(counter: dict, key: str, n: int = 1) -> None:

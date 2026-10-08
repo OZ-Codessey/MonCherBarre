@@ -14,6 +14,7 @@ SYMPTOM_PATH = ROOT / "frontend" / "data" / "symptom_map.json"
 EXERCISE_PATH = ROOT / "app" / "data" / "exercises.json"
 ROUTINE_PATH = ROOT / "frontend" / "data" / "routines.json"
 MUSIC_PATH = ROOT / "frontend" / "data" / "music_mapping.json"
+AREA_PATH = ROOT / "frontend" / "data" / "area_moves.json"
 
 _moves: list[dict] | None = None
 
@@ -94,6 +95,7 @@ def routine_info(minutes: int) -> dict:
     """
     routines = json.loads(ROUTINE_PATH.read_text(encoding="utf-8"))
     music = json.loads(MUSIC_PATH.read_text(encoding="utf-8"))
+    area_rules = json.loads(AREA_PATH.read_text(encoding="utf-8"))
     key = str(minutes)
     if key not in routines:
         return {"error": "루틴은 10, 20, 30, 60분만 있어요.", "available_minutes": sorted(int(k) for k in routines)}
@@ -105,14 +107,24 @@ def routine_info(minutes: int) -> dict:
         tracks = []
         for i, mk in enumerate(sec["music_sequence"], 1):
             mu = music[mk]
-            moves = []
-            for no in mu.get("movements", []):
-                m = by_no.get(str(no))
-                if m:
+            rule = area_rules.get(sec["area"], {})
+            if "floor_pool" in rule:
+                # 매트(마루 바닥): 발레 동작이 아니라 몸을 풀고 코어를 쓰는 바닥 운동만. 곡 순서 i → pool[2i], pool[2i+1] (순환)
+                moves = _floor_picks(rule["floor_pool"], i - 1, 2)
+            else:
+                # 곡에 맞춰 둔 동작 중, 이 구간(바/센터)에 어울리는 것만 고른다 (area_moves.json)
+                allowed = rule.get("allowed_terms", "all")
+                cands = [by_no[str(no)] for no in mu.get("movements", []) if str(no) in by_no]
+                if allowed != "all":
+                    cands = [m for m in cands if m["term"] in allowed]
+                    if not cands:   # 이 곡에 어울리는 동작이 없으면 구간별 대체 동작
+                        cands = [m for t in rule.get("fallback", {}).get(mk, []) if (m := find_move(t))]
+                moves = []
+                for m in cands:
                     c = move_card(m)
                     c["description_ko"] = c["description_ko"][:90]
                     moves.append(c)
-            random.shuffle(moves)   # 호출할 때마다 순서를 섞어, 그날 상태에 맞는 동작을 매번 다르게 고를 수 있게 함
+                random.shuffle(moves)   # 호출할 때마다 순서를 섞어, 그날 상태에 맞는 동작을 매번 다르게 고를 수 있게 함
             tracks.append({
                 "order": i,
                 "music_ko": mu["name"],
@@ -127,21 +139,30 @@ def routine_info(minutes: int) -> dict:
             "total_duration": _mmss(sec["total_duration"]),        # 구간 전체 재생 시간(mm:ss)
             "tracks": tracks,
         })
-    extras = _mat_extras(int(key))
-    for sec in sections:
-        if sec["area"] == "매트" and extras:
-            sec["extra_exercises"] = extras["items"]
-            sec["extra_focus"] = extras["focus"]
     return {"routine_minutes": r["duration_min"], "areas": [x["area"] for x in sections], "sections": sections}
 
 
-def _mat_extras(minutes: int) -> dict | None:
-    """매트 구간에 더하는 운동. 10분 루틴 = 이완·스트레칭 위주, 60분 루틴의 매트 20분 = 복근·장요근·척추기립근 강화."""
+def _floor_exercise_cards() -> dict:
+    """exercises.json의 강화 운동·스트레칭을 이름으로 찾기 쉽게 모은다 (매트 운동용)."""
     data = json.loads(EXERCISE_PATH.read_text(encoding="utf-8"))
-    if minutes == 10:
-        return {"focus": "이완·스트레칭 위주(햄스트링 늘리기, 몸을 따뜻하고 부드럽게 풀기)", "items": data["warmup_stretches"]}
-    if minutes == 60:
-        want = {"허리 강화 - 코어 안정화": "복근", "장요근 스트레칭 및 강화": "장요근", "척추기립근 강화 운동": "척추기립근"}
-        items = [{**e, "target": want[e["name"]]} for e in data["exercises"] if e["name"] in want]
-        return {"focus": "복근·장요근·척추기립근 강화 운동을 매트 20분에 포함", "items": items}
-    return None
+    return {e["name"]: e for e in data["exercises"] + data["warmup_stretches"]}
+
+
+def _floor_picks(pool: list[str], track_idx: int, per_track: int = 2) -> list[dict]:
+    cards = _floor_exercise_cards()
+    out = []
+    for k in range(per_track):
+        name = pool[(track_idx * per_track + k) % len(pool)]
+        e = cards.get(name)
+        if not e:
+            continue
+        out.append({
+            "term": name,
+            "korean_name": "",
+            "description_ko": e.get("how_to", "")[:90],
+            "video_url": e.get("video_url"),
+            "search_url": e.get("search_url") or youtube_search_url(name),
+            "equipment": e.get("equipment", ""),
+            "caution": e.get("caution", ""),
+        })
+    return out
