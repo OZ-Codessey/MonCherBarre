@@ -160,8 +160,8 @@ def _floor_picks(pool: list[str], track_idx: int, per_track: int = 2) -> list[di
             "term": name,
             "korean_name": "",
             "description_ko": e.get("how_to", "")[:90],
-            "video_url": e.get("video_url"),
-            "search_url": e.get("search_url") or youtube_search_url(name),
+            "video_url": None,   # 운동 영상은 로열발레단 영상이 아니므로 R이 아니라 지구본 하나로 연결
+            "search_url": e.get("video_url") or e.get("search_url") or youtube_search_url(name),
             "equipment": e.get("equipment", ""),
             "caution": e.get("caution", ""),
         })
