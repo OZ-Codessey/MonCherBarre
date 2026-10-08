@@ -3154,3 +3154,51 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { transform: scale(1
 
 /* 대화 탭 제목([MES CONVERSATIONS])도 사전·즐겨찾기와 같은 높이에서 시작 */
 .conversations-container { padding-top: 18px; }
+
+/* 채팅 링크 아이콘: 지구본 하나, 음영·테두리 없이 글자 한 자 크기 */
+.chat-link, .chat-link.yt, .chat-link.web {
+  width: 1em; height: 1em; border: 0; border-radius: 0; background: none !important; box-shadow: none !important;
+  color: #a98b4f; vertical-align: -0.12em; margin: 0 0 0 0.25em;
+}
+.chat-link svg { width: 100%; height: 100%; }
+.chat-link:hover { scale: 1.2; filter: none; }
+.chat-table td .chat-link { width: 1em; height: 1em; }
+[data-theme="dark"] .chat-link, [data-theme="dark"] .chat-link.web { background: none !important; color: #d6bd8a; border: 0; }
+.chat-link, .chat-link.yt, .chat-link.web { display: inline-block; width: 1.05em; height: 1.05em; line-height: 0; font-size: inherit; padding: 0; vertical-align: -0.17em; }
+.chat-link svg { display: block; width: 100% !important; height: 100% !important; }
+/* 링크 아이콘 색: 모두 분홍 (R = 로열발레단 영상, 지구본 = 검색) */
+.chat-link, .chat-link.yt, .chat-link.web, [data-theme="dark"] .chat-link, [data-theme="dark"] .chat-link.web { color: #c0707f; }
+[data-theme="dark"] .chat-link, [data-theme="dark"] .chat-link.yt, [data-theme="dark"] .chat-link.web { color: #e0a9b3; }
+
+/* 링크 아이콘: 분홍 원 안에 흰 글자(R)·흰 지구본, 두 아이콘은 바짝 붙임 */
+.chat-link, .chat-link.yt, .chat-link.web, [data-theme="dark"] .chat-link, [data-theme="dark"] .chat-link.yt, [data-theme="dark"] .chat-link.web {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.12em; height: 1.12em; border-radius: 50%; padding: 0.14em; box-sizing: border-box;
+  background: linear-gradient(180deg, #e3a1ad, #c0707f) !important; color: #fff !important;
+  box-shadow: none !important; margin: 0 0 0 0.12em; vertical-align: -0.2em;
+}
+.chat-link:first-of-type { margin-left: 0.3em; }
+.chat-link + .chat-link { margin-left: 0.08em; }
+.chat-link.yt svg circle { display: none; }
+.chat-link svg { width: 100% !important; height: 100% !important; }
+.chat-link.yt { padding: 0.04em; }
+.chat-link.yt svg { transform: scale(1.25); }
+.chat-link + .chat-link { margin-left: 0.1em; }
+
+/* 링크 아이콘 최종: 아주 연한 분홍 원을 아이콘(흰색)이 꽉 채우고, 글자 높이와 같게 글자 바로 옆에 붙임 */
+.chat-link, .chat-link.yt, .chat-link.web, [data-theme="dark"] .chat-link, [data-theme="dark"] .chat-link.yt, [data-theme="dark"] .chat-link.web {
+  width: 1em; height: 1em; padding: 0.06em; margin: 0 0 0 0.12em; vertical-align: -0.12em;
+  background: #eab3be !important; color: #fff !important; border-radius: 50%;
+}
+.chat-link + .chat-link { margin-left: 0.06em; }
+.chat-link:first-of-type { margin-left: 0.12em; }
+.chat-link.yt { padding: 0.08em; }
+.chat-link.yt svg { transform: none; }
+.chat-link.yt svg circle { display: none; }
+.chat-link { display: inline-flex !important; align-items: center; justify-content: center; }
+.chat-link svg { display: block; margin: auto; }
+/* 로열발레단 영상(R)은 골드 */
+.chat-link.yt, [data-theme="dark"] .chat-link.yt { background: #dcc48a !important; }
+/* 두 아이콘: 같은 크기·같은 여백, 아이콘 그림의 중심이 원의 중심과 일치 */
+.chat-link, .chat-link.yt, .chat-link.web { width: 1em; height: 1em; padding: 0.1em; box-sizing: border-box; line-height: 1; }
+.chat-link svg, .chat-link.yt svg { width: 100% !important; height: 100% !important; position: static; transform: none; }

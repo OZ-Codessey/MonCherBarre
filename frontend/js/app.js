@@ -203,17 +203,31 @@ Promise.all([loadSummary(), splashMinDelay]).then(() => {
 function renderChatMarkdown(text) {
   const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   // [라벨](https://...) 링크는 작은 버튼으로: 유튜브 영상은 재생(▶), 그 밖의 주소(검색 등)는 지구본(🌐)
+  // R = 로열발레단 영상(사전에 연결된 29개), 지구본 = 웹(유튜브) 링크. 사전 영상 주소 목록으로 구분한다.
+  const royal = (u) => (typeof movesData !== "undefined" && Array.isArray(movesData)) && movesData.some(m => m.video_url && m.video_url === u);
   const linkBtn = (label, url) => {
-    const yt = /^https?:\/\/(www\.|m\.)?(youtube\.com\/watch|youtu\.be\/)/.test(url);
-    const ico = yt
-      ? '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg>'
-      : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>';
-    return `<a class="chat-link ${yt ? "yt" : "web"}" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="${label}" title="${yt ? "영상 보기" : "웹에서 찾기"}">${ico}</a>`;
+    const r = royal(url);
+    const ico = r
+      ? '<svg viewBox="6.1 5.8 11.2 12.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.2 17.2V6.8h3.6a2.9 2.9 0 0 1 0 5.8H8.2M11.6 12.6l3.6 4.6"/></svg>'
+      : '<svg viewBox="1.9 1.9 20.2 20.2" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>';
+    return `<a class="chat-link ${r ? "yt" : "web"}" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="${label}" title="${r ? "로열발레단 영상" : "웹에서 찾기"}">${ico}</a>`;
   };
   const inline = (t) => esc(t)
     .replace(/&lt;br\s*\/?&gt;/gi, "<br>")   // GPT가 표 칸 안에 넣은 줄바꿈 태그만 줄바꿈으로 (그 밖의 HTML은 그대로 이스케이프)
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => linkBtn(label, url))
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  // 표 칸: 동작마다 한 줄씩 적고, 그 동작의 링크는 지구본 아이콘 하나로 합친다(영상이 있으면 영상 주소로 연결)
+  const cellHtml = (c) => {
+    if (!/\]\(https?:/.test(c)) return inline(c);
+    return c.split(/\)\s*,\s*/).map((part, k, arr) => {
+      const t = k < arr.length - 1 ? part + ")" : part;
+      const links = [...t.matchAll(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g)].map(m => m[2]);
+      const name = t.replace(/\[[^\]]+\]\(https?:\/\/[^\s)]+\)/g, "").trim();
+      const vid = links.find(u => royal(u));
+      const web = links.find(u => u !== vid) || (vid ? null : links[0]);
+      return links.length ? `${esc(name)}${vid ? " " + linkBtn("영상", vid) : ""}${web ? (vid ? "" : " ") + linkBtn("검색", web) : ""}` : inline(t);
+    }).join("<br>");
+  };
   const lines = text.split("\n");
   let html = "";
   let i = 0;
@@ -231,7 +245,7 @@ function renderChatMarkdown(text) {
       const vi = head.findIndex(c => c.trim() === "영상");
       html += '<div class="chat-table-wrap"><table class="chat-table"><thead><tr>' +
         head.map((c, i) => `<th${i === vi ? ' class="col-video"' : ""}>${inline(c)}</th>`).join("") + "</tr></thead><tbody>" +
-        body.map(r => "<tr>" + r.map((c, i) => `<td${i === vi ? ' class="col-video"' : ""}>${inline(c)}</td>`).join("") + "</tr>").join("") +
+        body.map(r => "<tr>" + r.map((c, i) => `<td${i === vi ? ' class="col-video"' : ""}>${cellHtml(c)}</td>`).join("") + "</tr>").join("") +
         "</tbody></table></div>";
       continue;
     }
