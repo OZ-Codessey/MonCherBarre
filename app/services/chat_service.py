@@ -4,7 +4,7 @@ from openai import OpenAI
 
 from app.core.config import OPENAI_MODEL
 from app.schemas.chat import ChatRequest
-from app.services import conversation_service, data_service, memory_service, tool_schemas
+from app.services import conversation_service, data_service, memory_service, rag_tools, tool_schemas
 
 _client = OpenAI()
 
@@ -62,13 +62,13 @@ def _build_system_prompt(mem: dict | None = None) -> str:
         "(11) 루틴 요청('N분 루틴 시작해요', '20분 루틴 알려줘' 등)에는 반드시 먼저 get_routine 도구로 사용자가 만든 루틴 구성을 확인하고, "
         "**요청된 그 N분 루틴 하나에 대해서만** 답하세요. 10·20·30·60분을 나열하거나 다른 길이 루틴을 설명하지 마세요. "
         "도구 결과에 없는 구간(예: 10분 루틴의 바·센터)은 절대 설명하지 마세요. "
-        "1단계: 도구 결과의 구간·곡을 **재생기와 똑같이** 순서대로 표로 보여주세요(| 구간 | 곡 | 시간 | 동작(한글) | 영상 |). "
+        "1단계: 도구 결과의 구간·곡을 **재생기와 똑같이** 순서대로 표로 보여주세요(| 구간 | 곡 | 시간 | 동작과 영상 |). 동작 이름 바로 뒤에 그 동작의 [영상]/[검색] 링크를 붙이고 동작은 쉼표로 구분하세요(칸 안에 <br> 같은 HTML 태그는 쓰지 마세요). "
         "시간 열에는 곡의 duration(mm:ss)을 그대로 쓰세요. 반올림·재계산·임의 변경 금지(재생기에 표시되는 시간과 같아야 합니다). "
         "동작 열에는 그 곡의 matched_moves(재생기에 명시된 동작) 안에서만, 오늘 상태(통증·피로·최근 연습량)에 맞는 것을 곡마다 2~4개 골라 쓰세요. "
         "matched_moves에 없는 동작을 지어내거나 추가하지 마세요. "
         "2단계: 그 아래에 사용자 상황(메모의 통증·최근 연습량·이전 추천·자주 찾은 용어)에 맞춘 주의점, 강도 조절, 대체 동작, 오늘 집중할 동작을 덧붙이세요. "
         "곡과 동작 구성 자체는 바꾸지 말고, 강조점과 주의점을 오늘 상황에 맞게 다르게 제안하세요. "
-        "(12) 추천하는 동작에는 영상 열을 두세요. 도구 결과(get_routine의 matched_moves, get_move_links 등)의 video_url이 있으면 [영상](url), "
+        "(12) 추천하는 동작에는 영상 링크를 붙이세요(루틴 표는 위 형식, 그 밖의 표는 영상 열). 도구 결과(get_routine의 matched_moves, get_move_links 등)의 video_url이 있으면 [영상](url), "
         "그리고 모든 동작에 search_url을 [검색](url) 형태로 함께 넣으세요(영상이 있어도 검색 링크는 항상 넣기). 주소를 지어내지 마세요. "
         "get_routine 결과의 matched_moves에는 video_url·search_url이 이미 들어 있으니 루틴 답변에서는 get_move_links를 다시 부르지 마세요. "
         "(13) 사용자가 자신의 상태(아픈 부위, 컨디션, 일정 변경, 기억해 달라는 말)를 말하면 save_note 도구로 한 줄 저장하세요. "
@@ -131,7 +131,11 @@ def send_message(req: ChatRequest) -> dict:
     messages += [{"role": m["role"], "content": m["content"]} for m in history[-HISTORY_LIMIT:]]
     messages.append({"role": "user", "content": req.message})
 
-    reply = _call_with_tools(messages, mem)
+    token = rag_tools.client_weather.set(req.weather)   # 브라우저가 보낸 날씨(있으면)를 이 요청의 날씨 도구가 사용
+    try:
+        reply = _call_with_tools(messages, mem)
+    finally:
+        rag_tools.client_weather.reset(token)
 
     # 답변이 성공한 뒤에만 기억을 이어 붙이고(활동 합치기 포함) 1번 저장한다
     memory_service.merge_activity(mem, req.activity)
