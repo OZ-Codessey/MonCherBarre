@@ -211,6 +211,7 @@ function renderChatMarkdown(text) {
     return `<a class="chat-link ${yt ? "yt" : "web"}" href="${url}" target="_blank" rel="noopener noreferrer" aria-label="${label}" title="${yt ? "영상 보기" : "웹에서 찾기"}">${ico}</a>`;
   };
   const inline = (t) => esc(t)
+    .replace(/&lt;br\s*\/?&gt;/gi, "<br>")   // GPT가 표 칸 안에 넣은 줄바꿈 태그만 줄바꿈으로 (그 밖의 HTML은 그대로 이스케이프)
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => linkBtn(label, url))
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   const lines = text.split("\n");
@@ -327,7 +328,7 @@ async function sendMessage(message) {
     const res = await fetch(`${API_BASE_URL}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, conversation_id: currentConvId, activity: buildActivity() }),
+      body: JSON.stringify({ message, conversation_id: currentConvId, activity: buildActivity(), weather: weatherSnapshot }),
     });
     if (!res.ok) throw new Error(`status ${res.status}`);
     const data = await res.json();
@@ -1837,7 +1838,7 @@ document.addEventListener('keydown', (e) => {
 // ============================================================================
 // 서울 날씨 칩 (Open-Meteo: 키·서버·DB 없이 브라우저에서 바로 조회, 10분마다 자동 갱신)
 // ============================================================================
-const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true&daily=precipitation_probability_max,precipitation_sum&timezone=Asia%2FSeoul&forecast_days=1";
+const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.9780&current_weather=true&daily=precipitation_probability_max,precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul&forecast_days=1";
 
 const W_SVG = (d) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const W_ICONS = {
@@ -1864,6 +1865,36 @@ function describeWeather(code, isDay, windKmh) {
   return ["Cloudy", "cloud"];
 }
 
+// 날씨 칩이 받은 값을 채팅 요청에 함께 보낸다: 서버가 날씨 서비스에 닿지 못해도(서버 IP 제한 등) 채팅이 날씨를 답할 수 있다.
+let weatherSnapshot = null;
+function wmoKo(code) {
+  if (code === 0 || code === 1) return "맑음";
+  if (code === 2) return "구름 조금";
+  if (code === 3) return "흐림";
+  if (code === 45 || code === 48) return "안개";
+  if (code >= 51 && code <= 57) return "이슬비";
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return "비";
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "눈";
+  if (code >= 95) return "뇌우";
+  return "흐림";
+}
+function keepWeatherSnapshot(j) {
+  try {
+    const w = j.current_weather, d = j.daily || {};
+    const rainy = (w.weathercode >= 51 && w.weathercode <= 67) || (w.weathercode >= 80 && w.weathercode <= 82) || w.weathercode >= 95;
+    const snowy = (w.weathercode >= 71 && w.weathercode <= 77) || w.weathercode === 85 || w.weathercode === 86;
+    weatherSnapshot = {
+      condition: wmoKo(w.weathercode), temperature_c: w.temperature, windspeed_kmh: w.windspeed,
+      raining_now: rainy, snowing_now: snowy,
+      today_rain_probability_pct: d.precipitation_probability_max ? d.precipitation_probability_max[0] : null,
+      today_precipitation_mm: d.precipitation_sum ? d.precipitation_sum[0] : null,
+      today_high_c: d.temperature_2m_max ? d.temperature_2m_max[0] : null,
+      today_low_c: d.temperature_2m_min ? d.temperature_2m_min[0] : null,
+      fetched_at: Date.now(),
+    };
+  } catch (e) { weatherSnapshot = null; }
+}
+
 async function loadWeather() {
   const chip = document.getElementById("weatherChip");
   if (!chip) return;
@@ -1872,6 +1903,7 @@ async function loadWeather() {
     if (!res.ok) throw new Error(res.status);
     const j = await res.json();
     const w = j.current_weather;
+    keepWeatherSnapshot(j);
     const [label, icon] = describeWeather(w.weathercode, w.is_day === 1, w.windspeed);
     // 비·눈 정보: 지금 비/눈이면 라벨(Rain/Snow)과 아이콘으로, 오늘 강수확률이 20% 이상이면 숫자도 함께 표시
     const pop = j.daily && j.daily.precipitation_probability_max ? j.daily.precipitation_probability_max[0] : null;

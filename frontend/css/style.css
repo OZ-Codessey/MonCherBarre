@@ -3092,3 +3092,18 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { transform: scale(1
   #chat-section.active .chat-card { padding-bottom: 0; }
 }
 .chat-table { min-width: 400px; }
+
+/* ============================================================================
+   채팅 글자 크기: 이전의 80% (더 많은 글을 한 화면에 담음). 제목·입력창은 그대로
+   ============================================================================ */
+.msg { font-size: clamp(0.72rem, 1.24vw, 0.78rem); }
+.chat-table { font-size: clamp(0.66rem, 1.12vw, 0.72rem); }
+.chat-table th, .chat-table td { padding: 7px 10px; }
+.chat-num { gap: 8px; }
+.chat-num-no { transform: scale(0.85); transform-origin: left center; }
+
+/* --- 발레 사전: 즐겨찾기 탭과 같은 높이에서 시작하고, 카드 안 제목([용어 검색])은 위에 가운데로 --- */
+#dictionary-section .dictionary-container { padding-top: 18px; }
+.dictionary-filter-card { display: block; }
+.dictionary-filter-card > .card-label { display: block; width: 100%; margin: 0 0 12px; text-align: center; }
+.dictionary-filter-card { display: flex; align-items: center; justify-content: center; }
