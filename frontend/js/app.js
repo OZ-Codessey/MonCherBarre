@@ -227,9 +227,11 @@ function renderChatMarkdown(text) {
       }
       const body = rows.filter(r => !r.every(c => /^:?-{2,}:?$/.test(c)));
       const head = body.shift();
+      // 머리글이 '영상'인 칸만 링크 버튼이 한 줄로 나란히 보이도록 표시한다
+      const vi = head.findIndex(c => c.trim() === "영상");
       html += '<div class="chat-table-wrap"><table class="chat-table"><thead><tr>' +
-        head.map(c => `<th>${inline(c)}</th>`).join("") + "</tr></thead><tbody>" +
-        body.map(r => "<tr>" + r.map(c => `<td>${inline(c)}</td>`).join("") + "</tr>").join("") +
+        head.map((c, i) => `<th${i === vi ? ' class="col-video"' : ""}>${inline(c)}</th>`).join("") + "</tr></thead><tbody>" +
+        body.map(r => "<tr>" + r.map((c, i) => `<td${i === vi ? ' class="col-video"' : ""}>${inline(c)}</td>`).join("") + "</tr>").join("") +
         "</tbody></table></div>";
       continue;
     }
@@ -1382,7 +1384,27 @@ let currentRoutine = {
 };
 
 // --- 루틴 데이터 로드 (캐싱) ---
+// 루틴 구간(매트/바/센터)별로 어울리는 동작만 보여 준다. 채팅(get_routine)도 같은 규칙 파일(area_moves.json)을 쓴다.
+let areaRules = null;
+async function loadAreaRules() {
+  try { areaRules = await (await fetch('data/area_moves.json')).json(); } catch (e) { areaRules = null; }
+}
+function movesForArea(area, musicKey, nos, trackIdx = 0) {
+  const rule = areaRules && areaRules[area];
+  // 매트(마루 바닥)는 발레 동작이 아니라 몸을 풀고 코어를 쓰는 바닥 운동만: 곡 순서 i → pool[2i], pool[2i+1] (채팅과 같은 규칙)
+  if (rule && rule.floor_pool) {
+    const pool = rule.floor_pool, labels = rule.labels || {};
+    return [0, 1].map(k => pool[(trackIdx * 2 + k) % pool.length]).map(n => ({ term: labels[n] || n }));
+  }
+  const all = nos.map(no => movesData.find(m => m.no === no)).filter(Boolean);
+  if (!rule || rule.allowed_terms === 'all') return all;
+  let ok = all.filter(m => rule.allowed_terms.includes(m.term));
+  if (!ok.length) ok = ((rule.fallback || {})[musicKey] || []).map(t => movesData.find(m => m.term === t)).filter(Boolean);
+  return ok;
+}
+
 async function loadRoutineDataset() {
+  await loadAreaRules();
   try {
     // localStorage에서 확인
     const cached = localStorage.getItem('routineDataset_v3');
@@ -1596,9 +1618,8 @@ async function playCurrent() {
   currentTrackSeconds = musicInfo.duration_sec || 0;
   document.getElementById('timeTotal').textContent = fmtTime(currentTrackSeconds);
   document.getElementById('nowPlayingMusic').textContent = musicInfo.name_fr;
-  document.getElementById('nowPlayingMovements').textContent = musicInfo.movements
-    .map(no => movesData.find(m => m.no === no)?.term)
-    .filter(Boolean).slice(0, 4).join(' · ');
+  document.getElementById('nowPlayingMovements').textContent = movesForArea(section.area, musicName, musicInfo.movements, musicIndex)
+    .map(m => m.term).slice(0, 4).join(' · ');
   updateMusicList();
   updateMediaSession(musicInfo.name_fr, AREA_FR[section.area] || section.area);
 

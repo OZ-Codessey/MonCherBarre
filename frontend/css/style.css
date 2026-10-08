@@ -3107,3 +3107,50 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { transform: scale(1
 .dictionary-filter-card { display: block; }
 .dictionary-filter-card > .card-label { display: block; width: 100%; margin: 0 0 12px; text-align: center; }
 .dictionary-filter-card { display: flex; align-items: center; justify-content: center; }
+
+/* 채팅 표: 링크만 있는 '영상' 칸만 한 줄로 고정하고, 나머지 칸(동작과 영상 등)은 글이 잘리지 않게 줄바꿈 */
+.chat-table td:last-child, .chat-table th:last-child { white-space: normal; min-width: 0; text-align: left; }
+.chat-table td.col-video, .chat-table th.col-video { white-space: nowrap; min-width: 84px; text-align: center; }
+
+/* 웹(마우스) 화면: 창이 넓어지면 내용도 함께 넓어진다. 터치(iPad)는 그대로 둠 */
+@media (min-width: 1100px) and (hover: hover) and (pointer: fine) {
+  .container, .layout { max-width: min(96vw, 1760px); }
+  /* 헤더 배경은 화면 전체 폭을 유지하고, 안쪽 내용만 본문과 같은 좌우 위치에 맞춘다 */
+  .topbar { padding-left: calc((100vw - min(96vw, 1760px)) / 2 + clamp(16px, 3vw, 36px)); padding-right: calc((100vw - min(96vw, 1760px)) / 2 + clamp(16px, 3vw, 36px)); }
+  .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(24px, 2.4vw, 44px); }
+}
+
+/* ============================================================================
+   채팅 표: 표가 들어 있는 칸의 폭에 맞춰 글자·여백·링크 버튼이 함께 커지고 줄어든다 (작은 화면에서도 가로 스크롤 없이 들어옴)
+   ============================================================================ */
+.chat-table-wrap { container-type: inline-size; overflow-x: auto; }
+.chat-table { min-width: 0; width: 100%; table-layout: auto; font-size: clamp(0.5rem, 2.55cqw, 0.74rem); }
+.chat-table th, .chat-table td { padding: clamp(3px, 1.2cqw, 8px) clamp(4px, 1.7cqw, 12px); }
+.chat-table td .chat-link { width: clamp(15px, 3.8cqw, 24px); height: clamp(15px, 3.8cqw, 24px); }
+.chat-table td .chat-link svg { width: 60%; height: 60%; }
+.chat-table td.col-video, .chat-table th.col-video { min-width: 0; }
+.msg.assistant.has-table { width: 100%; }
+
+/* 재생 컨트롤: 아주 좁은 화면에서도 한 줄에 들어오도록 버튼 크기가 화면 폭에 맞춰 줄어든다 (iPad 크기에서는 그대로 최대 크기) */
+.player-controls { gap: clamp(4px, 1.6vw, 12px); }
+.player-controls .btn-icon { width: clamp(34px, 10.5vw, 56px); height: clamp(34px, 10.5vw, 56px); min-width: 0; padding: 0; }
+.player-controls .btn-play { width: clamp(68px, 22vw, 120px); min-width: 0; }
+/* 좁은 화면(세로): 한 칸이 안쪽 내용 때문에 화면보다 넓어지지 않도록 칸 폭을 화면에 고정 */
+@media (max-width: 899px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .col, .card { min-width: 0; }
+}
+
+/* ============================================================================
+   카드 제목([기록 추가]·[검색]·[기록 목록]·[연습 통계]): 크기·굵기·자간을 하나로 맞추고, 버튼과 같은 분홍색으로
+   ============================================================================ */
+.card-label, .data-top-grid .card-label {
+  font-size: clamp(0.72rem, 1.35vw, 0.84rem) !important; font-weight: 600 !important;
+  letter-spacing: 0.26em; text-indent: 0.26em; color: #b9707f !important;
+}
+.card-label::before, .card-label::after { color: rgba(185,112,127, 0.55) !important; }
+[data-theme="dark"] .card-label { color: #e0a9b3 !important; }
+[data-theme="dark"] .card-label::before, [data-theme="dark"] .card-label::after { color: rgba(224,169,179, 0.55) !important; }
+
+/* 대화 탭 제목([MES CONVERSATIONS])도 사전·즐겨찾기와 같은 높이에서 시작 */
+.conversations-container { padding-top: 18px; }
