@@ -341,7 +341,15 @@ async function syncConvAfterChat(message, reply, convId, wasNewRoom) {
   } catch (e) { /* 보관함 반영 실패는 무시: 다음 조회 때 서버에서 읽음 */ }
 }
 
-async function sendMessage(message) {
+const CHAT_MAX_LENGTH = 2000;                         // 서버(app/schemas/chat.py)의 max_length와 같은 값
+
+async function sendMessage(message, { restoreOnFail = false } = {}) {
+  // 서버에 보내기 전에 먼저 확인: 너무 길면 요청 없이 바로 안내하고, 쓰던 글은 입력창에 돌려 둔다
+  if (message.length > CHAT_MAX_LENGTH) {
+    appendMessage(`질문은 ${CHAT_MAX_LENGTH}자까지 입력할 수 있어요. 지금은 ${message.length}자예요. 조금 줄여서 다시 보내주세요.`, "assistant");
+    if (restoreOnFail) restoreChatInput(message);
+    return;
+  }
   appendMessage(message, "user");
   setLoading(true);
   const startedAt = Date.now();
@@ -351,7 +359,11 @@ async function sendMessage(message) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message, conversation_id: currentConvId, activity: buildActivity(), weather: weatherSnapshot }),
     });
-    if (!res.ok) throw new Error(`status ${res.status}`);
+    if (!res.ok) {
+      const err = new Error(`status ${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
     const data = await res.json();
     const wasNewRoom = !currentConvId;
     currentConvId = data.conversation_id;
@@ -359,7 +371,13 @@ async function sendMessage(message) {
     appendMessage(data.reply, "assistant");
     syncConvAfterChat(message, data.reply, data.conversation_id, wasNewRoom);
   } catch (err) {
-    appendMessage("답변을 받지 못했어요. 다시 시도해주세요.", "assistant");
+    // 422 = 서버가 질문 형식(1~2000자)을 거절한 경우. 다시 보내도 같은 결과라서 이유를 알려준다
+    if (err && err.status === 422) {
+      appendMessage(`질문은 1자 이상 ${CHAT_MAX_LENGTH}자 이하로 입력해주세요.`, "assistant");
+    } else {
+      appendMessage("답변을 받지 못했어요. 다시 시도해주세요.", "assistant");
+    }
+    if (restoreOnFail) restoreChatInput(message);     // 실패하면 쓰던 글을 입력창에 되돌려 놓는다
   } finally {
     // 서버가 너무 빨리 실패해도 "처리 중" 표시가 눈에 보이도록 최소 0.8초는 유지
     const wait = Math.max(0, 800 - (Date.now() - startedAt));
@@ -381,8 +399,14 @@ document.getElementById("chatForm").addEventListener("submit", (e) => {
     return;
   }
   input.value = "";
-  sendMessage(message);
+  sendMessage(message, { restoreOnFail: true });
 });
+
+// 전송에 실패했을 때 쓰던 글을 입력창에 되돌린다 (사용자가 그 사이 새로 쓴 내용이 있으면 건드리지 않음)
+function restoreChatInput(message) {
+  const input = document.getElementById("chatInput");
+  if (input && !input.value) input.value = message;
+}
 
 // 루틴 버튼: 재생기(initRoutineChips)와 함께 채팅에도 "N분 루틴 시작해요"를 보내 그날의 동작을 추천받는다
 document.querySelectorAll(".routine-chip").forEach((btn) => {
