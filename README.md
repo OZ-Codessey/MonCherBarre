@@ -611,7 +611,7 @@ python scripts/mcp_weather_check.py   # 서버 연결 → 도구 4개 → 날씨
 
 | 항목 | 내용 |
 |:---|:---|
-| Render 콜드 스타트 | 무료 플랜은 잠들었다 깨는 첫 요청이 최대 1분 걸림 (화면 안내 문구 제공)- UptimeRobot으로대응 ![UptimeRobot](./records/readme/16_uptimerobot_monitor.png) |
+| Render 콜드 스타트 | 무료 플랜은 잠들었다 깨는 첫 요청이 최대 1분 걸림 (화면 안내 문구 제공)- UptimeRobot 으로 대응 ![UptimeRobot](./records/readme/16_uptimerobot_monitor.png) |
 | 날씨 서비스 | Open-Meteo가 가끔 503을 내므로 재시도 → wttr.in 대체 → 브라우저가 받아 둔 값 순으로 사용 |
 | 용어 의미 검색 | 사전 설명이 방향·위치 중심이라 묘사가 모호하면 정확한 용어가 1위가 아닐 수 있어, 후보 6개를 GPT가 설명을 보고 고름 |
 | 강화 운동·스트레칭 안내 | 일반적인 내용이며 의료 조언이 아님 |
