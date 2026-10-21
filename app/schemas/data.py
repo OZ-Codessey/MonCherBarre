@@ -3,21 +3,21 @@
 from datetime import date as date_type
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # POST /api/data 요청 바디의 규칙 — date/value는 필수, memo는 없어도 됨(기본값 None)
 class DataCreate(BaseModel):
     date: date_type
-    value: float
-    memo: Optional[str] = None
+    value: float = Field(ge=0, le=1440)            # 하루 연습 시간(분): 0~1440 밖의 값은 422
+    memo: Optional[str] = Field(default=None, max_length=200)   # 메모는 200자까지
 
 
 # PUT /api/data/{id} 요청 바디의 규칙 — 전부 선택값(보내는 필드만 수정)
 class DataUpdate(BaseModel):
     date: Optional[date_type] = None
-    value: Optional[float] = None
-    memo: Optional[str] = None
+    value: Optional[float] = Field(default=None, ge=0, le=1440)
+    memo: Optional[str] = Field(default=None, max_length=200)
 
 
 # 응답으로 내려줄 때의 모양 — Firestore 문서 id를 포함해서 돌려준다

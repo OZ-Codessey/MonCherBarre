@@ -9,6 +9,11 @@ if (window.Chart) Chart.defaults.font.family = '"Jost", "Pretendard Variable", P
 
 const API_BASE_URL = window.API_BASE_URL || "https://moncherbarre.onrender.com";
 
+// 사용자가 입력한 글(메모·대화 제목)을 화면 HTML에 넣기 전에 반드시 거치는 이스케이프: < > & " ' 를 글자로 바꿔 태그·스크립트로 실행되지 않게 한다
+function escHtml(v) {
+  return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 // ============================================================================
 // 읽어 온 기간을 쌓아 두는 저장소: 한 번 읽은 기간은 브라우저에 보관하고 다시 읽지 않는다.
 // 새로 필요한 기간(아직 안 읽은 부분)만 서버에 요청하므로 Firestore 읽기가 그만큼만 발생한다.
@@ -493,14 +498,14 @@ function renderDataList() {
   const toShow = showAll ? filteredItems : filteredItems.slice(0, SHOW_LIMIT);
 
   container.innerHTML = toShow.map((item) => `
-    <div class="data-item" id="item-${item.id}">
+    <div class="data-item" id="item-${escHtml(item.id)}">
       <div class="data-item-info">
-        <div class="data-item-date">${item.date} · ${item.value}분</div>
+        <div class="data-item-date">${escHtml(item.date)} · ${escHtml(item.value)}분</div>
         <div class="data-item-meta">${item.memo ? highlightMatch(item.memo, searchWord) : "메모 없음"}</div>
       </div>
       <div class="data-item-actions">
-        <button class="btn-small btn-edit" onclick="showEditForm('${item.id}','${item.date}',${item.value},'${item.memo || ""}')">수정</button>
-        <button class="btn-small btn-delete" onclick="deleteData('${item.id}')">삭제</button>
+        <button class="btn-small btn-edit" data-id="${escHtml(item.id)}" data-date="${escHtml(item.date)}" data-value="${escHtml(item.value)}" data-memo="${escHtml(item.memo || "")}" onclick="showEditForm(this.dataset.id, this.dataset.date, Number(this.dataset.value), this.dataset.memo)">수정</button>
+        <button class="btn-small btn-delete" data-id="${escHtml(item.id)}" onclick="deleteData(this.dataset.id)">삭제</button>
       </div>
     </div>
   `).join("");
@@ -591,10 +596,10 @@ function showEditForm(id, date, value, memo) {
   // date 포맷 보장: YYYY-MM-DD (2자리 월일)
   const dateStr = date.includes('-') ? date : new Date(date).toISOString().split('T')[0];
   row.innerHTML = `
-    <form class="edit-inline" onsubmit="updateData(event,'${id}')">
-      <input type="date" class="edit-date" value="${dateStr}" required />
-      <input type="number" class="edit-value" value="${value}" min="0" max="300" required />
-      <input type="text" class="edit-memo" value="${memo}" placeholder="메모" />
+    <form class="edit-inline" data-id="${escHtml(id)}" onsubmit="updateData(event,this.dataset.id)">
+      <input type="date" class="edit-date" value="${escHtml(dateStr)}" required />
+      <input type="number" class="edit-value" value="${escHtml(value)}" min="0" max="1440" required />
+      <input type="text" class="edit-memo" value="${escHtml(memo)}" maxlength="200" placeholder="메모" />
       <div class="edit-actions">
         <button type="submit" class="btn-small btn-edit">저장</button>
         <button type="button" class="btn-small" onclick="loadDataList()">취소</button>
@@ -847,12 +852,12 @@ function renderConversations() {
     return `
     <div class="conversation-item">
       <div class="conversation-item-info">
-        <div class="conversation-item-title">${kw ? highlightMatch(c.title || "", convKeyword) : c.title}</div>
+        <div class="conversation-item-title">${kw ? highlightMatch(c.title || "", convKeyword) : escHtml(c.title)}</div>
         <div class="data-item-meta">${(c.updated_at || "").slice(0, 10)} · ${(c.messages || []).length}개 메시지</div>
         ${snippet}
       </div>
       <div class="conversation-item-actions">
-        <button class="btn-small btn-load" onclick="loadConversation('${c.id}', '${(c.title || "").replace(/'/g, "\\'").replace(/"/g, '\\"')}')">불러오기</button>
+        <button class="btn-small btn-load" data-id="${escHtml(c.id)}" data-title="${escHtml(c.title || "")}" onclick="loadConversation(this.dataset.id, this.dataset.title)">불러오기</button>
       </div>
     </div>`;
   }).join("");

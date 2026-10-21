@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Message(BaseModel):
@@ -16,4 +16,4 @@ class ConversationOut(BaseModel):
 
 
 class ConversationCreate(BaseModel):
-    title: Optional[str] = "새 대화"
+    title: Optional[str] = Field(default="새 대화", max_length=100)
