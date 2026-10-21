@@ -1,0 +1,44 @@
+{
+  "plie_rond": {
+    "name": "플리·원 그리기",
+    "meter": "3/4",
+    "duration_sec": 240,
+    "file": "/music/plie_rond.mp3"
+  },
+  "tendu_degage": {
+    "name": "탱뒤·데가제",
+    "meter": "2/4",
+    "duration_sec": 180,
+    "file": "/music/tendu_degage.mp3"
+  },
+  "adagio": {
+    "name": "아다지오",
+    "meter": "4/4",
+    "duration_sec": 240,
+    "file": "/music/adagio.mp3"
+  },
+  "frappe_allegro": {
+    "name": "프라페·쁘띠 알레그로",
+    "meter": "2/4",
+    "duration_sec": 120,
+    "file": "/music/frappe_allegro.mp3"
+  },
+  "grand": {
+    "name": "그랑 계열",
+    "meter": "3/4",
+    "duration_sec": 167,
+    "file": "/music/grand.mp3"
+  },
+  "turns": {
+    "name": "턴 왈츠",
+    "meter": "3/4",
+    "duration_sec": 240,
+    "file": "/music/turns.mp3"
+  },
+  "waltz_general": {
+    "name": "3박자 범용(마주르카·폴로네즈 등)",
+    "meter": "3/4",
+    "duration_sec": 240,
+    "file": "/music/waltz_general.mp3"
+  }
+}
