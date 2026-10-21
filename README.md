@@ -14,27 +14,7 @@
 ---
 <br>
 
-## 목차
-1. [Introduction](#introduction)
-2. [미션 요구사항 충족 체크표](#-미션-요구사항-충족-체크표)
-3. [평가 항목 대응표](#-평가-항목-대응표)
-4. [Tech Stack](#tech-stack)
-5. [Deployment URLs](#deployment-urls)
-6. [제출 스크린샷](#-제출-스크린샷)
-7. [Architecture](#architecture)
-8. [AI 기술 적용 지도 (RAG · Function Calling · MCP)](#-ai-기술-적용-지도-rag--function-calling--mcp)
-9. [보너스 과제 충족표](#-보너스-과제-충족표)
-10. [Swagger UI 기능 테스트 가이드](#-swagger-ui-기능-테스트-가이드)
-11. [나를 아는 비서: 맞춤 답변 설계](#-나를-아는-비서-맞춤-답변-설계)
-12. [Firestore 읽기 절감 설계](#-firestore-읽기-절감-설계)
-13. [iPad 최적화](#-ipad-최적화)
-14. [API 목록 · Firestore 컬렉션](#api-목록--firestore-컬렉션)
-15. [Environment Setup · Variables · How to Run · Deployment](#-environment-setup)
-16. [Directory Structure](#directory-structure)
-17. [알려진 제한](#알려진-제한)
-18. [Development Timeline · Commit Log](#development-timeline)
 
-<br>
 
 ## Introduction
 
@@ -48,11 +28,6 @@
 
 - **iPad 우선**: 가로 화면모드에서, 왼쪽(대표 사진·루틴 재생기)과 오른쪽(채팅)이 **각각 스크롤**, 세로 화면 모드는 입력창을 화면 아래에 고정. 터치·홈 화면 앱·잠금 화면 음악 컨트롤을 지원합니다.
 - **무료 한도 안에서 운영**: Firestore 무료 읽기 한도(하루 5만 건)를 넘지 않도록 읽기를 최소화 설계 ([설계](#-firestore-읽기-절감-설계))  
-
-
-
-
-
 
 ---
 <br>
